@@ -1,13 +1,12 @@
 import { motion } from "motion/react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
-import { journalPosts } from "../data/content";
 import { translations } from "../i18n/translations";
 import { ArrowLeft } from "lucide-react";
 
 export function JournalPost() {
   const { id } = useParams<{ id: string }>();
-  const { language } = useAppContext();
+  const { language, journalPosts } = useAppContext();
   const t = translations[language];
 
   const post = journalPosts.find(p => p.id === id);

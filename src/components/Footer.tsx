@@ -6,7 +6,7 @@ import { translations } from "../i18n/translations";
 import { Send, CheckCircle2 } from "lucide-react";
 
 export function Footer() {
-  const { language, subscribeNewsletter } = useAppContext();
+  const { language, subscribeNewsletter, settings } = useAppContext();
   const t = translations[language];
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -21,6 +21,12 @@ export function Footer() {
     }
   };
 
+  const title = settings.footerTitle || t.footer.title;
+  const cta = settings.footerCta || t.footer.cta;
+  const phone = settings.phone || '+212 5XX XX XX XX';
+  const emailContact = settings.contactEmail || 'contact@casaprivilege.com';
+  const socialLinks = settings.socialLinks || { instagram: '#', facebook: '#', linkedin: '#' };
+
   return (
     <footer className="pt-32 pb-12 px-6 bg-brand-black text-white">
       <div className="max-w-[1400px] mx-auto">
@@ -31,9 +37,9 @@ export function Footer() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="text-4xl md:text-6xl lg:text-7xl font-serif leading-tight"
+              className="text-4xl md:text-6xl lg:text-7xl font-serif leading-tight whitespace-pre-line"
             >
-              {t.footer.title}
+              {title}
             </motion.h2>
             
             <motion.div
@@ -46,7 +52,7 @@ export function Footer() {
                 to="/contact"
                 className="inline-block px-10 py-5 bg-transparent border border-white/30 text-white hover:bg-brand-gold hover:border-brand-gold hover:text-brand-black transition-all duration-500 uppercase tracking-[0.2em] text-sm font-medium"
               >
-                {t.footer.cta}
+                {cta}
               </Link>
             </motion.div>
           </div>
@@ -88,14 +94,15 @@ export function Footer() {
             <div className="grid grid-cols-2 gap-12 pt-12 border-t border-white/10">
               <div className="space-y-4">
                 <h4 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold">Contact</h4>
-                <p className="text-xs tracking-widest text-white/60">+212 5XX XX XX XX</p>
-                <p className="text-xs tracking-widest text-white/60">contact@casaprivilege.com</p>
+                <p className="text-xs tracking-widest text-white/60">{phone}</p>
+                <p className="text-xs tracking-widest text-white/60">{emailContact}</p>
               </div>
               <div className="space-y-4">
                 <h4 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold">Social</h4>
                 <div className="flex gap-6">
-                  <a href="#" className="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">Instagram</a>
-                  <a href="#" className="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">LinkedIn</a>
+                  {socialLinks.instagram && <a href={socialLinks.instagram} className="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">Instagram</a>}
+                  {socialLinks.linkedin && <a href={socialLinks.linkedin} className="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">LinkedIn</a>}
+                  {socialLinks.facebook && <a href={socialLinks.facebook} className="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">Facebook</a>}
                 </div>
               </div>
             </div>
@@ -103,7 +110,7 @@ export function Footer() {
         </div>
 
         <div className="w-full flex flex-col md:flex-row justify-between items-center text-white/20 text-[10px] font-light tracking-[0.3em] uppercase gap-6 pt-12 border-t border-white/5">
-          <p>© {new Date().getFullYear()} Casa Privilege</p>
+          <p>© {new Date().getFullYear()} {settings.siteName || "Casa Privilege"}</p>
           <div className="flex gap-12">
             <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>

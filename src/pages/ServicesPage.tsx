@@ -5,7 +5,7 @@ import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
 
 export function ServicesPage() {
-  const { language } = useAppContext();
+  const { language, globalServices } = useAppContext();
   const t = translations[language];
 
   return (
@@ -66,7 +66,7 @@ export function ServicesPage() {
                   {service.description}
                 </p>
                 <Link 
-                  to="/contact"
+                  to={service.link || "/contact"}
                   className="self-start group relative inline-flex items-center justify-center px-10 py-5 bg-transparent border border-text-primary text-text-primary hover:bg-text-primary hover:text-bg-primary transition-all duration-500 ease-out overflow-hidden"
                 >
                   <span className="relative z-10 font-light tracking-[0.15em] text-sm uppercase">Request Service</span>

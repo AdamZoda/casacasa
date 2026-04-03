@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useAppContext } from "../../context/AppContext";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2, Edit2 } from "lucide-react";
+import { uploadImage } from "../../lib/storage";
 
 export function StoreManager() {
   const { products, addProduct, updateProduct, deleteProduct } = useAppContext();
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [newProduct, setNewProduct] = useState({ title: '', category: '', price: '', oldPrice: '', description: '', image: '', isExclusive: false });
 
@@ -51,7 +53,30 @@ export function StoreManager() {
             </div>
 
             <textarea placeholder="Description" value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="bg-transparent border border-border-primary p-3 text-sm outline-none focus:border-brand-gold h-24" required />
-            <input type="url" placeholder="Image URL" value={newProduct.image} onChange={e => setNewProduct({...newProduct, image: e.target.value})} className="bg-transparent border border-border-primary p-3 text-sm outline-none focus:border-brand-gold" required />
+            
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-text-primary/40">Product Image</label>
+              <div className="flex gap-4 items-center">
+                {newProduct.image && <img src={newProduct.image} className="w-12 h-12 object-cover border border-border-primary" />}
+                <label className="flex-grow flex items-center justify-center gap-2 bg-text-primary/5 border border-dashed border-border-primary p-4 text-xs cursor-pointer hover:border-brand-gold transition-colors">
+                  <Upload size={14} />
+                  <span>{isUploading ? 'Uploading...' : 'Choose Image File'}</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    if (e.target.files?.[0]) {
+                      setIsUploading(true);
+                      try {
+                        const url = await uploadImage(e.target.files[0]);
+                        setNewProduct({...newProduct, image: url});
+                      } catch (err) {
+                        alert((err as Error).message);
+                      } finally {
+                        setIsUploading(false);
+                      }
+                    }
+                  }} />
+                </label>
+              </div>
+            </div>
             
             <label className="flex items-center gap-2 text-sm text-text-primary/60 cursor-pointer">
               <input type="checkbox" checked={newProduct.isExclusive} onChange={e => setNewProduct({...newProduct, isExclusive: e.target.checked})} className="accent-brand-gold" />
@@ -62,7 +87,10 @@ export function StoreManager() {
               {editingProduct && (
                 <button type="button" onClick={() => { setEditingProduct(null); setNewProduct({ title: '', category: '', price: '', oldPrice: '', description: '', image: '', isExclusive: false }); }} className="flex-1 bg-white/5 text-text-primary font-medium py-3 mt-2 hover:bg-white/10 transition-colors">Cancel</button>
               )}
-              <button type="submit" className="flex-1 bg-brand-gold text-brand-black font-medium py-3 mt-2 hover:bg-text-primary hover:text-bg-primary transition-colors">{editingProduct ? 'Save Changes' : 'Create Product'}</button>
+              <button type="submit" disabled={isUploading} className="flex-1 bg-brand-gold text-brand-black font-medium py-3 mt-2 hover:bg-text-primary hover:text-bg-primary transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                {isUploading && <Loader2 size={16} className="animate-spin" />}
+                {editingProduct ? 'Save Changes' : 'Create Product'}
+              </button>
             </div>
           </form>
         </div>
@@ -87,10 +115,15 @@ export function StoreManager() {
                       setNewProduct({ title: p.title, category: p.category, price: p.price.toString(), oldPrice: p.oldPrice?.toString() || '', description: p.description, image: p.image, isExclusive: !!p.isExclusive });
                     }}
                     className="p-2 text-text-primary/60 hover:text-brand-gold transition-colors"
+                    title="Edit Product"
                   >
-                    <Plus size={18} className="rotate-45" />
+                    <Edit2 size={18} />
                   </button>
-                  <button onClick={() => deleteProduct(p.id)} className="text-text-primary/60 hover:text-red-500 transition-colors">
+                  <button 
+                    onClick={() => deleteProduct(p.id)} 
+                    className="p-2 text-text-primary/60 hover:text-red-500 transition-colors"
+                    title="Delete Product"
+                  >
                     <Trash2 size={18} />
                   </button>
                 </div>

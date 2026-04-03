@@ -2,16 +2,24 @@ import { useAppContext } from "../../context/AppContext";
 import { Users, Calendar, TrendingUp, Activity, ShoppingBag, FileText, ArrowUpRight, Clock, Mail } from "lucide-react";
 
 export function Dashboard() {
-  const { reservations, products, universes, activities, journalPosts, subscribers } = useAppContext();
+  const { reservations, products, universes, activities, journalPosts, subscribers, profiles } = useAppContext();
   
+  const totalRevenue = reservations
+    .filter(res => res.status === 'confirmed')
+    .reduce((acc, res) => {
+      const activity = activities.find(a => a.id === res.activityId);
+      const price = activity ? parseFloat(activity.price.replace(/[^0-9.]/g, '')) : 0;
+      return acc + price;
+    }, 0);
+
   const stats = [
-    { label: "Total Revenue", value: "€142,500", icon: TrendingUp, trend: "+12.5%", color: "text-green-500" },
-    { label: "Active Bookings", value: reservations.length, icon: Calendar, trend: "+3", color: "text-brand-gold" },
-    { label: "Subscribers", value: subscribers.length, icon: Mail, trend: "New", color: "text-blue-500" },
-    { label: "Experiences", value: activities.length, icon: Activity, trend: "+2", color: "text-purple-500" },
+    { label: "Total Revenue", value: `${totalRevenue.toLocaleString()} MAD`, icon: TrendingUp, color: "text-green-500" },
+    { label: "Active Bookings", value: reservations.filter(r => r.status === 'pending' || r.status === 'confirmed').length, icon: Calendar, color: "text-brand-gold" },
+    { label: "Subscribers", value: subscribers.length, icon: Mail, color: "text-blue-500" },
+    { label: "Experiences", value: activities.length, icon: Activity, color: "text-purple-500" },
   ];
 
-  const recentReservations = reservations.slice(0, 5);
+  const recentReservations = [...reservations].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
 
   return (
     <div className="max-w-7xl mx-auto space-y-12">
@@ -32,9 +40,6 @@ export function Dashboard() {
               <div className={`p-3 bg-text-primary/5 rounded-none ${stat.color}`}>
                 <stat.icon size={24} strokeWidth={1.5} />
               </div>
-              <span className="text-[10px] font-bold text-green-500 flex items-center gap-1">
-                {stat.trend} <ArrowUpRight size={12} />
-              </span>
             </div>
             <p className="text-xs text-text-primary/40 uppercase tracking-widest mb-2">{stat.label}</p>
             <h3 className="text-4xl font-serif text-text-primary">{stat.value}</h3>
@@ -92,7 +97,7 @@ export function Dashboard() {
                 <Users size={18} className="text-brand-gold" />
                 <span className="text-sm uppercase tracking-widest">Total Users</span>
               </div>
-              <span className="text-xl font-serif">1,248</span>
+              <span className="text-xl font-serif">{profiles.length}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

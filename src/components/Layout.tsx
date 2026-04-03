@@ -1,15 +1,18 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Footer } from "./Footer";
 import { SearchOverlay } from "./SearchOverlay";
 import { useEffect, useState } from "react";
-import { Moon, Sun, User, ShoppingBag, LogIn, Menu, X, Heart, Settings, Shield, Search } from "lucide-react";
+import { Moon, Sun, User, ShoppingBag, LogIn, LogOut, Menu, X, Heart, Settings, Shield, Search } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import { translations } from "../i18n/translations";
 
 export function Layout() {
   const location = useLocation();
-  const { cart, theme, toggleTheme, language, setLanguage } = useAppContext();
+  const { cart, theme, toggleTheme, language, setLanguage, settings } = useAppContext();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -62,7 +65,7 @@ export function Layout() {
               <Menu size={24} strokeWidth={1} />
             </button>
             <Link to="/" className="font-serif text-2xl tracking-[0.15em] hover:text-brand-gold transition-colors">
-              CASA PRIVILEGE
+              {settings.logoText || 'CASA PRIVILEGE'}
             </Link>
           </div>
           
@@ -106,16 +109,34 @@ export function Layout() {
               
               {/* User Dropdown (Desktop) */}
               <div className="relative group hidden sm:block">
-                <button className="hover:text-brand-gold transition-colors flex items-center gap-2 py-2">
-                  <User size={18} strokeWidth={1} />
-                </button>
-                <div className="absolute right-0 mt-0 w-56 py-3 bg-bg-primary border border-border-primary shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right translate-y-2 group-hover:translate-y-0 z-50">
-                  <Link to="/profile" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.profile}</Link>
-                  <Link to="/profile" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.favorites}</Link>
-                  <Link to="/profile" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.settings}</Link>
-                  <div className="border-t border-border-primary my-2"></div>
-                  <Link to="/admin" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.admin}</Link>
-                </div>
+                {user ? (
+                  <>
+                    <button className="hover:text-brand-gold transition-colors flex items-center gap-2 py-2">
+                      <div className="w-7 h-7 rounded-full bg-brand-gold/15 flex items-center justify-center text-brand-gold text-[10px] font-bold uppercase">
+                        {user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U'}
+                      </div>
+                    </button>
+                    <div className="absolute right-0 mt-0 w-56 py-3 bg-bg-primary border border-border-primary shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right translate-y-2 group-hover:translate-y-0 z-50">
+                      <div className="px-6 py-2 mb-2 border-b border-border-primary">
+                        <p className="text-xs font-medium text-text-primary truncate">{user.user_metadata?.full_name || user.email}</p>
+                        <p className="text-[10px] text-text-primary/40 truncate mt-0.5">{user.email}</p>
+                      </div>
+                      <Link to="/profile" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.profile}</Link>
+                      <Link to="/profile" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.favorites}</Link>
+                      <Link to="/profile" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.settings}</Link>
+                      <div className="border-t border-border-primary my-2"></div>
+                      <Link to="/admin" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.admin}</Link>
+                      <div className="border-t border-border-primary my-2"></div>
+                      <button onClick={async () => { await signOut(); navigate('/'); }} className="block w-full text-left px-6 py-2.5 text-xs tracking-widest uppercase text-red-400 hover:text-red-500 hover:bg-red-500/5 transition-colors">
+                        <span className="flex items-center gap-2"><LogOut size={14} /> {language === 'fr' ? 'Déconnexion' : 'Sign Out'}</span>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <Link to="/auth" className="hover:text-brand-gold transition-colors flex items-center gap-2 py-2">
+                    <LogIn size={18} strokeWidth={1} />
+                  </Link>
+                )}
               </div>
 
               <Link to="/cart" className="relative hover:text-brand-gold transition-colors">
@@ -143,7 +164,7 @@ export function Layout() {
           >
             <div className="px-6 py-6 flex justify-between items-center border-b border-border-primary shrink-0">
               <Link to="/" className="font-serif text-2xl tracking-[0.15em] text-brand-gold" onClick={() => setIsMobileMenuOpen(false)}>
-                CASA PRIVILEGE
+                {settings.logoText || 'CASA PRIVILEGE'}
               </Link>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -191,20 +212,29 @@ export function Layout() {
 
               <div className="flex flex-col gap-6 pt-6 border-t border-border-primary">
                 <span className="text-xs uppercase tracking-[0.2em] text-text-primary/60">{t.user.account}</span>
-                <div className="grid grid-cols-2 gap-6">
-                  <Link to="/profile" className="hover:text-brand-gold transition-colors flex items-center gap-3 text-xs uppercase tracking-widest" onClick={() => setIsMobileMenuOpen(false)}>
-                    <User size={16} strokeWidth={1} /> {t.user.profile}
+                {user ? (
+                  <div className="grid grid-cols-2 gap-6">
+                    <Link to="/profile" className="hover:text-brand-gold transition-colors flex items-center gap-3 text-xs uppercase tracking-widest" onClick={() => setIsMobileMenuOpen(false)}>
+                      <User size={16} strokeWidth={1} /> {t.user.profile}
+                    </Link>
+                    <Link to="/profile" className="hover:text-brand-gold transition-colors flex items-center gap-3 text-xs uppercase tracking-widest" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Heart size={16} strokeWidth={1} /> {t.user.favorites}
+                    </Link>
+                    <Link to="/profile" className="hover:text-brand-gold transition-colors flex items-center gap-3 text-xs uppercase tracking-widest" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Settings size={16} strokeWidth={1} /> {t.user.settings}
+                    </Link>
+                    <Link to="/admin" className="hover:text-brand-gold transition-colors flex items-center gap-3 text-xs uppercase tracking-widest" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Shield size={16} strokeWidth={1} /> {t.user.admin}
+                    </Link>
+                    <button onClick={async () => { await signOut(); setIsMobileMenuOpen(false); navigate('/'); }} className="hover:text-red-500 transition-colors flex items-center gap-3 text-xs uppercase tracking-widest text-red-400 col-span-2 mt-2">
+                      <LogOut size={16} strokeWidth={1} /> {language === 'fr' ? 'Déconnexion' : 'Sign Out'}
+                    </button>
+                  </div>
+                ) : (
+                  <Link to="/auth" className="hover:text-brand-gold transition-colors flex items-center gap-3 text-sm uppercase tracking-widest" onClick={() => setIsMobileMenuOpen(false)}>
+                    <LogIn size={16} strokeWidth={1} /> {language === 'fr' ? 'Se connecter' : 'Sign In'}
                   </Link>
-                  <Link to="/profile" className="hover:text-brand-gold transition-colors flex items-center gap-3 text-xs uppercase tracking-widest" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Heart size={16} strokeWidth={1} /> {t.user.favorites}
-                  </Link>
-                  <Link to="/profile" className="hover:text-brand-gold transition-colors flex items-center gap-3 text-xs uppercase tracking-widest" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Settings size={16} strokeWidth={1} /> {t.user.settings}
-                  </Link>
-                  <Link to="/admin" className="hover:text-brand-gold transition-colors flex items-center gap-3 text-xs uppercase tracking-widest" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Shield size={16} strokeWidth={1} /> {t.user.admin}
-                  </Link>
-                </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -233,7 +263,7 @@ export function Layout() {
 
       {/* Floating WhatsApp Button */}
       <a 
-        href="https://wa.me/1234567890" 
+        href={`https://wa.me/${settings.whatsappNumber || '1234567890'}`} 
         target="_blank" 
         rel="noreferrer"
         className="fixed bottom-8 right-8 bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform z-50 flex items-center justify-center"

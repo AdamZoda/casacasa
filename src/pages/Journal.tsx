@@ -1,11 +1,10 @@
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
-import { journalPosts } from "../data/content";
 import { translations } from "../i18n/translations";
 
 export function Journal() {
-  const { language } = useAppContext();
+  const { language, journalPosts } = useAppContext();
   const t = translations[language];
 
   return (

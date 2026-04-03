@@ -1,20 +1,34 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Casa Privilege - Excellence Sur Mesure
 
-# Run and deploy your AI Studio app
+Une plateforme de conciergerie de luxe offrant une sélection exclusive de maisons de prestige, jets privés, expériences sportives et services sur mesure.
 
-This contains everything you need to run your app locally.
+## Présentation
 
-View your app in AI Studio: https://ai.studio/apps/e9f31e1a-30eb-4b69-a5d5-6772bbd8b87b
+Casa Privilege incarne le summum du raffinement et de l'exclusivité. Notre plateforme permet de gérer et de réserver des expériences haut de gamme à travers le monde, de Marrakech à Ibiza, en passant par Paris et Saint-Tropez.
 
-## Run Locally
+### Caractéristiques
 
-**Prerequisites:**  Node.js
+- **Univers Exclusifs :** Exploration de propriétés et d'activités d'exception.
+- **Marketplace de Luxe :** Accès à une sélection d'objets d'art et de produits exclusifs.
+- **Journal de l'Excellence :** Actualités et articles sur le monde du luxe.
+- **Gestion Administrative :** Tableau de bord complet pour la gestion des réservations, du contenu et de la boutique.
 
+## Installation Locale
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+**Prérequis :**  Node.js (v18+)
+
+1.  Installez les dépendances :
+    ```bash
+    npm install
+    ```
+2.  Configurez vos variables d'environnement dans le fichier `.env` (Supabase URL et Anon Key).
+3.  Lancez l'application en mode développement :
+    ```bash
+    npm run dev
+    ```
+
+## Technologies
+
+- **Frontend :** React, TypeScript, Vite, Tailwind CSS, Motion (Framer).
+- **Backend :** Supabase (PostgreSQL, Storage, Auth).
+- **Icons :** Lucide React.

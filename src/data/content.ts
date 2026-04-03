@@ -104,24 +104,28 @@ export const globalServices = [
     id: "sports",
     title: "Sports Experiences",
     description: "Champions League, FA Cup, Ligue 1, Formula 1 Paddock Club. VIP boxes and high-end catering.",
-    image: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=2940&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=2940&auto=format&fit=crop",
+    link: "/book/french/f-1"
   },
   {
     id: "aviation",
     title: "Private Aviation",
     description: "Key routes: Europe ↔ Ibiza, Marrakech → Saint-Tropez. Premium fleet access and VIP terminal services.",
-    image: "https://images.unsplash.com/photo-1583416750470-965b2707b355?q=80&w=2940&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1583416750470-965b2707b355?q=80&w=2940&auto=format&fit=crop",
+    link: "/book/moroccan/m-2"
   },
   {
     id: "villas",
     title: "Real Estate & Villas",
     description: "Presentation of prestige properties. Exclusive off-market villas in Ibiza, Marrakech, St Tropez.",
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2940&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2940&auto=format&fit=crop",
+    link: "/book/senegalese/sn-1"
   },
   {
     id: "concierge",
     title: "Concierge Services",
     description: "Personalized 24/7 lifestyle management, impossible reservations, and bespoke requests.",
-    image: "https://images.unsplash.com/photo-1551882547-ff40c0d13c11?q=80&w=2940&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1551882547-ff40c0d13c11?q=80&w=2940&auto=format&fit=crop",
+    link: "/book/swiss/s-2"
   }
 ];

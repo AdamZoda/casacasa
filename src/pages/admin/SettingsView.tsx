@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from "../../context/AppContext";
-import { Save, Globe, Mail, Phone, MapPin, Instagram, Facebook, Linkedin, ShieldAlert } from "lucide-react";
+import { Save, Globe, Mail, Phone, MapPin, Instagram, Facebook, Linkedin, ShieldAlert, X } from "lucide-react";
 
 export function SettingsView() {
   const { settings, updateSettings } = useAppContext();
@@ -28,6 +28,7 @@ export function SettingsView() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* Left Column */}
         <div className="space-y-8">
           <div className="bg-bg-primary border border-border-primary p-8 space-y-8">
             <h3 className="text-xl font-serif flex items-center gap-3">
@@ -101,46 +102,95 @@ export function SettingsView() {
           </div>
         </div>
 
-        <div className="bg-bg-primary border border-border-primary p-8 space-y-8">
-          <h3 className="text-xl font-serif flex items-center gap-3">
-            <Instagram size={20} className="text-brand-gold" /> Social Connections
-          </h3>
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-text-primary/40">Instagram URL</label>
-              <div className="relative">
-                <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-text-primary/30" size={16} />
-                <input 
-                  type="url" 
-                  value={formData.socialLinks.instagram}
-                  onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, instagram: e.target.value}})}
-                  className="w-full bg-text-primary/5 border border-border-primary py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-brand-gold transition-all"
-                />
+        {/* Right Column */}
+        <div className="space-y-8">
+          <div className="bg-bg-primary border border-border-primary p-8 space-y-8">
+            <h3 className="text-xl font-serif flex items-center gap-3">
+              <Instagram size={20} className="text-brand-gold" /> Social Connections
+            </h3>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-text-primary/40">Instagram URL</label>
+                <div className="relative">
+                  <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-text-primary/30" size={16} />
+                  <input 
+                    type="url" 
+                    value={formData.socialLinks.instagram}
+                    onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, instagram: e.target.value}})}
+                    className="w-full bg-text-primary/5 border border-border-primary py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-brand-gold transition-all"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-text-primary/40">Facebook URL</label>
+                <div className="relative">
+                  <Facebook className="absolute left-4 top-1/2 -translate-y-1/2 text-text-primary/30" size={16} />
+                  <input 
+                    type="url" 
+                    value={formData.socialLinks.facebook}
+                    onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, facebook: e.target.value}})}
+                    className="w-full bg-text-primary/5 border border-border-primary py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-brand-gold transition-all"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-text-primary/40">LinkedIn URL</label>
+                <div className="relative">
+                  <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-primary/30" size={16} />
+                  <input 
+                    type="url" 
+                    value={formData.socialLinks.linkedin}
+                    onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, linkedin: e.target.value}})}
+                    className="w-full bg-text-primary/5 border border-border-primary py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-brand-gold transition-all"
+                  />
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-text-primary/40">Facebook URL</label>
-              <div className="relative">
-                <Facebook className="absolute left-4 top-1/2 -translate-y-1/2 text-text-primary/30" size={16} />
-                <input 
-                  type="url" 
-                  value={formData.socialLinks.facebook}
-                  onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, facebook: e.target.value}})}
-                  className="w-full bg-text-primary/5 border border-border-primary py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-brand-gold transition-all"
-                />
-              </div>
+          </div>
+
+          <div className="bg-bg-primary border border-border-primary p-8 space-y-8">
+            <h3 className="text-xl font-serif flex items-center gap-3">
+              <Globe size={20} className="text-brand-gold" /> Blocked Dates
+            </h3>
+            <p className="text-xs text-text-primary/60 uppercase tracking-widest">Bloquer des journées spécifiques au calendrier</p>
+            
+            <div className="flex gap-4">
+              <input 
+                type="date" 
+                id="blockedDate"
+                className="flex-grow bg-text-primary/5 border border-border-primary p-4 text-sm focus:outline-none focus:border-brand-gold transition-all"
+              />
+              <button 
+                type="button"
+                onClick={() => {
+                  const input = document.getElementById('blockedDate') as HTMLInputElement;
+                  if (input.value && !formData.blockedDates.includes(input.value)) {
+                    setFormData({...formData, blockedDates: [...formData.blockedDates, input.value].sort()});
+                    input.value = '';
+                  }
+                }}
+                className="bg-brand-gold text-brand-black px-6 py-4 text-[10px] uppercase tracking-widest font-bold hover:bg-text-primary hover:text-bg-primary transition-all"
+              >
+                Bloquer
+              </button>
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-text-primary/40">LinkedIn URL</label>
-              <div className="relative">
-                <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-primary/30" size={16} />
-                <input 
-                  type="url" 
-                  value={formData.socialLinks.linkedin}
-                  onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, linkedin: e.target.value}})}
-                  className="w-full bg-text-primary/5 border border-border-primary py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-brand-gold transition-all"
-                />
-              </div>
+
+            <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2">
+              {formData.blockedDates.map(date => (
+                <div key={date} className="flex justify-between items-center bg-text-primary/5 border border-border-primary p-3 group">
+                  <span className="text-xs font-medium">{date}</span>
+                  <button 
+                    type="button"
+                    onClick={() => setFormData({...formData, blockedDates: formData.blockedDates.filter(d => d !== date)})}
+                    className="text-text-primary/20 hover:text-red-500 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+              {formData.blockedDates.length === 0 && (
+                <p className="col-span-2 text-center text-text-primary/20 text-xs py-8 italic uppercase tracking-widest">Aucune date bloquée</p>
+              )}
             </div>
           </div>
         </div>

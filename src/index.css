@@ -5,7 +5,7 @@
   --color-brand-white: #FFFFFF;
   --color-brand-cream: #F9F8F6;
   --color-brand-gray: #888888;
-  --color-brand-gold: #E5A93A;
+  --color-brand-gold: var(--brand-gold, #E5A93A);
   --color-brand-dark: #1A1A1A;
 
   --color-bg-primary: var(--bg-primary);
@@ -27,6 +27,21 @@
     --bg-primary: #111111;
     --text-primary: #F9F8F6;
     --border-primary: rgba(249, 248, 246, 0.1);
+  }
+
+  .testimonial-card-gradient {
+    background: linear-gradient(145deg, rgba(29,29,31,1) 0%, rgba(20,20,22,1) 100%);
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    animation: marquee 40s linear infinite;
+  }
+  .animate-marquee:hover {
+    animation-play-state: paused;
   }
 
   body {

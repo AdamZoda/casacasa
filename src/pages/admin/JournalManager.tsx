@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAppContext } from "../../context/AppContext";
-import { Plus, Trash2, Edit3, FileText, Calendar, Tag, Image as ImageIcon } from "lucide-react";
+import { Plus, Trash2, Edit3, FileText, Calendar, Tag, Image as ImageIcon, Upload, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { uploadImage } from "../../lib/storage";
 
 export function JournalManager() {
   const { journalPosts, addJournalPost, updateJournalPost, deleteJournalPost } = useAppContext();
@@ -15,6 +16,7 @@ export function JournalManager() {
     excerpt: '',
     content: ''
   });
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,16 +135,35 @@ export function JournalManager() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-text-primary/40">Image URL</label>
-                  <div className="relative">
-                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-text-primary/30" size={16} />
-                    <input 
-                      type="url" 
-                      required
-                      value={formData.image}
-                      onChange={(e) => setFormData({...formData, image: e.target.value})}
-                      className="w-full bg-text-primary/5 border border-border-primary py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-brand-gold transition-all"
-                    />
+                  <label className="text-[10px] uppercase tracking-widest text-text-primary/40">Cover Image</label>
+                  <div className="flex gap-4 items-center">
+                    {formData.image && <img src={formData.image} className="w-16 h-16 object-cover border border-border-primary" />}
+                    <label className="flex-grow flex items-center justify-center gap-3 bg-text-primary/5 border border-dashed border-border-primary p-6 text-xs cursor-pointer hover:border-brand-gold transition-colors group">
+                      {isUploading ? (
+                        <Loader2 size={20} className="animate-spin text-brand-gold" />
+                      ) : (
+                        <Upload size={20} className="text-text-primary/20 group-hover:text-brand-gold transition-colors" />
+                      )}
+                      <span>{isUploading ? 'Uploading...' : 'Choose Image File'}</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={async (e) => {
+                          if (e.target.files?.[0]) {
+                            setIsUploading(true);
+                            try {
+                              const url = await uploadImage(e.target.files[0]);
+                              setFormData({...formData, image: url});
+                            } catch (err) {
+                              alert((err as Error).message);
+                            } finally {
+                              setIsUploading(false);
+                            }
+                          }
+                        }} 
+                      />
+                    </label>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -175,8 +196,10 @@ export function JournalManager() {
                   </button>
                   <button 
                     type="submit"
-                    className="bg-brand-gold text-brand-black px-12 py-4 text-xs uppercase tracking-widest font-bold hover:bg-text-primary hover:text-bg-primary transition-all"
+                    disabled={isUploading}
+                    className="bg-brand-gold text-brand-black px-12 py-4 text-xs uppercase tracking-widest font-bold hover:bg-text-primary hover:text-bg-primary transition-all disabled:opacity-50 flex items-center justify-center gap-3"
                   >
+                    {isUploading && <Loader2 size={16} className="animate-spin" />}
                     {editingPost ? 'Save Changes' : 'Create Post'}
                   </button>
                 </div>

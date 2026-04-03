@@ -4,8 +4,13 @@ import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
 
 export function Hero() {
-  const { language } = useAppContext();
+  const { language, settings } = useAppContext();
   const t = translations[language];
+
+  const bgUrl = settings.heroBackgroundUrl || 'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop';
+  const title = settings.heroTitle || t.hero.title;
+  const subtitle = settings.heroSubtitle || t.hero.subtitle;
+  const cta = settings.heroCta || t.hero.cta;
 
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
@@ -17,12 +22,13 @@ export function Hero() {
         className="absolute inset-0 z-0"
       >
         <img
-          src="https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop"
-          alt="Luxury Private Jet"
-          className="w-full h-full object-cover opacity-50"
-          referrerPolicy="no-referrer"
+          src={bgUrl}
+          alt="Hero Background"
+          className="w-full h-full object-cover"
+          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop'; }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-bg-primary"></div>
+        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg-primary"></div>
       </motion.div>
 
       {/* Content */}
@@ -33,7 +39,7 @@ export function Hero() {
           transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
           className="text-5xl md:text-7xl lg:text-8xl text-white mb-8 font-serif leading-tight drop-shadow-2xl"
         >
-          {t.hero.title}
+          {title}
         </motion.h1>
         
         <motion.p 
@@ -42,7 +48,7 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
           className="text-lg md:text-xl text-white/90 font-light tracking-[0.2em] uppercase mb-16 drop-shadow-md"
         >
-          {t.hero.subtitle}
+          {subtitle}
         </motion.p>
 
         <motion.div
@@ -54,7 +60,7 @@ export function Hero() {
             to="/services"
             className="group relative inline-flex items-center justify-center px-10 py-5 bg-transparent border border-brand-gold/50 text-brand-gold hover:bg-brand-gold hover:text-brand-black transition-all duration-500 ease-out overflow-hidden"
           >
-            <span className="relative z-10 font-light tracking-[0.15em] text-sm uppercase">{t.hero.cta}</span>
+            <span className="relative z-10 font-light tracking-[0.15em] text-sm uppercase">{cta}</span>
           </Link>
         </motion.div>
       </div>
@@ -76,3 +82,4 @@ export function Hero() {
     </section>
   );
 }
+

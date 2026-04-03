@@ -3,7 +3,7 @@ export const translations = {
     nav: {
       home: "Accueil",
       universes: "Univers",
-      collection: "Collection",
+      collection: "Stores",
       services: "Services",
       journal: "Journal",
       contact: "Contact"
@@ -71,7 +71,7 @@ export const translations = {
     nav: {
       home: "Home",
       universes: "Universes",
-      collection: "Collection",
+      collection: "Stores",
       services: "Services",
       journal: "Journal",
       contact: "Contact"
