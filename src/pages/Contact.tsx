@@ -5,7 +5,7 @@ import { supabase } from "../lib/supabase";
 import { useAppContext } from "../context/AppContext";
 
 export function Contact() {
-  const { settings } = useAppContext();
+  const { settings, addTicket, addTicketMessage, fetchTicketMessages } = useAppContext();
   const [step, setStep] = useState<'auth' | 'chat'>('auth');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -17,12 +17,12 @@ export function Contact() {
 
   useEffect(() => {
     if (!ticketId) return;
-    const fetchMessages = async () => {
-      const { data } = await supabase.from('ticket_messages').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: true });
-      if (data) setMessages(data);
+    const loadMessages = async () => {
+      const data = await fetchTicketMessages(ticketId);
+      setMessages(data);
     };
-    fetchMessages();
-    const interval = setInterval(fetchMessages, 3000);
+    loadMessages();
+    const interval = setInterval(loadMessages, 3000);
     return () => clearInterval(interval);
   }, [ticketId]);
 
@@ -42,8 +42,7 @@ export function Contact() {
         alert("Veuillez entrer un sujet pour créer un nouveau ticket.");
         return;
       }
-      const newId = `tkt-${Date.now()}`;
-      await supabase.from('tickets').insert({ id: newId, user_name: name, user_email: email, subject: subject, status: 'open' });
+      const newId = await addTicket({ user_name: name, user_email: email, subject: subject });
       setTicketId(newId);
       setStep('chat');
     }
@@ -52,16 +51,14 @@ export function Contact() {
   const handleSendMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !ticketId) return;
-    const msg = {
-      id: `msg-${Date.now()}`,
+    await addTicketMessage({
       ticket_id: ticketId,
       sender: 'user',
-      content: newMessage.trim(),
-      created_at: new Date().toISOString()
-    };
-    setMessages(prev => [...prev, msg]);
+      content: newMessage.trim()
+    });
     setNewMessage('');
-    await supabase.from('ticket_messages').insert({ id: msg.id, ticket_id: msg.ticket_id, sender: msg.sender, content: msg.content });
+    const updated = await fetchTicketMessages(ticketId);
+    setMessages(updated);
   };
 
   const contactOptions = [

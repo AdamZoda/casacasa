@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
-import { Trash2, ArrowRight } from "lucide-react";
+import { Trash2, ArrowRight, ShoppingBag } from "lucide-react";
 import { translations } from "../i18n/translations";
+import { PaymentModal } from "../components/PaymentModal";
 
 export function Cart() {
   const { cart, removeFromCart, language } = useAppContext();
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const t = translations[language];
 
   const total = cart.reduce((sum, item) => sum + parseInt(item.price.toString().replace(/\s/g, '')), 0);
@@ -83,7 +86,10 @@ export function Cart() {
               <p className="text-text-primary/50 text-[10px] uppercase tracking-[0.3em] mb-4">{t.common.total}</p>
               <p className="text-5xl font-serif">{total.toLocaleString()} MAD</p>
             </div>
-            <button className="w-full md:w-auto group relative inline-flex items-center justify-center px-12 py-6 bg-brand-gold text-brand-black hover:bg-text-primary hover:text-bg-primary transition-all duration-500 ease-out overflow-hidden">
+            <button 
+              onClick={() => setIsPaymentOpen(true)}
+              className="w-full md:w-auto group relative inline-flex items-center justify-center px-12 py-6 bg-brand-gold text-brand-black hover:bg-text-primary hover:text-bg-primary transition-all duration-500 ease-out overflow-hidden"
+            >
               <span className="relative z-10 font-medium tracking-[0.15em] text-sm uppercase flex items-center gap-3">
                 {t.common.order} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </span>
@@ -91,6 +97,13 @@ export function Cart() {
           </div>
         </div>
       )}
+
+      <PaymentModal 
+        isOpen={isPaymentOpen} 
+        onClose={() => setIsPaymentOpen(false)} 
+        items={cart}
+        total={total}
+      />
     </div>
   );
 }

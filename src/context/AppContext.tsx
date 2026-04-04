@@ -5,17 +5,24 @@ import { supabase } from '../lib/supabase';
 
 export interface Reservation {
   id: string;
-  activityId: string;
-  activityTitle: string;
-  universeId: string;
+  activity_id: string;
+  activity_title: string;
+  universe_id: string;
   date: string;
+  end_date?: string;
   time: string;
   name: string;
+  country?: string;
+  phone_code?: string;
+  phone?: string;
+  email?: string;
   contact: string;
-  message: string;
+  people_count?: number;
+  total_price?: number;
+  receipt_base64?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   channel: 'web' | 'whatsapp';
-  createdAt: string;
+  created_at: string;
 }
 
 export interface Universe {
@@ -97,6 +104,9 @@ export interface SiteSettings {
   footerTitle: string;
   footerCta: string;
   blockedDates: string[];
+  bankName: string;
+  bankBeneficiary: string;
+  bankRib: string;
 }
 
 export interface Profile {
@@ -108,6 +118,23 @@ export interface Profile {
   created_at: string;
 }
 
+export interface Ticket {
+  id: string;
+  user_name: string;
+  user_email: string;
+  subject: string;
+  status: 'open' | 'closed';
+  created_at: string;
+}
+
+export interface TicketMessage {
+  id: string;
+  ticket_id: string;
+  sender: string;
+  content: string;
+  created_at: string;
+}
+
 export interface GlobalService {
   id: string;
   title: string;
@@ -116,14 +143,38 @@ export interface GlobalService {
   link: string;
 }
 
+export interface Order {
+  id: string;
+  customer_name: string;
+  customer_email: string;
+  total: number;
+  items: any[];
+  status: 'pending' | 'completed' | 'cancelled';
+  created_at: string;
+}
+
 export type Theme = 'light' | 'dark';
 
 interface AppContextType {
   reservations: Reservation[];
-  addReservation: (reservation: Omit<Reservation, 'id' | 'createdAt' | 'status'>) => void;
-  updateReservationStatus: (id: string, status: Reservation['status']) => void;
-  deleteReservation: (id: string) => void;
+  addReservation: (reservation: Omit<Reservation, 'id' | 'createdAt' | 'status'>) => Promise<void>;
+  updateReservationStatus: (id: string, status: Reservation['status']) => Promise<void>;
+  deleteReservation: (id: string) => Promise<void>;
   
+  orders: Order[];
+  addOrder: (order: Omit<Order, 'id' | 'created_at' | 'status'>) => Promise<void>;
+  updateOrderStatus: (id: string, status: Order['status']) => Promise<void>;
+  deleteOrder: (id: string) => Promise<void>;
+  
+  tickets: Ticket[];
+  addTicket: (ticket: Omit<Ticket, 'id' | 'created_at' | 'status'>) => Promise<string>;
+  updateTicketStatus: (id: string, status: Ticket['status']) => Promise<void>;
+  deleteTicket: (id: string) => Promise<void>;
+  
+  ticketMessages: TicketMessage[];
+  addTicketMessage: (message: Omit<TicketMessage, 'id' | 'created_at'>) => Promise<void>;
+  fetchTicketMessages: (ticketId: string) => Promise<TicketMessage[]>;
+
   universes: Universe[];
   addUniverse: (u: Universe) => void;
   updateUniverse: (u: Universe) => void;
@@ -218,6 +269,9 @@ import { globalServices as initGlobalServices } from '../data/content';
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [ticketMessages, setTicketMessages] = useState<TicketMessage[]>([]);
   const [universes, setUniverses] = useState<Universe[]>(initUniverses);
   const [activities, setActivities] = useState<Activity[]>(initActivities);
   const [products, setProducts] = useState<Product[]>(initProducts);
@@ -235,7 +289,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     socialLinks: { instagram: '', facebook: '', linkedin: '' },
     maintenanceMode: false,
     heroBackgroundUrl: '',
-    heroTitle: '', heroSubtitle: '', heroCta: '', brandGoldColor: '#E5A93A', whatsappNumber: '', logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: []
+    heroTitle: '', heroSubtitle: '', heroCta: '', brandGoldColor: '#E5A93A', whatsappNumber: '', logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: [],
+    bankName: '',
+    bankBeneficiary: 'COMANE EXCELLENCE SARL',
+    bankRib: ''
   });
   const [cart, setCart] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -249,8 +306,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     else document.documentElement.classList.remove('dark');
   }, [theme]);
 
+  const loadData = async () => {
+    const { data: u } = await supabase.from('universes').select('*');
+    if (u && u.length > 0) setUniverses(u);
+    const { data: a } = await supabase.from('activities').select('*');
+    if (a && a.length > 0) setActivities(a);
+    const { data: p } = await supabase.from('products').select('*');
+    if (p && p.length > 0) setProducts(p);
+    const { data: j } = await supabase.from('journal_posts').select('*');
+    if (j && j.length > 0) setJournalPosts(j);
+    const { data: r } = await supabase.from('reservations').select('*').order('created_at', { ascending: false });
+    if (r) setReservations(r);
+    const { data: o } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+    if (o) setOrders(o);
+    const { data: t } = await supabase.from('tickets').select('*').order('created_at', { ascending: false });
+    if (t) setTickets(t);
+  };
+
   useEffect(() => {
-    const fetchAll = async () => {
+    const fetchProfilesEtc = async () => {
       const { data: pData } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
       if (pData) setProfiles(pData);
       const { data: sData } = await supabase.from('site_settings').select('*').eq('id', 1).single();
@@ -258,29 +332,76 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const { data: gsData } = await supabase.from('global_services').select('*');
       if (gsData && gsData.length > 0) setGlobalServices(gsData);
     };
-    fetchAll();
-  }, []);
-
-  useEffect(() => {
-    async function loadData() {
-      const { data: u } = await supabase.from('universes').select('*');
-      if (u && u.length > 0) setUniverses(u);
-      const { data: a } = await supabase.from('activities').select('*');
-      if (a && a.length > 0) setActivities(a);
-      const { data: p } = await supabase.from('products').select('*');
-      if (p && p.length > 0) setProducts(p);
-      const { data: j } = await supabase.from('journal_posts').select('*');
-      if (j && j.length > 0) setJournalPosts(j);
-    }
+    fetchProfilesEtc();
     loadData();
   }, []);
 
-  const addReservation = (data: Omit<Reservation, 'id' | 'createdAt' | 'status'>) => {
-    const newRes: Reservation = { ...data, id: `res-${Date.now()}`, status: 'pending', createdAt: new Date().toISOString() };
-    setReservations(prev => [newRes, ...prev]);
+  const addReservation = async (data: Omit<Reservation, 'id' | 'created_at' | 'status'>) => {
+    // On laisse Supabase gérer l'ID et le created_at pour éviter les erreurs de type (int8 vs string)
+    const { data: insertedData, error } = await supabase
+      .from('reservations')
+      .insert([data])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding reservation:', error);
+      return;
+    }
+
+    if (insertedData) {
+      setReservations(prev => [insertedData, ...prev]);
+    }
   };
-  const updateReservationStatus = (id: string, status: Reservation['status']) => setReservations(prev => prev.map(res => res.id === id ? { ...res, status } : res));
-  const deleteReservation = (id: string) => setReservations(prev => prev.filter(res => res.id !== id));
+  const updateReservationStatus = async (id: string, status: Reservation['status']) => {
+    setReservations(prev => prev.map(res => res.id === id ? { ...res, status } : res));
+    await supabase.from('reservations').update({ status }).eq('id', id);
+  };
+  const deleteReservation = async (id: string) => {
+    setReservations(prev => prev.filter(res => res.id !== id));
+    await supabase.from('reservations').delete().eq('id', id);
+  };
+
+  const addOrder = async (data: Omit<Order, 'id' | 'created_at' | 'status'>) => {
+    const id = `ord-${Date.now()}`;
+    const newOrder: Order = { ...data, id, status: 'pending', created_at: new Date().toISOString() };
+    setOrders(prev => [newOrder, ...prev]);
+    await supabase.from('orders').insert(newOrder);
+  };
+  const updateOrderStatus = async (id: string, status: Order['status']) => {
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
+    await supabase.from('orders').update({ status }).eq('id', id);
+  };
+  const deleteOrder = async (id: string) => {
+    setOrders(prev => prev.filter(o => o.id !== id));
+    await supabase.from('orders').delete().eq('id', id);
+  };
+
+  const addTicket = async (data: Omit<Ticket, 'id' | 'created_at' | 'status'>): Promise<string> => {
+    const id = `tic-${Date.now()}`;
+    const newT: Ticket = { ...data, id, status: 'open', created_at: new Date().toISOString() };
+    setTickets(prev => [newT, ...prev]);
+    await supabase.from('tickets').insert(newT);
+    return id;
+  };
+  const updateTicketStatus = async (id: string, status: Ticket['status']) => {
+    setTickets(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+    await supabase.from('tickets').update({ status }).eq('id', id);
+  };
+  const deleteTicket = async (id: string) => {
+    setTickets(prev => prev.filter(t => t.id !== id));
+    await supabase.from('tickets').delete().eq('id', id);
+  };
+
+  const addTicketMessage = async (data: Omit<TicketMessage, 'id' | 'created_at'>) => {
+    const newMsg: TicketMessage = { ...data, id: `msg-${Date.now()}`, created_at: new Date().toISOString() };
+    setTicketMessages(prev => [...prev, newMsg]);
+    await supabase.from('ticket_messages').insert(newMsg);
+  };
+  const fetchTicketMessages = async (ticketId: string): Promise<TicketMessage[]> => {
+    const { data } = await supabase.from('ticket_messages').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: true });
+    return data || [];
+  };
 
   const addUniverse = async (u: Universe) => { setUniverses(prev => [...prev,u]); await supabase.from('universes').insert(u); };
   const updateUniverse = async (u: Universe) => { setUniverses(prev => prev.map(i => i.id === u.id ? u : i)); await supabase.from('universes').update(u).eq('id', u.id); };
@@ -345,6 +466,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{ 
       reservations, addReservation, updateReservationStatus, deleteReservation,
+      orders, addOrder, updateOrderStatus, deleteOrder,
+      tickets, addTicket, updateTicketStatus, deleteTicket,
+      ticketMessages, addTicketMessage, fetchTicketMessages,
       universes, addUniverse, updateUniverse, deleteUniverse,
       activities, addActivity, updateActivity, deleteActivity,
       products, addProduct, updateProduct, deleteProduct,

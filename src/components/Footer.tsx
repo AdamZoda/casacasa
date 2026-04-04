@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import React, { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
-import { Send, CheckCircle2 } from "lucide-react";
+import { Send, CheckCircle2, Instagram, Facebook, Linkedin } from "lucide-react";
 
 export function Footer() {
-  const { language, subscribeNewsletter, settings } = useAppContext();
+  const { language, subscribeNewsletter, settings, universes } = useAppContext();
   const t = translations[language];
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -28,94 +28,106 @@ export function Footer() {
   const socialLinks = settings.socialLinks || { instagram: '#', facebook: '#', linkedin: '#' };
 
   return (
-    <footer className="pt-32 pb-12 px-6 bg-brand-black text-white">
+    <footer className="pt-40 pb-16 px-6 bg-[#050505] text-white border-t border-white/5">
       <div className="max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 mb-32">
-          <div className="space-y-12">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="text-4xl md:text-6xl lg:text-7xl font-serif leading-tight whitespace-pre-line"
-            >
-              {title}
-            </motion.h2>
-            
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <Link
-                to="/contact"
-                className="inline-block px-10 py-5 bg-transparent border border-white/30 text-white hover:bg-brand-gold hover:border-brand-gold hover:text-brand-black transition-all duration-500 uppercase tracking-[0.2em] text-sm font-medium"
-              >
-                {cta}
-              </Link>
-            </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 mb-32">
+          {/* Brand & Philosophy */}
+          <div className="space-y-10">
+            <h2 className="text-3xl font-serif tracking-tighter text-brand-gold">
+               {settings.logoText || "CASA PRIVILEGE"}
+            </h2>
+            <p className="text-white/40 text-[11px] leading-[2.2] tracking-widest uppercase font-light max-w-xs italic">
+              "L'excellence n'est pas un acte, mais une habitude. Nous créons des moments suspendus pour les âmes les plus exigeantes."
+            </p>
+            <div className="flex gap-6 pt-4">
+              {socialLinks.instagram && <a href={socialLinks.instagram} className="p-3 border border-white/10 rounded-full hover:border-brand-gold hover:text-brand-gold transition-all duration-500"><Instagram size={18} /></a>}
+              {socialLinks.linkedin && <a href={socialLinks.linkedin} className="p-3 border border-white/10 rounded-full hover:border-brand-gold hover:text-brand-gold transition-all duration-500"><Linkedin size={18} /></a>}
+              {socialLinks.facebook && <a href={socialLinks.facebook} className="p-3 border border-white/10 rounded-full hover:border-brand-gold hover:text-brand-gold transition-all duration-500"><Facebook size={18} /></a>}
+            </div>
           </div>
 
-          <div className="flex flex-col justify-end space-y-12">
-            <div className="space-y-6">
-              <h3 className="text-xs uppercase tracking-[0.3em] font-bold text-brand-gold">Newsletter</h3>
-              <p className="text-white/60 text-sm font-light max-w-md leading-relaxed">
-                Rejoignez notre cercle exclusif pour recevoir les dernières actualités sur nos univers et collections éphémères.
-              </p>
-              
-              <form onSubmit={handleSubscribe} className="relative max-w-md group">
-                <input 
-                  type="email" 
-                  required
-                  placeholder="VOTRE ADRESSE EMAIL"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-transparent border-b border-white/20 py-4 pr-12 text-xs tracking-widest uppercase focus:outline-none focus:border-brand-gold transition-all placeholder:text-white/20"
-                />
-                <button 
-                  type="submit"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-white/40 hover:text-brand-gold transition-colors"
-                >
-                  {isSubscribed ? <CheckCircle2 size={20} className="text-green-500" /> : <Send size={20} />}
-                </button>
-                {isSubscribed && (
-                  <motion.p 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute top-full mt-4 text-[10px] uppercase tracking-widest text-green-500 font-bold"
-                  >
-                    Merci pour votre inscription
-                  </motion.p>
-                )}
-              </form>
-            </div>
+          {/* Universes Navigation */}
+          <div className="space-y-10">
+            <h4 className="text-[10px] uppercase tracking-[0.4em] font-black text-brand-gold">Les Univers</h4>
+            <ul className="space-y-6">
+               {universes.slice(0, 5).map(u => (
+                 <li key={u.id}>
+                    <Link to={`/universe/${u.id}`} className="text-white/30 hover:text-white transition-colors text-xs uppercase tracking-widest font-light flex items-center gap-4 group">
+                       <span className="w-4 h-px bg-brand-gold/20 group-hover:w-8 transition-all duration-500" />
+                       {u.title}
+                    </Link>
+                 </li>
+               ))}
+               <li>
+                  <Link to="/store" className="text-white/30 hover:text-white transition-colors text-xs uppercase tracking-widest font-light flex items-center gap-4 group">
+                     <span className="w-4 h-px bg-brand-gold/20 group-hover:w-8 transition-all duration-500" />
+                     Boutique Exclusive
+                  </Link>
+               </li>
+            </ul>
+          </div>
 
-            <div className="grid grid-cols-2 gap-12 pt-12 border-t border-white/10">
-              <div className="space-y-4">
-                <h4 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold">Contact</h4>
-                <p className="text-xs tracking-widest text-white/60">{phone}</p>
-                <p className="text-xs tracking-widest text-white/60">{emailContact}</p>
-              </div>
-              <div className="space-y-4">
-                <h4 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold">Social</h4>
-                <div className="flex gap-6">
-                  {socialLinks.instagram && <a href={socialLinks.instagram} className="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">Instagram</a>}
-                  {socialLinks.linkedin && <a href={socialLinks.linkedin} className="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">LinkedIn</a>}
-                  {socialLinks.facebook && <a href={socialLinks.facebook} className="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">Facebook</a>}
-                </div>
-              </div>
+          {/* Private Channels */}
+          <div className="space-y-10">
+            <h4 className="text-[10px] uppercase tracking-[0.4em] font-black text-brand-gold">Salon Privé</h4>
+            <div className="space-y-8">
+               <div className="flex flex-col gap-2">
+                  <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Contact Direct</span>
+                  <a href={`tel:${phone}`} className="text-2xl font-serif text-white hover:text-brand-gold transition-colors">{phone}</a>
+               </div>
+               <div className="flex flex-col gap-2">
+                  <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Ligne Sécurisée</span>
+                  <a href={`mailto:${emailContact}`} className="text-lg italic font-light text-white/60 hover:text-white transition-colors">{emailContact}</a>
+               </div>
+               <Link to="/contact">
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    className="mt-4 px-8 py-4 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] hover:bg-brand-gold transition-all duration-500 rounded-sm"
+                  >
+                     Solliciter le Concierge
+                  </motion.button>
+               </Link>
             </div>
+          </div>
+
+          {/* Newsletter / Circle */}
+          <div className="space-y-10">
+            <h4 className="text-[10px] uppercase tracking-[0.4em] font-black text-brand-gold">Le Cercle</h4>
+            <p className="text-white/40 text-[11px] leading-relaxed tracking-widest uppercase italic">
+              Inscrivez-vous pour recevoir nos invitations confidentielles.
+            </p>
+            <form onSubmit={handleSubscribe} className="relative group">
+              <input 
+                type="email" 
+                required
+                placeholder="VOTRE ADRESSE EMAIL"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-transparent border-b border-white/10 py-5 text-[11px] tracking-[0.3em] uppercase focus:outline-none focus:border-brand-gold transition-all placeholder:text-white/10 italic"
+              />
+              <button 
+                type="submit"
+                className="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-white/20 hover:text-brand-gold transition-colors"
+              >
+                {isSubscribed ? <CheckCircle2 size={24} className="text-green-500" /> : <Send size={24} strokeWidth={1} />}
+              </button>
+            </form>
           </div>
         </div>
 
-        <div className="w-full flex flex-col md:flex-row justify-between items-center text-white/20 text-[10px] font-light tracking-[0.3em] uppercase gap-6 pt-12 border-t border-white/5">
-          <p>© {new Date().getFullYear()} {settings.siteName || "Casa Privilege"}</p>
-          <div className="flex gap-12">
-            <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-          </div>
-          <p>{t.footer.rights}</p>
+        <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-10">
+           <div className="flex flex-col md:flex-row items-center gap-12">
+              <p className="text-[9px] uppercase tracking-[0.5em] text-white/20 font-black">© {new Date().getFullYear()} {settings.siteName || "Casa Privilege"} • Excellence Sur Mesure</p>
+              <div className="flex gap-8">
+                 <Link to="/privacy" className="text-[9px] uppercase tracking-widest text-white/15 hover:text-white transition-colors">Privacy</Link>
+                 <Link to="/terms" className="text-[9px] uppercase tracking-widest text-white/15 hover:text-white transition-colors">Terms</Link>
+              </div>
+           </div>
+           
+           <div className="flex items-center gap-3">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.3)]" />
+              <span className="text-[8px] uppercase tracking-[0.4em] font-black text-white/20 italic">Global Network Fully Operational</span>
+           </div>
         </div>
       </div>
     </footer>

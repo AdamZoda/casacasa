@@ -18,6 +18,29 @@ export function Layout() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const t = translations[language];
 
+  // Update document title on route change
+  useEffect(() => {
+    const pageTitles: Record<string, string> = {
+      '/': 'Excellence Sur Mesure | Casa Privilege',
+      '/services': 'Services de Luxe | Casa Privilege',
+      '/store': 'La Boutique Exclusive | Casa Privilege',
+      '/journal': 'Le Journal du Luxe | Casa Privilege',
+      '/contact': 'Salon de Conciergerie | Casa Privilege',
+      '/cart': 'Votre Panier | Boutique Casa Privilege',
+      '/profile': 'Espace Membre | Casa Privilege',
+      '/auth': 'Accès Privé | Casa Privilege',
+      '/admin': 'Panneau de Commande | Casa Privilege Admin'
+    };
+    
+    let title = pageTitles[location.pathname] || 'Casa Privilege | Excellence Sur Mesure';
+    
+    if (location.pathname.startsWith('/universe/')) title = 'Découvrir l\'Univers | Casa Privilege';
+    if (location.pathname.startsWith('/journal/')) title = 'Récit Exclusif | Casa Privilege';
+    if (location.pathname.startsWith('/admin')) title = 'Dashboard Admin | Casa Privilege';
+
+    document.title = title;
+  }, [location.pathname]);
+
   // Scroll to top and close mobile menu on route change
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -64,8 +87,14 @@ export function Layout() {
             >
               <Menu size={24} strokeWidth={1} />
             </button>
-            <Link to="/" className="font-serif text-2xl tracking-[0.15em] hover:text-brand-gold transition-colors">
-              {settings.logoText || 'CASA PRIVILEGE'}
+            <Link to="/" className="flex items-center">
+              <span className="text-2xl md:text-3xl font-serif tracking-tighter hover:text-brand-gold transition-colors duration-500">
+                {settings.logoText || "CASA PRIVILEGE"}
+              </span>
+              <div className="hidden lg:flex items-center gap-2 ml-4 px-3 py-1 bg-green-500/5 rounded-full border border-green-500/20">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                <span className="text-[8px] uppercase tracking-widest font-black text-green-500/80">Concierge Online</span>
+              </div>
             </Link>
           </div>
           

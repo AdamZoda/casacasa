@@ -1,22 +1,19 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, CalendarDays, Settings, LogOut, FileText, ShoppingBag, Users, BookOpen, MessageSquare, Mail, Paintbrush, Ticket, Globe } from "lucide-react";
+import { LayoutDashboard, Settings, LogOut, FileText, ShoppingBag, Users, Heart, Mail, Paintbrush, PenTool, Calendar } from "lucide-react";
 
 export function AdminLayout() {
   const location = useLocation();
 
   const navItems = [
     { path: "/admin", label: "Overview", icon: LayoutDashboard },
-    { path: "/admin/reservations", label: "Reservations", icon: CalendarDays },
-    { path: "/admin/support", label: "Support Tickets", icon: Ticket },
-    { path: "/admin/content", label: "Content (Universes)", icon: FileText },
-    { path: "/admin/globalservices", label: "Global Services", icon: Globe },
-    { path: "/admin/store", label: "Store (Products)", icon: ShoppingBag },
-    { path: "/admin/journal", label: "Journal (Blog)", icon: BookOpen },
-    { path: "/admin/testimonials", label: "Testimonials", icon: MessageSquare },
+    { path: "/admin/reservations", label: "Réservations", icon: Calendar },
+    { path: "/admin/boutique", label: "Gestion Boutique", icon: ShoppingBag },
+    { path: "/admin/experience-client", label: "Expérience Client", icon: Heart },
+    { path: "/admin/content", label: "Gestion Pays & Offres", icon: FileText },
+    { path: "/admin/signature", label: "Signature & Éditorial", icon: PenTool },
     { path: "/admin/newsletter", label: "Newsletter", icon: Mail },
     { path: "/admin/users", label: "Users", icon: Users },
-    { path: "/admin/appearance", label: "Appearance", icon: Paintbrush },
-    { path: "/admin/settings", label: "Settings", icon: Settings },
+    { path: "/admin/settings", label: "Configuration", icon: Settings },
   ];
 
   return (

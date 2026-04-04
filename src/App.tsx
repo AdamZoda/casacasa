@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Layout } from "./components/Layout";
@@ -18,16 +18,12 @@ import { AdminLayout } from "./pages/admin/AdminLayout";
 import { Dashboard } from "./pages/admin/Dashboard";
 import { Reservations } from "./pages/admin/Reservations";
 import { ContentManager } from "./pages/admin/ContentManager";
-import { StoreManager } from "./pages/admin/StoreManager";
-import { JournalManager } from "./pages/admin/JournalManager";
+import { BoutiqueUnified } from "./pages/admin/BoutiqueUnified";
+import { EditorialCenter } from "./pages/admin/EditorialCenter";
+import { ClientExperienceCenter } from "./pages/admin/ClientExperienceCenter";
 import { UserManager } from "./pages/admin/UserManager";
-import { TestimonialManager } from "./pages/admin/TestimonialManager";
 import { NewsletterManager } from "./pages/admin/NewsletterManager";
 import { SettingsView } from "./pages/admin/SettingsView";
-import { AppearanceManager } from "./pages/admin/AppearanceManager";
-import { SupportManager } from "./pages/admin/SupportManager";
-
-import { GlobalServiceManager } from "./pages/admin/GlobalServiceManager";
 
 export default function App() {
   return (
@@ -56,16 +52,19 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="reservations" element={<Reservations />} />
             <Route path="content" element={<ContentManager />} />
-            <Route path="globalservices" element={<GlobalServiceManager />} />
-            <Route path="support" element={<SupportManager />} />
-            <Route path="store" element={<StoreManager />} />
-            <Route path="journal" element={<JournalManager />} />
-            <Route path="testimonials" element={<TestimonialManager />} />
+            <Route path="boutique" element={<BoutiqueUnified />} />
+            <Route path="experience-client" element={<ClientExperienceCenter />} />
+            <Route path="signature" element={<EditorialCenter />} />
             <Route path="newsletter" element={<NewsletterManager />} />
             <Route path="users" element={<UserManager />} />
             <Route path="settings" element={<SettingsView />} />
-            <Route path="appearance" element={<AppearanceManager />} />
-            <Route path="support" element={<SupportManager />} />
+            
+            {/* Automatic Redirects for Legacy Routes */}
+            <Route path="support" element={<Navigate to="/admin/experience-client" replace />} />
+            <Route path="testimonials" element={<Navigate to="/admin/experience-client" replace />} />
+            <Route path="journal" element={<Navigate to="/admin/signature" replace />} />
+            <Route path="globalservices" element={<Navigate to="/admin/signature" replace />} />
+            <Route path="appearance" element={<Navigate to="/admin/settings" replace />} />
           </Route>
         </Routes>
         </BrowserRouter>

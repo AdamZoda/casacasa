@@ -33,7 +33,6 @@ export function GlobalServiceManager() {
         if (imgInput) imgInput.value = publicUrl;
       }
     } catch (error: any) {
-      console.error('Error uploading image:', error);
       alert('Error uploading image: ' + error.message);
     } finally {
       setIsUploading(false);
