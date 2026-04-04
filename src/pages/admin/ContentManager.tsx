@@ -28,10 +28,10 @@ export function ContentManager() {
       const gallery = newUniverse.galleryUrls.split(',').map(url => url.trim()).filter(url => url !== '');
       
       if (editingUniverse) {
-        updateUniverse({ ...editingUniverse, ...newUniverse, gallery });
+        await updateUniverse({ ...editingUniverse, ...newUniverse, gallery });
         setEditingUniverse(null);
       } else {
-        addUniverse({
+        await addUniverse({
           id: `u-${Date.now()}`,
           name: newUniverse.name,
           location: newUniverse.location,
@@ -61,24 +61,31 @@ export function ContentManager() {
     }
   };
 
-  const handleAddActivity = (e: React.FormEvent) => {
+  const handleAddActivity = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingActivity) {
-      updateActivity({ ...editingActivity, ...newActivity });
-      setEditingActivity(null);
-    } else {
-      addActivity({
-        id: `a-${Date.now()}`,
-        universeId: newActivity.universeId,
-        title: newActivity.title,
-        category: newActivity.category,
-        price: newActivity.price,
-        image: newActivity.image,
-        description: newActivity.description,
-        minAdvanceDays: newActivity.minAdvanceDays
-      });
+    setIsUploading(true);
+    try {
+      if (editingActivity) {
+        await updateActivity({ ...editingActivity, ...newActivity });
+        setEditingActivity(null);
+      } else {
+        await addActivity({
+          id: `a-${Date.now()}`,
+          universeId: newActivity.universeId,
+          title: newActivity.title,
+          category: newActivity.category,
+          price: newActivity.price,
+          image: newActivity.image,
+          description: newActivity.description,
+          minAdvanceDays: newActivity.minAdvanceDays
+        });
+      }
+      setNewActivity({ universeId: newActivity.universeId, title: '', category: '', price: '', description: '', image: '', minAdvanceDays: 0 });
+    } catch (err) {
+      alert("Erreur activity: " + (err as Error).message);
+    } finally {
+      setIsUploading(false);
     }
-    setNewActivity({ universeId: newActivity.universeId, title: '', category: '', price: '', description: '', image: '', minAdvanceDays: 0 });
   };
 
   const handleAddJournal = (e: React.FormEvent) => {

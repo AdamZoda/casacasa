@@ -159,24 +159,24 @@ interface AppContextType {
   fetchTicketMessages: (ticketId: string) => Promise<TicketMessage[]>;
 
   universes: Universe[];
-  addUniverse: (u: Universe) => void;
-  updateUniverse: (u: Universe) => void;
-  deleteUniverse: (id: string) => void;
+  addUniverse: (u: Universe) => Promise<void>;
+  updateUniverse: (u: Universe) => Promise<void>;
+  deleteUniverse: (id: string) => Promise<void>;
   
   activities: Activity[];
-  addActivity: (a: Activity) => void;
-  updateActivity: (a: Activity) => void;
-  deleteActivity: (id: string) => void;
+  addActivity: (a: Activity) => Promise<void>;
+  updateActivity: (a: Activity) => Promise<void>;
+  deleteActivity: (id: string) => Promise<void>;
 
   products: Product[];
-  addProduct: (p: Product) => void;
-  updateProduct: (p: Product) => void;
-  deleteProduct: (id: string) => void;
+  addProduct: (p: Product) => Promise<void>;
+  updateProduct: (p: Product) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
 
   journalPosts: JournalPost[];
-  addJournalPost: (p: JournalPost) => void;
-  updateJournalPost: (p: JournalPost) => void;
-  deleteJournalPost: (id: string) => void;
+  addJournalPost: (p: JournalPost) => Promise<void>;
+  updateJournalPost: (p: JournalPost) => Promise<void>;
+  deleteJournalPost: (id: string) => Promise<void>;
 
   testimonials: Testimonial[];
   addTestimonial: (t: Omit<Testimonial, 'id' | 'isApproved'>) => void;
@@ -292,9 +292,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const loadData = async () => {
     const { data: u } = await supabase.from('universes').select('*');
-    if (u && u.length > 0) setUniverses(u);
+    if (u && u.length > 0) {
+      setUniverses(u.map(row => ({
+        id: row.id,
+        name: row.name,
+        flag: row.flag,
+        location: row.location,
+        description: row.description,
+        // Extremely robust mapping to catch any column name
+        heroImage: row.image || row.hero_image || row.heroImage || row.heroimage || row.image_url || '',
+        gallery: Array.isArray(row.gallery) ? row.gallery : (row.gallery ? [row.gallery] : [])
+      })));
+    }
     const { data: a } = await supabase.from('activities').select('*');
-    if (a && a.length > 0) setActivities(a);
+    if (a && a.length > 0) {
+      setActivities(a.map(row => ({
+        id: row.id,
+        universeId: row.universe_id || row.universeid || row.universeId || '',
+        title: row.title,
+        category: row.category,
+        price: row.price,
+        image: row.image || row.image_url || row.photo || '',
+        description: row.description,
+        minAdvanceDays: row.min_advance_days || row.minadvancedays || row.minAdvanceDays || 0
+      })));
+    }
     const { data: p } = await supabase.from('products').select('*');
     if (p && p.length > 0) setProducts(p);
     const { data: j } = await supabase.from('journal_posts').select('*');
@@ -410,21 +432,182 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return data || [];
   };
 
-  const addUniverse = async (u: Universe) => { setUniverses(prev => [...prev,u]); await supabase.from('universes').insert(u); };
-  const updateUniverse = async (u: Universe) => { setUniverses(prev => prev.map(i => i.id === u.id ? u : i)); await supabase.from('universes').update(u).eq('id', u.id); };
-  const deleteUniverse = async (id: string) => { setUniverses(prev => prev.filter(u => u.id !== id)); await supabase.from('universes').delete().eq('id', id); };
+  const addUniverse = async (u: Universe) => {
+    const { error } = await supabase.from('universes').insert({
+      id: u.id,
+      name: u.name,
+      flag: u.flag,
+      location: u.location,
+      description: u.description,
+      image: u.heroImage, // Trying 'image' for consistency with other tables
+      gallery: u.gallery
+    });
+    
+    if (error) {
+      console.warn('Attempt 1 (image column) failed, trying heroImage:', error);
+      const { error: error2 } = await supabase.from('universes').insert({
+        id: u.id,
+        name: u.name,
+        flag: u.flag,
+        location: u.location,
+        description: u.description,
+        hero_image: u.heroImage, // Trying hero_image (snake_case)
+        gallery: u.gallery
+      });
+      
+      if (error2) {
+        console.error('Final attempt failed:', error2);
+        alert(`Erreur base de données (Colonnes 'image' ou 'hero_image' introuvables): ${error2.message}`);
+        return;
+      }
+    }
+    setUniverses(prev => [...prev, u]);
+  };
 
-  const addActivity = async (a: Activity) => { setActivities(prev => [...prev,a]); await supabase.from('activities').insert(a); };
-  const updateActivity = async (a: Activity) => { setActivities(prev => prev.map(i => i.id === a.id ? a : i)); await supabase.from('activities').update(a).eq('id', a.id); };
-  const deleteActivity = async (id: string) => { setActivities(prev => prev.filter(a => a.id !== id)); await supabase.from('activities').delete().eq('id', id); };
+  const updateUniverse = async (u: Universe) => {
+    // Try update with 'image'
+    const { error } = await supabase.from('universes').update({
+      name: u.name,
+      flag: u.flag,
+      location: u.location,
+      description: u.description,
+      image: u.heroImage,
+      gallery: u.gallery
+    }).eq('id', u.id);
 
-  const addProduct = async (p: Product) => { setProducts(prev => [...prev,p]); await supabase.from('products').insert(p); };
-  const updateProduct = async (p: Product) => { setProducts(prev => prev.map(i => i.id === p.id ? p : i)); await supabase.from('products').update(p).eq('id', p.id); };
-  const deleteProduct = async (id: string) => { setProducts(prev => prev.filter(p => p.id !== id)); await supabase.from('products').delete().eq('id', id); };
+    if (error) {
+       const { error: error2 } = await supabase.from('universes').update({
+        name: u.name,
+        flag: u.flag,
+        location: u.location,
+        description: u.description,
+        hero_image: u.heroImage,
+        gallery: u.gallery
+      }).eq('id', u.id);
+      
+      if (error2) {
+        console.error('Error updating universe:', error2);
+        alert(`Erreur lors de la mise à jour: ${error2.message}`);
+        return;
+      }
+    }
+    setUniverses(prev => prev.map(i => i.id === u.id ? u : i));
+  };
 
-  const addJournalPost = async (p: JournalPost) => { setJournalPosts(prev => [...prev,p]); await supabase.from('journal_posts').insert(p); };
-  const updateJournalPost = async (p: JournalPost) => { setJournalPosts(prev => prev.map(i => i.id === p.id ? p : i)); await supabase.from('journal_posts').update(p).eq('id', p.id); };
-  const deleteJournalPost = async (id: string) => { setJournalPosts(prev => prev.filter(p => p.id !== id)); await supabase.from('journal_posts').delete().eq('id', id); };
+  const deleteUniverse = async (id: string) => {
+    const { error } = await supabase.from('universes').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting universe:', error);
+      alert(`Erreur lors de la suppression: ${error.message}`);
+      return;
+    }
+    setUniverses(prev => prev.filter(u => u.id !== id));
+  };
+
+  const addActivity = async (a: Activity) => {
+    const { error } = await supabase.from('activities').insert({
+      id: a.id,
+      universeId: a.universeId,
+      title: a.title,
+      category: a.category,
+      price: a.price,
+      image: a.image,
+      description: a.description,
+      minAdvanceDays: a.minAdvanceDays
+    });
+
+    if (error) {
+      console.error('Error adding activity:', error);
+      alert(`Erreur base de données: ${error.message}`);
+      return;
+    }
+    setActivities(prev => [...prev, a]);
+  };
+
+  const updateActivity = async (a: Activity) => {
+    const { error } = await supabase.from('activities').update({
+      universeId: a.universeId,
+      title: a.title,
+      category: a.category,
+      price: a.price,
+      image: a.image,
+      description: a.description,
+      minAdvanceDays: a.minAdvanceDays
+    }).eq('id', a.id);
+
+    if (error) {
+      console.error('Error updating activity:', error);
+      alert(`Erreur lors de la mise à jour: ${error.message}`);
+      return;
+    }
+    setActivities(prev => prev.map(i => i.id === a.id ? a : i));
+  };
+
+  const deleteActivity = async (id: string) => {
+    const { error } = await supabase.from('activities').delete().eq('id', id);
+    if (error) {
+      console.error('Error lors de la suppression:', error);
+      alert(`Erreur lors de la suppression: ${error.message}`);
+      return;
+    }
+    setActivities(prev => prev.filter(a => a.id !== id));
+  };
+
+  const addProduct = async (p: Product) => {
+    const { error } = await supabase.from('products').insert(p);
+    if (error) {
+      console.error('Error adding product:', error);
+      alert(`Erreur: ${error.message}`);
+      return;
+    }
+    setProducts(prev => [...prev, p]);
+  };
+  const updateProduct = async (p: Product) => {
+    const { error } = await supabase.from('products').update(p).eq('id', p.id);
+    if (error) {
+      console.error('Error updating product:', error);
+      alert(`Erreur: ${error.message}`);
+      return;
+    }
+    setProducts(prev => prev.map(i => i.id === p.id ? p : i));
+  };
+  const deleteProduct = async (id: string) => {
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting product:', error);
+      alert(`Erreur: ${error.message}`);
+      return;
+    }
+    setProducts(prev => prev.filter(p => p.id !== id));
+  };
+
+  const addJournalPost = async (p: JournalPost) => {
+    const { error } = await supabase.from('journal_posts').insert(p);
+    if (error) {
+      console.error('Error adding journal post:', error);
+      alert(`Erreur: ${error.message}`);
+      return;
+    }
+    setJournalPosts(prev => [...prev, p]);
+  };
+  const updateJournalPost = async (p: JournalPost) => {
+    const { error } = await supabase.from('journal_posts').update(p).eq('id', p.id);
+    if (error) {
+      console.error('Error updating journal post:', error);
+      alert(`Erreur: ${error.message}`);
+      return;
+    }
+    setJournalPosts(prev => prev.map(i => i.id === p.id ? p : i));
+  };
+  const deleteJournalPost = async (id: string) => {
+    const { error } = await supabase.from('journal_posts').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting journal post:', error);
+      alert(`Erreur: ${error.message}`);
+      return;
+    }
+    setJournalPosts(prev => prev.filter(p => p.id !== id));
+  };
 
   const addGlobalService = async (s: GlobalService) => { setGlobalServices(prev => [...prev, s]); await supabase.from('global_services').insert(s); };
   const updateGlobalService = async (s: GlobalService) => { 
