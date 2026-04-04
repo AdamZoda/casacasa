@@ -1,47 +1,63 @@
+import { useMemo } from "react";
 import { useAppContext } from "../../context/AppContext";
-import { Users, Calendar, TrendingUp, Activity, ShoppingBag, FileText, Clock, Mail, Package } from "lucide-react";
+import { Users, Calendar, TrendingUp, ShoppingBag, FileText, Clock, Mail, Package } from "lucide-react";
 import { Link } from "react-router-dom";
+import { AdminPageHeader } from "../../components/admin/adminShared";
 
 export function Dashboard() {
-  const { reservations, products, orders, activities, journalPosts, subscribers, profiles } = useAppContext();
-  
-  const bookingRevenue = reservations
-    .filter(res => res.status === 'confirmed')
-    .reduce((acc, res) => {
-      return acc + (Number(res.total_price) || 0);
-    }, 0);
+  const { reservations, products, orders, journalPosts, subscribers, profiles } = useAppContext();
 
-  const orderRevenue = orders
-    .filter(o => o.status === 'completed' || o.status === 'pending')
-    .reduce((acc, o) => acc + (Number(o.total) || 0), 0);
-
-  const totalRevenue = bookingRevenue + orderRevenue;
-
-  const stats = [
-    { label: "Chiffre d'Affaires", value: `${totalRevenue.toLocaleString()} MAD`, icon: TrendingUp, color: "text-brand-gold" },
-    { label: "Ventes Boutique", value: orders.length, icon: Package, color: "text-blue-500" },
-    { label: "Réservations", value: reservations.length, icon: Calendar, color: "text-green-500" },
-    { label: "Membres VIP", value: profiles.length, icon: Users, color: "text-purple-500" },
-  ];
-
-  const recentReservations = [...reservations].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 4);
-  const recentOrders = [...orders].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 4);
+  const { stats, recentReservations, recentOrders } = useMemo(() => {
+    const br = reservations
+      .filter((res) => res.status === "confirmed")
+      .reduce((acc, res) => acc + (Number(res.total_price) || 0), 0);
+    const or = orders
+      .filter((o) => o.status === "completed" || o.status === "pending")
+      .reduce((acc, o) => acc + (Number(o.total) || 0), 0);
+    const totalRevenue = br + or;
+    const st = [
+      { label: "Chiffre d'affaires (estim.)", value: `${totalRevenue.toLocaleString("fr-FR")} MAD`, icon: TrendingUp, color: "text-brand-gold" },
+      { label: "Commandes boutique", value: orders.length, icon: Package, color: "text-blue-500" },
+      { label: "Réservations", value: reservations.length, icon: Calendar, color: "text-green-500" },
+      { label: "Profils", value: profiles.length, icon: Users, color: "text-purple-500" },
+    ];
+    const rr = [...reservations]
+      .sort((a, b) => {
+        const ta = Date.parse(a.created_at) || 0;
+        const tb = Date.parse(b.created_at) || 0;
+        return tb - ta;
+      })
+      .slice(0, 4);
+    const ro = [...orders]
+      .sort((a, b) => {
+        const ta = Date.parse(a.created_at) || 0;
+        const tb = Date.parse(b.created_at) || 0;
+        return tb - ta;
+      })
+      .slice(0, 4);
+    return {
+      stats: st,
+      recentReservations: rr,
+      recentOrders: ro,
+    };
+  }, [reservations, orders, profiles.length]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-12 pb-20">
-      <div className="flex justify-between items-end">
-        <div>
-           <p className="text-[10px] tracking-[0.5em] font-black text-brand-gold uppercase mb-4 italic">VUE D'ENSEMBLE</p>
-           <h2 className="text-4xl font-serif">Tableau de Bord Exécutif</h2>
-        </div>
-        <div className="flex items-center gap-2 text-text-primary/40 text-[10px] uppercase tracking-widest font-black italic">
-          <Clock size={14} /> MISE À JOUR : À L'INSTANT
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <AdminPageHeader
+          kicker="Vue d’ensemble"
+          title="Tableau de bord"
+          subtitle="Indicateurs consolidés (données chargées depuis Supabase)"
+        />
+        <div className="flex items-center gap-2 text-text-primary/40 text-[10px] uppercase tracking-widest font-black italic shrink-0">
+          <Clock size={14} aria-hidden /> Session locale
         </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {stats.map((stat, i) => (
-          <div key={i} className="bg-bg-primary border border-border-primary p-10 hover:border-brand-gold/30 transition-all duration-700 group">
+        {stats.map((stat) => (
+          <div key={stat.label} className="bg-bg-primary border border-border-primary p-8 md:p-10 hover:border-brand-gold/30 transition-all duration-700 group">
             <div className="flex justify-between items-start mb-10">
               <div className={`p-4 bg-text-primary/5 rounded-full ${stat.color} border border-transparent group-hover:border-current/20 transition-all`}>
                 <stat.icon size={24} strokeWidth={1} />
@@ -68,8 +84,10 @@ export function Dashboard() {
                     <Calendar size={20} strokeWidth={1} />
                   </div>
                   <div>
-                    <p className="text-text-primary font-medium text-lg leading-none mb-2">{res.name}</p>
-                    <p className="text-text-primary/40 text-[9px] uppercase tracking-widest font-bold italic">{res.activity_title} • {res.date}</p>
+                    <p className="text-text-primary font-medium text-lg leading-none mb-2">{res.name ?? "—"}</p>
+                    <p className="text-text-primary/40 text-[9px] uppercase tracking-widest font-bold italic">
+                      {(res.activity_title && String(res.activity_title)) || "Activité"} • {res.date ?? "—"}
+                    </p>
                   </div>
                 </div>
                 <span className={`text-[8px] uppercase tracking-widest font-black px-4 py-2 rounded-full border ${
@@ -94,7 +112,7 @@ export function Dashboard() {
         <div className="bg-bg-primary border border-border-primary p-10 flex flex-col">
           <div className="flex items-center justify-between mb-10">
             <h3 className="text-2xl font-serif italic">Commandes Boutique</h3>
-            <Link to="/admin/orders" className="text-[9px] uppercase tracking-widest font-black text-brand-gold hover:text-text-primary transition-colors border-b border-brand-gold/20 pb-1">Logistique</Link>
+            <Link to="/admin/boutique" className="text-[9px] uppercase tracking-widest font-black text-brand-gold hover:text-text-primary transition-colors border-b border-brand-gold/20 pb-1">Voir boutique</Link>
           </div>
           <div className="space-y-6 flex-grow">
             {recentOrders.map(order => (
@@ -104,8 +122,10 @@ export function Dashboard() {
                     <Package size={20} strokeWidth={1} />
                   </div>
                   <div>
-                    <p className="text-text-primary font-medium text-lg leading-none mb-2">{order.customer_name}</p>
-                    <p className="text-text-primary/40 text-[9px] uppercase tracking-widest font-bold italic">{order.items.length} article(s) • {Number(order.total).toLocaleString()}€</p>
+                    <p className="text-text-primary font-medium text-lg leading-none mb-2">{order.customer_name ?? "—"}</p>
+                    <p className="text-text-primary/40 text-[9px] uppercase tracking-widest font-bold italic">
+                      {Array.isArray(order.items) ? order.items.length : 0} article(s) • {Number(order.total || 0).toLocaleString("fr-FR")} €
+                    </p>
                   </div>
                 </div>
                 <span className={`text-[8px] uppercase tracking-widest font-black px-4 py-2 rounded-full border ${

@@ -2,6 +2,12 @@ import { createContext, useContext, useState, ReactNode, useEffect } from 'react
 import { universes as initialUniverses, journalPosts as initialJournalPosts } from '../data/content';
 import { Language } from '../i18n/translations';
 import { supabase } from '../lib/supabase';
+import {
+  dbRowToSiteSettings,
+  siteSettingsToDbRow,
+  type SiteSettings,
+  type SiteSettingsRow,
+} from '../lib/siteSettingsDb';
 
 export interface Reservation {
   id: string;
@@ -22,6 +28,7 @@ export interface Reservation {
   receipt_base64?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   channel: 'web' | 'whatsapp';
+  message?: string;
   created_at: string;
 }
 
@@ -83,31 +90,7 @@ export interface NewsletterSubscriber {
   subscribedAt: string;
 }
 
-export interface SiteSettings {
-  siteName: string;
-  contactEmail: string;
-  phone: string;
-  address: string;
-  socialLinks: {
-    instagram: string;
-    facebook: string;
-    linkedin: string;
-  };
-  maintenanceMode: boolean;
-  heroBackgroundUrl: string;
-  heroTitle: string;
-  heroSubtitle: string;
-  heroCta: string;
-  brandGoldColor: string;
-  whatsappNumber: string;
-  logoText: string;
-  footerTitle: string;
-  footerCta: string;
-  blockedDates: string[];
-  bankName: string;
-  bankBeneficiary: string;
-  bankRib: string;
-}
+export type { SiteSettings };
 
 export interface Profile {
   id: string;
@@ -157,7 +140,7 @@ export type Theme = 'light' | 'dark';
 
 interface AppContextType {
   reservations: Reservation[];
-  addReservation: (reservation: Omit<Reservation, 'id' | 'createdAt' | 'status'>) => Promise<void>;
+  addReservation: (reservation: Omit<Reservation, 'id' | 'created_at' | 'status'>) => Promise<void>;
   updateReservationStatus: (id: string, status: Reservation['status']) => Promise<void>;
   deleteReservation: (id: string) => Promise<void>;
   
@@ -292,7 +275,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     heroTitle: '', heroSubtitle: '', heroCta: '', brandGoldColor: '#E5A93A', whatsappNumber: '', logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: [],
     bankName: '',
     bankBeneficiary: 'COMANE EXCELLENCE SARL',
-    bankRib: ''
+    bankRib: '',
+    hiddenPages: []
   });
   const [cart, setCart] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -325,10 +309,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const fetchProfilesEtc = async () => {
-      const { data: pData } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-      if (pData) setProfiles(pData);
+      const ordered = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      if (!ordered.error && ordered.data) {
+        setProfiles(ordered.data);
+      } else {
+        const sortErr = ordered.error?.message ?? '';
+        const maybeMissingSortCol =
+          /created_at|column|42703|does not exist/i.test(sortErr) || ordered.error?.code === '42703';
+        if (maybeMissingSortCol) {
+          const plain = await supabase.from('profiles').select('*');
+          if (!plain.error && plain.data) setProfiles(plain.data);
+          else if (ordered.error) {
+            console.warn('[Supabase] profiles indisponible:', ordered.error.message);
+          }
+        } else if (ordered.error) {
+          console.warn(
+            '[Supabase] profiles indisponible:',
+            ordered.error.message,
+            '— exécutez fix_profiles_rls.sql dans Supabase si la table ou les politiques RLS sont en cause.'
+          );
+        }
+      }
+
       const { data: sData } = await supabase.from('site_settings').select('*').eq('id', 1).single();
-      if (sData) setSettings(prev => ({ ...prev, ...sData }));
+      if (sData) {
+        setSettings((prev) => dbRowToSiteSettings(sData as SiteSettingsRow, prev));
+      }
+
       const { data: gsData } = await supabase.from('global_services').select('*');
       if (gsData && gsData.length > 0) setGlobalServices(gsData);
     };
@@ -445,7 +452,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateSettings = async (s: SiteSettings) => {
     setSettings(s);
-    await supabase.from('site_settings').upsert({ id: 1, ...s });
+    const row = siteSettingsToDbRow(s);
+    const { error } = await supabase.from('site_settings').upsert(row, { onConflict: 'id' });
+    if (error) {
+      console.error('[Supabase] site_settings:', error.message, error);
+    }
   };
 
   const addToCart = (p: Product) => setCart(prev => [...prev, p]);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from "../../context/AppContext";
 import { 
   Save, Globe, Mail, Phone, MapPin, Instagram, Facebook, Linkedin, 
@@ -15,6 +15,10 @@ export function SettingsView() {
   const [activeTab, setActiveTab] = useState<TabType>('general');
   const [saved, setSaved] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    setFormData(settings);
+  }, [settings]);
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -204,9 +208,23 @@ export function SettingsView() {
                 </div>
 
                 <div className="relative h-64 overflow-hidden border border-border-primary rounded-lg group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-700">
-                  <img src={formData.heroBackgroundUrl} className="w-full h-full object-cover opacity-60 scale-105 group-hover:scale-100 transition-transform duration-1000" alt="Preview" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
+                  {formData.heroBackgroundUrl?.trim() ? (
+                    <img
+                      src={formData.heroBackgroundUrl.trim()}
+                      className="w-full h-full object-cover opacity-60 scale-105 group-hover:scale-100 transition-transform duration-1000"
+                      alt="Aperçu du hero"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full bg-text-primary/10 flex items-center justify-center text-[10px] uppercase tracking-widest text-text-primary/30"
+                      role="img"
+                      aria-label="Aucune image de hero"
+                    >
+                      Aucune image — ajoutez une URL ou uploadez un fichier
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-10 pointer-events-none">
                     <h4 className="text-3xl font-serif mb-2 text-white">{formData.heroTitle || "Aperçu de votre Titre"}</h4>
                     <p className="text-xs tracking-[0.4em] uppercase text-brand-gold">{formData.heroSubtitle || "Votre sous-titre élégant ici"}</p>
                   </div>

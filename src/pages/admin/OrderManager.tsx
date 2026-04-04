@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { Package, Search, Calendar, User, Mail, CreditCard, ChevronDown, CheckCircle2, XCircle, Clock, Trash2, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -9,16 +9,18 @@ export function OrderManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
-      order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.id.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = filter === 'all' || order.status === filter;
-    
-    return matchesSearch && matchesFilter;
-  });
+  const q = searchTerm.trim().toLowerCase();
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      const name = (order.customer_name ?? '').toLowerCase();
+      const email = (order.customer_email ?? '').toLowerCase();
+      const id = String(order.id ?? '').toLowerCase();
+      const matchesSearch = !q || name.includes(q) || email.includes(q) || id.includes(q);
+      const matchesFilter = filter === 'all' || order.status === filter;
+      return matchesSearch && matchesFilter;
+    });
+  }, [orders, q, filter]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

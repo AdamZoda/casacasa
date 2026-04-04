@@ -313,7 +313,7 @@ export function ProfilePage() {
                             <Calendar size={24} strokeWidth={1.5} />
                           </div>
                           <div>
-                            <h3 className="text-xl font-serif mb-1">{res.activityTitle}</h3>
+                            <h3 className="text-xl font-serif mb-1">{res.activity_title}</h3>
                             <p className="text-xs tracking-[0.1em] uppercase text-text-primary/40">
                               {res.date} • {res.time}
                             </p>
@@ -331,7 +331,7 @@ export function ProfilePage() {
                             <p className="text-[10px] text-text-primary/30 mt-2 uppercase tracking-widest">via {res.channel}</p>
                           </div>
                           <Link 
-                            to={`/universe/${res.universeId}`}
+                            to={`/universe/${res.universe_id}`}
                             className="p-3 border border-border-primary hover:border-brand-gold hover:text-brand-gold transition-all duration-500"
                           >
                             <ArrowRight size={18} />

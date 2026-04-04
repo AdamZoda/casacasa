@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Package, TrendingUp, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Package, TrendingUp, type LucideIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OrderManager } from './OrderManager';
 import { StoreManager } from './StoreManager';
 import { useAppContext } from '../../context/AppContext';
 
+type BoutiqueTab = 'orders' | 'inventory' | 'analytics';
+
 export function BoutiqueUnified() {
-  const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'analytics'>('orders');
+  const [activeTab, setActiveTab] = useState<BoutiqueTab>('orders');
   const { orders, products } = useAppContext();
 
-  const tabs = [
+  const tabs: {
+    id: BoutiqueTab;
+    label: string;
+    icon: LucideIcon;
+    count?: number;
+  }[] = [
     { id: 'orders', label: 'Commandes Récentes', icon: Package, count: orders.length },
     { id: 'inventory', label: 'Gestion du Catalogue', icon: ShoppingBag, count: products.length },
     { id: 'analytics', label: 'Aperçu des Ventes', icon: TrendingUp },
@@ -29,7 +36,7 @@ export function BoutiqueUnified() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id)}
               className={`relative px-8 py-4 flex items-center gap-4 transition-all duration-700 overflow-hidden ${
                 activeTab === tab.id ? 'text-brand-black' : 'text-text-primary/40 hover:text-text-primary'
               }`}

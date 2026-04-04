@@ -54,7 +54,7 @@ export function Footer() {
                  <li key={u.id}>
                     <Link to={`/universe/${u.id}`} className="text-white/30 hover:text-white transition-colors text-xs uppercase tracking-widest font-light flex items-center gap-4 group">
                        <span className="w-4 h-px bg-brand-gold/20 group-hover:w-8 transition-all duration-500" />
-                       {u.title}
+                       {u.name}
                     </Link>
                  </li>
                ))}

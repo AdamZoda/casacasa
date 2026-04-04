@@ -27,6 +27,21 @@ const getNumericPrice = (priceStr: string | undefined): number => {
   return parseInt(cleaned[0].replace(/[,.]\d+$/, '').replace(/\D/g, ''), 10);
 };
 
+function clientInitials(name: string | null | undefined): string {
+  if (!name || typeof name !== "string") return "?";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  return parts.map((n) => n[0]!.toUpperCase()).join("").slice(0, 3);
+}
+
+function displayTitle(res: { activity_title?: string | null }): string {
+  return (res.activity_title && String(res.activity_title).trim()) || "Activité";
+}
+
+function isDhActivity(res: { activity_title?: string | null }): boolean {
+  return displayTitle(res).toLowerCase().includes("dh");
+}
+
 export function Reservations() {
   const { reservations, updateReservationStatus, deleteReservation, activities } = useAppContext();
   const [selectedRes, setSelectedRes] = useState<any | null>(null);
@@ -79,20 +94,20 @@ export function Reservations() {
                   <td className="p-6">
                     <div className="flex items-center gap-5">
                       <div className="w-12 h-12 bg-text-primary text-bg-primary flex items-center justify-center text-xs font-bold rounded-sm group-hover:bg-brand-gold transition-colors duration-500">
-                        {res.name.split(' ').map((n: string) => n[0]).join('')}
+                        {clientInitials(res.name)}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-serif group-hover:text-brand-gold transition-colors">{res.name}</p>
+                          <p className="text-sm font-serif group-hover:text-brand-gold transition-colors">{res.name ?? "—"}</p>
                           <span className="text-lg" title={res.country}>{country?.flag || '🇲🇦'}</span>
                         </div>
-                        <p className="text-[10px] text-text-primary/30 uppercase tracking-tighter mt-1">{res.contact}</p>
+                        <p className="text-[10px] text-text-primary/30 uppercase tracking-tighter mt-1">{res.contact ?? "—"}</p>
                       </div>
                     </div>
                   </td>
                   <td className="p-6">
                     <div className="flex flex-col">
-                      <p className="text-sm font-medium tracking-tight mb-1">{res.activity_title}</p>
+                      <p className="text-sm font-medium tracking-tight mb-1">{displayTitle(res)}</p>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5 opacity-60">
                            <div className={`w-1.5 h-1.5 rounded-full ${res.channel === 'whatsapp' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-brand-gold shadow-[0_0_8px_rgba(229,169,58,0.5)]'}`} />
@@ -115,7 +130,7 @@ export function Reservations() {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-brand-gold font-bold text-base">
-                          {displayPrice.toLocaleString()} {res.activity_title.toLowerCase().includes('dh') ? 'DH' : '€'}
+                          {displayPrice.toLocaleString()} {isDhActivity(res) ? "DH" : "€"}
                         </div>
                         {res.people_count && (
                           <div className="flex items-center gap-1 text-[9px] font-bold text-text-primary/40 bg-text-primary/5 px-2 py-1 rounded">
@@ -194,12 +209,12 @@ export function Reservations() {
                 {/* Header User */}
                 <div className="text-center relative">
                   <div className="w-24 h-24 bg-brand-gold text-brand-black text-3xl font-serif flex items-center justify-center rounded-sm mx-auto mb-6 shadow-xl relative z-10">
-                    {selectedRes.name[0]}
+                    {clientInitials(selectedRes.name).slice(0, 1) || "?"}
                   </div>
                   <div className="absolute top-12 left-1/2 -translate-x-1/2 w-48 h-48 bg-brand-gold/5 blur-3xl -z-0"></div>
-                  <h3 className="text-3xl font-serif mb-2 relative z-10">{selectedRes.name}</h3>
+                  <h3 className="text-3xl font-serif mb-2 relative z-10">{selectedRes.name ?? "—"}</h3>
                   <div className="flex items-center justify-center gap-4 text-[10px] uppercase tracking-widest text-text-primary/40 font-medium relative z-10">
-                    <span>Expérience ID: #{selectedRes.id.slice(-6)}</span>
+                    <span>Expérience ID: #{String(selectedRes.id ?? "").slice(-6) || "—"}</span>
                     <div className="w-1 h-1 rounded-full bg-brand-gold/30" />
                     <span>via {selectedRes.channel}</span>
                   </div>
@@ -212,7 +227,7 @@ export function Reservations() {
                       <Calendar size={16} className="text-brand-gold" />
                       <span className="text-[10px] uppercase font-bold tracking-widest text-text-primary/60">Détails de l'Expérience</span>
                     </div>
-                    <p className="text-2xl font-serif mb-6 text-brand-gold">{selectedRes.activity_title}</p>
+                    <p className="text-2xl font-serif mb-6 text-brand-gold">{displayTitle(selectedRes)}</p>
                     
                     <div className="space-y-6">
                       <div className="flex justify-between items-start border-b border-border-primary/10 pb-4">
@@ -253,7 +268,7 @@ export function Reservations() {
                                  }
                                }
                                return price.toLocaleString();
-                             })()} {selectedRes.activity_title.toLowerCase().includes('dh') ? 'DH' : '€'}
+                             })()} {isDhActivity(selectedRes) ? "DH" : "€"}
                           </p>
                         </div>
                       </div>
@@ -332,7 +347,7 @@ export function Reservations() {
                               win.document.write(`
                                 <html>
                                   <head>
-                                    <title>Reçu de virement - ${selectedRes.name}</title>
+                                    <title>Reçu de virement - ${selectedRes.name ?? "Client"}</title>
                                     <style>
                                       body { margin: 0; background: #0a0a0a; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; color: white; }
                                       .container { text-align: center; max-width: 90%; }
@@ -375,7 +390,7 @@ export function Reservations() {
                 <button
                   onClick={() => {
                     const activityPrice = selectedRes.total_price ? `\n*Budget :* ${selectedRes.total_price.toLocaleString()} DH` : '';
-                    const msg = `✨ *Bonjour ${selectedRes.name},* \n\nC'est la Conciergerie Casa Privilege.\nSuite à votre réservation pour *${selectedRes.activity_title}* prévue du ${selectedRes.date} au ${selectedRes.end_date || selectedRes.date}...\n${activityPrice}\n\nComment pouvons-nous vous assister ?`;
+                    const msg = `✨ *Bonjour ${selectedRes.name ?? "Client"},* \n\nC'est la Conciergerie Casa Privilege.\nSuite à votre réservation pour *${displayTitle(selectedRes)}* prévue du ${selectedRes.date ?? "—"} au ${selectedRes.end_date || selectedRes.date || "—"}...\n${activityPrice}\n\nComment pouvons-nous vous assister ?`;
                     window.open(`https://wa.me/${(selectedRes.phone_code || '') + (selectedRes.phone || selectedRes.contact)}?text=${encodeURIComponent(msg)}`, '_blank');
                   }}
                   className="w-16 h-16 flex items-center justify-center border border-border-primary hover:border-brand-gold text-text-primary/40 hover:text-brand-gold transition-all"
