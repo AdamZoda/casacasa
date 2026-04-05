@@ -16,11 +16,11 @@ export function StoreTeaser() {
       <div className="max-w-[1400px] mx-auto overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-8">
           <div className="max-w-2xl relative z-10">
-            <h2 className="text-5xl md:text-8xl font-serif leading-none tracking-tighter mb-8 italic">
-              L'Exclusive <br /><span className="text-brand-gold not-italic">Collection</span>
+            <h2 className="text-5xl md:text-6xl font-serif leading-none tracking-tighter mb-8 italic">
+              L'Exclusive <span className="text-brand-gold not-italic">Collection</span>
             </h2>
             <p className="text-text-primary/40 font-light text-lg tracking-widest uppercase italic border-l border-brand-gold/30 pl-8 ml-4">
-              Pièces d'art rares, séléctionnées pour les ames distinguées.
+              Pièces d'art rares.
             </p>
           </div>
           

@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Layout } from "./components/Layout";
+import { PublicPageGuard } from "./components/PublicPageGuard";
+import { DesktopOnlyRoute } from "./components/DesktopOnlyRoute";
 
 const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })));
 const Universe = lazy(() => import("./pages/Universe").then((m) => ({ default: m.Universe })));
@@ -22,9 +24,22 @@ const Dashboard = lazy(() => import("./pages/admin/Dashboard").then((m) => ({ de
 const Reservations = lazy(() => import("./pages/admin/Reservations").then((m) => ({ default: m.Reservations })));
 const ContentManager = lazy(() => import("./pages/admin/ContentManager").then((m) => ({ default: m.ContentManager })));
 const BoutiqueUnified = lazy(() => import("./pages/admin/BoutiqueUnified").then((m) => ({ default: m.BoutiqueUnified })));
+const BoutiqueAnalyticsTab = lazy(() =>
+  import("./pages/admin/BoutiqueUnified").then((m) => ({ default: m.BoutiqueAnalyticsTab }))
+);
+const OrderManager = lazy(() => import("./pages/admin/OrderManager").then((m) => ({ default: m.OrderManager })));
+const StoreManager = lazy(() => import("./pages/admin/StoreManager").then((m) => ({ default: m.StoreManager })));
 const EditorialCenter = lazy(() => import("./pages/admin/EditorialCenter").then((m) => ({ default: m.EditorialCenter })));
+const GlobalServiceManager = lazy(() =>
+  import("./pages/admin/GlobalServiceManager").then((m) => ({ default: m.GlobalServiceManager }))
+);
+const JournalManager = lazy(() => import("./pages/admin/JournalManager").then((m) => ({ default: m.JournalManager })));
 const ClientExperienceCenter = lazy(() =>
   import("./pages/admin/ClientExperienceCenter").then((m) => ({ default: m.ClientExperienceCenter }))
+);
+const SupportManager = lazy(() => import("./pages/admin/SupportManager").then((m) => ({ default: m.SupportManager })));
+const TestimonialManager = lazy(() =>
+  import("./pages/admin/TestimonialManager").then((m) => ({ default: m.TestimonialManager }))
 );
 const UserManager = lazy(() => import("./pages/admin/UserManager").then((m) => ({ default: m.UserManager })));
 const NewsletterManager = lazy(() => import("./pages/admin/NewsletterManager").then((m) => ({ default: m.NewsletterManager })));
@@ -50,36 +65,70 @@ export default function App() {
           <Suspense fallback={<PageFallback />}>
             <Routes>
               <Route path="/" element={<Layout />}>
-                <Route index element={<Home />} />
-                <Route path="universe/:id" element={<Universe />} />
-                <Route path="services" element={<ServicesPage />} />
-                <Route path="brands" element={<BrandsPage />} />
-                <Route path="contact" element={<Contact />} />
-                <Route path="book/:universeId/:activityId" element={<Booking />} />
-                <Route path="store" element={<Store />} />
-                <Route path="cart" element={<Cart />} />
-                <Route path="journal" element={<Journal />} />
-                <Route path="journal/:id" element={<JournalPost />} />
-                <Route path="profile" element={<ProfilePage />} />
+                <Route element={<PublicPageGuard />}>
+                  <Route index element={<Home />} />
+                  <Route path="universe/:id" element={<Universe />} />
+                  <Route path="services" element={<ServicesPage />} />
+                  <Route path="brands" element={<BrandsPage />} />
+                  <Route path="contact" element={<Contact />} />
+                  <Route path="book/:universeId/:activityId" element={<Booking />} />
+                  <Route path="store" element={<Store />} />
+                  <Route path="cart" element={<Cart />} />
+                  <Route path="journal" element={<Journal />} />
+                  <Route path="journal/:id" element={<JournalPost />} />
+                </Route>
+                <Route
+                  path="profile"
+                  element={
+                    <DesktopOnlyRoute>
+                      <ProfilePage />
+                    </DesktopOnlyRoute>
+                  }
+                />
                 <Route path="auth" element={<AuthPage />} />
               </Route>
 
-              <Route path="/admin" element={<AdminLayout />}>
+              <Route
+                path="/admin"
+                element={
+                  <DesktopOnlyRoute>
+                    <AdminLayout />
+                  </DesktopOnlyRoute>
+                }
+              >
                 <Route index element={<Dashboard />} />
                 <Route path="reservations" element={<Reservations />} />
                 <Route path="content" element={<ContentManager />} />
-                <Route path="boutique" element={<BoutiqueUnified />} />
-                <Route path="experience-client" element={<ClientExperienceCenter />} />
-                <Route path="signature" element={<EditorialCenter />} />
+
+                <Route path="boutique" element={<BoutiqueUnified />}>
+                  <Route index element={<Navigate to="/admin/boutique/commandes" replace />} />
+                  <Route path="commandes" element={<OrderManager />} />
+                  <Route path="catalogue" element={<StoreManager />} />
+                  <Route path="ventes" element={<BoutiqueAnalyticsTab />} />
+                </Route>
+
+                <Route path="experience-client" element={<ClientExperienceCenter />}>
+                  <Route index element={<Navigate to="/admin/experience-client/conciergerie" replace />} />
+                  <Route path="conciergerie" element={<SupportManager />} />
+                  <Route path="temoignages" element={<TestimonialManager />} />
+                </Route>
+
+                <Route path="signature" element={<EditorialCenter />}>
+                  <Route index element={<Navigate to="/admin/signature/services" replace />} />
+                  <Route path="services" element={<GlobalServiceManager />} />
+                  <Route path="journal" element={<JournalManager />} />
+                </Route>
+
                 <Route path="newsletter" element={<NewsletterManager />} />
                 <Route path="users" element={<UserManager />} />
                 <Route path="settings" element={<SettingsView />} />
 
-                <Route path="support" element={<Navigate to="/admin/experience-client" replace />} />
-                <Route path="testimonials" element={<Navigate to="/admin/experience-client" replace />} />
-                <Route path="journal" element={<Navigate to="/admin/signature" replace />} />
-                <Route path="globalservices" element={<Navigate to="/admin/signature" replace />} />
+                <Route path="support" element={<Navigate to="/admin/experience-client/conciergerie" replace />} />
+                <Route path="testimonials" element={<Navigate to="/admin/experience-client/temoignages" replace />} />
+                <Route path="journal" element={<Navigate to="/admin/signature/journal" replace />} />
+                <Route path="globalservices" element={<Navigate to="/admin/signature/services" replace />} />
                 <Route path="appearance" element={<Navigate to="/admin/settings" replace />} />
+                <Route path="*" element={<Navigate to="/admin" replace />} />
               </Route>
             </Routes>
           </Suspense>

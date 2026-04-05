@@ -24,6 +24,8 @@ export function Hero() {
         <img
           src={bgUrl}
           alt="Hero Background"
+          fetchPriority="high"
+          decoding="async"
           className="w-full h-full object-cover"
           onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop'; }}
         />
@@ -72,7 +74,7 @@ export function Hero() {
         transition={{ duration: 1, delay: 2 }}
         className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-10"
       >
-        <span className="text-white/50 text-[10px] uppercase tracking-[0.3em]">Scroll</span>
+        <span className="text-white/50 text-[10px] uppercase tracking-[0.3em]"></span>
         <motion.div 
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}

@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Quote, Star, Plus, X } from "lucide-react";
+import { Quote, Star, Plus, X, LogIn } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 
 export function Testimonials() {
   const { testimonials, addTestimonial } = useAppContext();
+  const { user, loading: authLoading } = useAuth();
   const approvedTestimonials = testimonials.filter(t => t.isApproved);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,8 +19,19 @@ export function Testimonials() {
   });
   const [submitted, setSubmitted] = useState(false);
 
+  const openCommentModal = () => {
+    if (!user) return;
+    const fromProfile = String(user.user_metadata?.full_name ?? "").trim();
+    setFormData((prev) => ({
+      ...prev,
+      name: fromProfile || prev.name,
+    }));
+    setIsModalOpen(true);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     addTestimonial({
       name: formData.name,
       role: formData.role,
@@ -61,12 +75,24 @@ export function Testimonials() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="h-px w-32 bg-brand-gold mx-auto mb-12"
           />
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 px-8 py-3 bg-transparent border border-brand-gold/50 text-brand-gold hover:bg-brand-gold hover:text-brand-black transition-colors duration-300 text-sm tracking-widest uppercase font-light"
-          >
-            <Plus size={16} /> Ajouter un Commentaire
-          </button>
+          {authLoading ? (
+            <p className="text-sm tracking-widest uppercase text-white/35">Chargement…</p>
+          ) : user ? (
+            <button
+              type="button"
+              onClick={openCommentModal}
+              className="inline-flex items-center gap-2 px-8 py-3 bg-transparent border border-brand-gold/50 text-brand-gold hover:bg-brand-gold hover:text-brand-black transition-colors duration-300 text-sm tracking-widest uppercase font-light"
+            >
+              <Plus size={16} /> Ajouter un Commentaire
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-transparent border border-brand-gold/50 text-brand-gold hover:bg-brand-gold hover:text-brand-black transition-colors duration-300 text-sm tracking-widest uppercase font-light"
+            >
+              <LogIn size={16} /> Se connecter pour commenter
+            </Link>
+          )}
         </div>
       </div>
 
@@ -110,7 +136,7 @@ export function Testimonials() {
 
       {/* Add Testimonial Modal */}
       <AnimatePresence>
-        {isModalOpen && (
+        {isModalOpen && user && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, y: 50 }}

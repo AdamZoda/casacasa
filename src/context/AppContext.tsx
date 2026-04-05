@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { universes as initialUniverses, journalPosts as initialJournalPosts } from '../data/content';
 import { Language } from '../i18n/translations';
 import { supabase } from '../lib/supabase';
@@ -8,6 +8,22 @@ import {
   type SiteSettings,
   type SiteSettingsRow,
 } from '../lib/siteSettingsDb';
+import {
+  activityToRow,
+  dbRowToReservation,
+  productToRow,
+  reservationInputToDbRow,
+  rowToActivity,
+  rowToJournalPost,
+  rowToOrder,
+  rowToProduct,
+  rowToSubscriber,
+  rowToTestimonial,
+  rowToUniverse,
+  testimonialToRow,
+  universeToRow,
+  type ReservationRow,
+} from '../lib/tableMappers';
 
 export interface Reservation {
   id: string;
@@ -150,6 +166,7 @@ interface AppContextType {
   deleteOrder: (id: string) => Promise<void>;
   
   tickets: Ticket[];
+  refreshTickets: () => Promise<void>;
   addTicket: (ticket: Omit<Ticket, 'id' | 'created_at' | 'status'>) => Promise<string>;
   updateTicketStatus: (id: string, status: Ticket['status']) => Promise<void>;
   deleteTicket: (id: string) => Promise<void>;
@@ -189,8 +206,9 @@ interface AppContextType {
   deleteGlobalService: (id: string) => void;
 
   subscribers: NewsletterSubscriber[];
-  subscribeNewsletter: (email: string) => void;
-  unsubscribeNewsletter: (id: string) => void;
+  subscribeNewsletter: (email: string) => Promise<boolean>;
+  unsubscribeNewsletter: (id: string) => Promise<void>;
+  refreshNewsletterSubscribers: () => Promise<void>;
 
   settings: SiteSettings;
   updateSettings: (s: SiteSettings) => void;
@@ -206,7 +224,6 @@ interface AppContextType {
   setSearchQuery: (q: string) => void;
 
   profiles: Profile[];
-  updateProfileRole: (id: string, role: string) => void;
   deleteProfile: (id: string) => void;
 
   theme: Theme;
@@ -267,12 +284,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SiteSettings>({
     siteName: 'Casa Privilege',
     contactEmail: 'contact@casaprivilege.com',
-    phone: '',
+    phones: [],
     address: 'Marrakech, Maroc',
-    socialLinks: { instagram: '', facebook: '', linkedin: '' },
+    socialLinks: { instagram: [], facebook: [], linkedin: [] },
     maintenanceMode: false,
     heroBackgroundUrl: '',
-    heroTitle: '', heroSubtitle: '', heroCta: '', brandGoldColor: '#E5A93A', whatsappNumber: '', logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: [],
+    heroTitle: '', heroSubtitle: '', heroCta: '', brandGoldColor: '#E5A93A', whatsappNumbers: [], logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: [],
     bankName: '',
     bankBeneficiary: 'COMANE EXCELLENCE SARL',
     bankRib: '',
@@ -290,25 +307,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     else document.documentElement.classList.remove('dark');
   }, [theme]);
 
-  const loadData = async () => {
-    const { data: u } = await supabase.from('universes').select('*');
-    if (u && u.length > 0) setUniverses(u);
-    const { data: a } = await supabase.from('activities').select('*');
-    if (a && a.length > 0) setActivities(a);
-    const { data: p } = await supabase.from('products').select('*');
-    if (p && p.length > 0) setProducts(p);
-    const { data: j } = await supabase.from('journal_posts').select('*');
-    if (j && j.length > 0) setJournalPosts(j);
-    const { data: r } = await supabase.from('reservations').select('*').order('created_at', { ascending: false });
-    if (r) setReservations(r);
-    const { data: o } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-    if (o) setOrders(o);
-    const { data: t } = await supabase.from('tickets').select('*').order('created_at', { ascending: false });
-    if (t) setTickets(t);
-  };
-
   useEffect(() => {
-    const fetchProfilesEtc = async () => {
+    const fetchProfilesSettings = async () => {
       const ordered = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
       if (!ordered.error && ordered.data) {
         setProfiles(ordered.data);
@@ -331,33 +331,86 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      const { data: sData } = await supabase.from('site_settings').select('*').eq('id', 1).single();
-      if (sData) {
+      const { data: sData, error: sErr } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
+      if (sErr) console.warn('[Supabase] site_settings:', sErr.message);
+      else if (sData) {
         setSettings((prev) => dbRowToSiteSettings(sData as SiteSettingsRow, prev));
       }
 
-      const { data: gsData } = await supabase.from('global_services').select('*');
-      if (gsData && gsData.length > 0) setGlobalServices(gsData);
+      const { data: gsData, error: gsErr } = await supabase.from('global_services').select('*');
+      if (gsErr) console.warn('[Supabase] global_services:', gsErr.message);
+      else if (gsData && gsData.length > 0) setGlobalServices(gsData);
     };
-    fetchProfilesEtc();
-    loadData();
+
+    const loadCatalogAndOps = async () => {
+      const [
+        uRes,
+        aRes,
+        pRes,
+        jRes,
+        rRes,
+        oRes,
+        tRes,
+        tmRes,
+        nsRes,
+      ] = await Promise.all([
+        supabase.from('universes').select('*'),
+        supabase.from('activities').select('*'),
+        supabase.from('products').select('*'),
+        supabase.from('journal_posts').select('*'),
+        supabase.from('reservations').select('*').order('created_at', { ascending: false }),
+        supabase.from('orders').select('*').order('created_at', { ascending: false }),
+        supabase.from('tickets').select('*').order('created_at', { ascending: false }),
+        supabase.from('testimonials').select('*').order('created_at', { ascending: false }),
+        supabase.from('newsletter_subscribers').select('*').order('subscribed_at', { ascending: false }),
+      ]);
+
+      if (uRes.error) console.warn('[Supabase] universes:', uRes.error.message);
+      else if (uRes.data?.length) setUniverses(uRes.data.map((row) => rowToUniverse(row)));
+
+      if (aRes.error) console.warn('[Supabase] activities:', aRes.error.message);
+      else if (aRes.data?.length) setActivities(aRes.data.map((row) => rowToActivity(row)));
+
+      if (pRes.error) console.warn('[Supabase] products:', pRes.error.message);
+      else if (pRes.data?.length) setProducts(pRes.data.map((row) => rowToProduct(row)));
+
+      if (jRes.error) console.warn('[Supabase] journal_posts:', jRes.error.message);
+      else if (jRes.data?.length) setJournalPosts(jRes.data.map((row) => rowToJournalPost(row)));
+
+      if (rRes.error) console.warn('[Supabase] reservations:', rRes.error.message);
+      else if (rRes.data) setReservations(rRes.data.map((row) => dbRowToReservation(row as ReservationRow)));
+
+      if (oRes.error) console.warn('[Supabase] orders:', oRes.error.message);
+      else if (oRes.data) setOrders(oRes.data.map((row) => rowToOrder(row)));
+
+      if (tRes.error) console.warn('[Supabase] tickets:', tRes.error.message);
+      else if (tRes.data) setTickets(tRes.data as Ticket[]);
+
+      if (tmRes.error) console.warn('[Supabase] testimonials:', tmRes.error.message);
+      else if (tmRes.data?.length) setTestimonials(tmRes.data.map((row) => rowToTestimonial(row)));
+
+      if (nsRes.error) console.warn('[Supabase] newsletter_subscribers:', nsRes.error.message);
+      else setSubscribers((nsRes.data ?? []).map((row) => rowToSubscriber(row)));
+    };
+
+    void Promise.all([fetchProfilesSettings(), loadCatalogAndOps()]);
   }, []);
 
   const addReservation = async (data: Omit<Reservation, 'id' | 'created_at' | 'status'>) => {
-    // On laisse Supabase gérer l'ID et le created_at pour éviter les erreurs de type (int8 vs string)
-    const { data: insertedData, error } = await supabase
-      .from('reservations')
-      .insert([data])
-      .select()
-      .single();
+    const id =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? `res-${crypto.randomUUID()}`
+        : `res-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const row = reservationInputToDbRow(data, id);
+    const { data: insertedData, error } = await supabase.from('reservations').insert([row]).select().single();
 
     if (error) {
-      console.error('Error adding reservation:', error);
+      console.error('[Supabase] reservations insert:', error.message, error);
       return;
     }
 
     if (insertedData) {
-      setReservations(prev => [insertedData, ...prev]);
+      setReservations((prev) => [dbRowToReservation(insertedData as ReservationRow), ...prev]);
     }
   };
   const updateReservationStatus = async (id: string, status: Reservation['status']) => {
@@ -370,10 +423,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addOrder = async (data: Omit<Order, 'id' | 'created_at' | 'status'>) => {
-    const id = `ord-${Date.now()}`;
-    const newOrder: Order = { ...data, id, status: 'pending', created_at: new Date().toISOString() };
-    setOrders(prev => [newOrder, ...prev]);
-    await supabase.from('orders').insert(newOrder);
+    const { data: inserted, error } = await supabase
+      .from('orders')
+      .insert({
+        customer_email: data.customer_email,
+        customer_name: data.customer_name ?? null,
+        items: data.items,
+        total: data.total,
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[Supabase] orders insert:', error.message, error);
+      return;
+    }
+    if (inserted) {
+      const o = rowToOrder(inserted);
+      setOrders((prev) => [o, ...prev]);
+    }
   };
   const updateOrderStatus = async (id: string, status: Order['status']) => {
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
@@ -400,27 +469,73 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await supabase.from('tickets').delete().eq('id', id);
   };
 
+  const refreshTickets = useCallback(async () => {
+    const { data, error } = await supabase.from('tickets').select('*').order('created_at', { ascending: false });
+    if (error) console.warn('[Supabase] tickets refresh:', error.message);
+    else if (data) setTickets(data as Ticket[]);
+  }, []);
+
   const addTicketMessage = async (data: Omit<TicketMessage, 'id' | 'created_at'>) => {
     const newMsg: TicketMessage = { ...data, id: `msg-${Date.now()}`, created_at: new Date().toISOString() };
     setTicketMessages(prev => [...prev, newMsg]);
     await supabase.from('ticket_messages').insert(newMsg);
   };
-  const fetchTicketMessages = async (ticketId: string): Promise<TicketMessage[]> => {
-    const { data } = await supabase.from('ticket_messages').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: true });
+  const fetchTicketMessages = useCallback(async (ticketId: string): Promise<TicketMessage[]> => {
+    const { data } = await supabase
+      .from('ticket_messages')
+      .select('*')
+      .eq('ticket_id', ticketId)
+      .order('created_at', { ascending: true });
     return data || [];
+  }, []);
+
+  const addUniverse = async (u: Universe) => {
+    setUniverses((prev) => [...prev, u]);
+    const { error } = await supabase.from('universes').insert(universeToRow(u));
+    if (error) console.error('[Supabase] universes insert:', error.message);
+  };
+  const updateUniverse = async (u: Universe) => {
+    setUniverses((prev) => prev.map((i) => (i.id === u.id ? u : i)));
+    const { error } = await supabase.from('universes').update(universeToRow(u)).eq('id', u.id);
+    if (error) console.error('[Supabase] universes update:', error.message);
+  };
+  const deleteUniverse = async (id: string) => {
+    setUniverses((prev) => prev.filter((x) => x.id !== id));
+    const { error } = await supabase.from('universes').delete().eq('id', id);
+    if (error) console.error('[Supabase] universes delete:', error.message);
   };
 
-  const addUniverse = async (u: Universe) => { setUniverses(prev => [...prev,u]); await supabase.from('universes').insert(u); };
-  const updateUniverse = async (u: Universe) => { setUniverses(prev => prev.map(i => i.id === u.id ? u : i)); await supabase.from('universes').update(u).eq('id', u.id); };
-  const deleteUniverse = async (id: string) => { setUniverses(prev => prev.filter(u => u.id !== id)); await supabase.from('universes').delete().eq('id', id); };
+  const addActivity = async (a: Activity) => {
+    setActivities((prev) => [...prev, a]);
+    const { error } = await supabase.from('activities').insert(activityToRow(a));
+    if (error) console.error('[Supabase] activities insert:', error.message);
+  };
+  const updateActivity = async (a: Activity) => {
+    setActivities((prev) => prev.map((i) => (i.id === a.id ? a : i)));
+    const { error } = await supabase.from('activities').update(activityToRow(a)).eq('id', a.id);
+    if (error) console.error('[Supabase] activities update:', error.message);
+  };
+  const deleteActivity = async (id: string) => {
+    setActivities((prev) => prev.filter((x) => x.id !== id));
+    const { error } = await supabase.from('activities').delete().eq('id', id);
+    if (error) console.error('[Supabase] activities delete:', error.message);
+  };
 
-  const addActivity = async (a: Activity) => { setActivities(prev => [...prev,a]); await supabase.from('activities').insert(a); };
-  const updateActivity = async (a: Activity) => { setActivities(prev => prev.map(i => i.id === a.id ? a : i)); await supabase.from('activities').update(a).eq('id', a.id); };
-  const deleteActivity = async (id: string) => { setActivities(prev => prev.filter(a => a.id !== id)); await supabase.from('activities').delete().eq('id', id); };
-
-  const addProduct = async (p: Product) => { setProducts(prev => [...prev,p]); await supabase.from('products').insert(p); };
-  const updateProduct = async (p: Product) => { setProducts(prev => prev.map(i => i.id === p.id ? p : i)); await supabase.from('products').update(p).eq('id', p.id); };
-  const deleteProduct = async (id: string) => { setProducts(prev => prev.filter(p => p.id !== id)); await supabase.from('products').delete().eq('id', id); };
+  const addProduct = async (p: Product) => {
+    setProducts((prev) => [...prev, p]);
+    const { error } = await supabase.from('products').insert(productToRow(p));
+    if (error) console.error('[Supabase] products insert:', error.message);
+  };
+  const updateProduct = async (p: Product) => {
+    setProducts((prev) => prev.map((i) => (i.id === p.id ? p : i)));
+    const { error } = await supabase.from('products').update(productToRow(p)).eq('id', p.id);
+    if (error) console.error('[Supabase] products update:', error.message);
+  };
+  const deleteProduct = async (id: string) => {
+    setProducts((prev) => prev.filter((x) => x.id !== id));
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) console.error('[Supabase] products delete:', error.message);
+  };
 
   const addJournalPost = async (p: JournalPost) => { setJournalPosts(prev => [...prev,p]); await supabase.from('journal_posts').insert(p); };
   const updateJournalPost = async (p: JournalPost) => { setJournalPosts(prev => prev.map(i => i.id === p.id ? p : i)); await supabase.from('journal_posts').update(p).eq('id', p.id); };
@@ -429,26 +544,57 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addGlobalService = async (s: GlobalService) => { setGlobalServices(prev => [...prev, s]); await supabase.from('global_services').insert(s); };
   const updateGlobalService = async (s: GlobalService) => { 
     setGlobalServices(prev => prev.map(item => item.id === s.id ? s : item)); 
-    const { error } = await supabase.from('global_services').upsert(s);
+    const { error } = await supabase.from('global_services').upsert(s, { onConflict: 'id' });
     if (error) console.error('Error saving service:', error);
   };
   const deleteGlobalService = async (id: string) => { setGlobalServices(prev => prev.filter(s => s.id !== id)); await supabase.from('global_services').delete().eq('id', id); };
 
   const addTestimonial = async (t: Omit<Testimonial, 'id' | 'isApproved'>) => {
-    const newT = { ...t, id: `t-${Date.now()}`, isApproved: false };
-    setTestimonials(prev => [newT, ...prev]);
-    await supabase.from('testimonials').insert(newT);
+    const newT: Testimonial = { ...t, id: `t-${Date.now()}`, isApproved: false };
+    setTestimonials((prev) => [newT, ...prev]);
+    const { error } = await supabase.from('testimonials').insert(testimonialToRow(newT));
+    if (error) console.error('[Supabase] testimonials insert:', error.message);
   };
-  const updateTestimonial = async (t: Testimonial) => { setTestimonials(prev => prev.map(i => i.id === t.id ? t : i)); await supabase.from('testimonials').update(t).eq('id', t.id); };
+  const updateTestimonial = async (t: Testimonial) => {
+    setTestimonials((prev) => prev.map((i) => (i.id === t.id ? t : i)));
+    const { error } = await supabase.from('testimonials').update(testimonialToRow(t)).eq('id', t.id);
+    if (error) console.error('[Supabase] testimonials update:', error.message);
+  };
   const deleteTestimonial = async (id: string) => { setTestimonials(prev => prev.filter(t => t.id !== id)); await supabase.from('testimonials').delete().eq('id', id); };
 
-  const subscribeNewsletter = (email: string) => {
-    if (!subscribers.find(s => s.email === email)) {
-      const newS = { id: `s-${Date.now()}`, email, subscribedAt: new Date().toISOString() };
-      setSubscribers(prev => [newS, ...prev]);
+  const subscribeNewsletter = async (email: string): Promise<boolean> => {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed) return false;
+    if (subscribers.some((s) => s.email.toLowerCase() === trimmed)) return true;
+
+    const { data, error } = await supabase.from('newsletter_subscribers').insert({ email: trimmed }).select().single();
+
+    if (error) {
+      if (error.code === '23505') return true;
+      console.error('[Supabase] newsletter_subscribers insert:', error.message);
+      return false;
     }
+    if (data) setSubscribers((prev) => [rowToSubscriber(data), ...prev]);
+    return true;
   };
-  const unsubscribeNewsletter = (id: string) => setSubscribers(prev => prev.filter(s => s.id !== id));
+
+  const unsubscribeNewsletter = async (id: string) => {
+    const { error } = await supabase.from('newsletter_subscribers').delete().eq('id', id);
+    if (error) console.error('[Supabase] newsletter_subscribers delete:', error.message);
+    setSubscribers((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const refreshNewsletterSubscribers = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('newsletter_subscribers')
+      .select('*')
+      .order('subscribed_at', { ascending: false });
+    if (error) {
+      console.error('[Supabase] newsletter_subscribers refresh:', error.message);
+      throw error;
+    }
+    setSubscribers((data ?? []).map((row) => rowToSubscriber(row)));
+  }, []);
 
   const updateSettings = async (s: SiteSettings) => {
     setSettings(s);
@@ -463,10 +609,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeFromCart = (id: string) => setCart(prev => prev.filter(p => p.id !== id));
   const toggleFavorite = (id: string) => setFavorites(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
 
-  const updateProfileRole = async (id: string, role: string) => {
-    await supabase.from('profiles').update({ role }).eq('id', id);
-    setProfiles(profiles.map(p => p.id === id ? { ...p, role } : p));
-  };
   const deleteProfile = async (id: string) => {
     await supabase.from('profiles').delete().eq('id', id);
     setProfiles(profiles.filter(p => p.id !== id));
@@ -478,7 +620,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{ 
       reservations, addReservation, updateReservationStatus, deleteReservation,
       orders, addOrder, updateOrderStatus, deleteOrder,
-      tickets, addTicket, updateTicketStatus, deleteTicket,
+      tickets, refreshTickets, addTicket, updateTicketStatus, deleteTicket,
       ticketMessages, addTicketMessage, fetchTicketMessages,
       universes, addUniverse, updateUniverse, deleteUniverse,
       activities, addActivity, updateActivity, deleteActivity,
@@ -486,12 +628,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       journalPosts, addJournalPost, updateJournalPost, deleteJournalPost,
       testimonials, addTestimonial, updateTestimonial, deleteTestimonial,
       globalServices, addGlobalService, updateGlobalService, deleteGlobalService,
-      subscribers, subscribeNewsletter, unsubscribeNewsletter,
+      subscribers, subscribeNewsletter, unsubscribeNewsletter, refreshNewsletterSubscribers,
       settings, updateSettings,
       cart, addToCart, removeFromCart,
       favorites, toggleFavorite,
       searchQuery, setSearchQuery,
-      profiles, updateProfileRole, deleteProfile,
+      profiles, deleteProfile,
       theme, toggleTheme,
       language, setLanguage
     }}>

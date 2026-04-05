@@ -55,3 +55,92 @@
     @apply font-serif font-normal tracking-wide;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Console admin — surfaces, focus, tables (complète Tailwind sur #admin-main) */
+/* -------------------------------------------------------------------------- */
+@layer components {
+  .admin-card {
+    border-radius: 1rem;
+    border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
+    background-color: color-mix(in srgb, var(--bg-primary) 96%, transparent);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--text-primary) 4%, transparent),
+      0 18px 48px -28px color-mix(in srgb, var(--text-primary) 35%, transparent);
+  }
+
+  .dark .admin-card {
+    border-color: color-mix(in srgb, var(--text-primary) 10%, transparent);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--text-primary) 6%, transparent),
+      0 24px 56px -32px rgba(0, 0, 0, 0.55);
+  }
+
+  .admin-sidebar {
+    background: linear-gradient(
+      165deg,
+      var(--bg-primary) 0%,
+      color-mix(in srgb, var(--bg-primary) 94%, #e5a93a 6%) 100%
+    );
+  }
+
+  .dark .admin-sidebar {
+    background: linear-gradient(
+      165deg,
+      var(--bg-primary) 0%,
+      color-mix(in srgb, var(--bg-primary) 92%, #e5a93a 8%) 100%
+    );
+  }
+
+  .admin-nav-link {
+    @apply flex items-center gap-3.5 rounded-lg px-3.5 py-2.5 text-sm font-medium tracking-wide transition-all duration-300 outline-none;
+    @apply text-text-primary/55 hover:bg-text-primary/[0.06] hover:text-text-primary;
+  }
+
+  .admin-nav-link[data-active="true"] {
+    @apply bg-brand-gold/[0.12] text-brand-gold ring-1 ring-brand-gold/25 ring-inset;
+  }
+
+  .admin-table thead tr {
+    @apply bg-text-primary/[0.04] border-b border-border-primary;
+  }
+
+  .admin-table th {
+    @apply p-5 text-[10px] uppercase tracking-[0.2em] font-bold text-text-primary/45;
+  }
+
+  .admin-table tbody tr {
+    @apply border-b border-border-primary/40 transition-colors hover:bg-text-primary/[0.025];
+  }
+
+  /* Tableau admin avec en-tête collant (scroll vertical interne) */
+  .admin-table-scroll {
+    max-height: min(70vh, 720px);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .admin-table-scroll thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: color-mix(in srgb, var(--bg-primary) 94%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--text-primary) 8%, transparent);
+  }
+
+  .dark .admin-table-scroll thead th {
+    background-color: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+  }
+
+  .admin-input {
+    @apply rounded-lg border border-border-primary bg-bg-primary/80 px-3 py-2 text-sm text-text-primary outline-none transition-colors;
+    @apply focus:border-brand-gold/50 focus:ring-2 focus:ring-brand-gold/15;
+  }
+
+  .admin-select {
+    @apply rounded-lg border border-border-primary bg-bg-primary/80 px-3 py-2 outline-none transition-colors cursor-pointer text-[10px] uppercase tracking-widest;
+    @apply focus:border-brand-gold/50 focus:ring-2 focus:ring-brand-gold/15;
+  }
+}

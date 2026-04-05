@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { format, addDays, getDaysInMonth, startOfMonth, getDay, isBefore, isAfter, startOfDay, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useAppContext } from "../context/AppContext";
+import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
 import { CheckCircle2, MessageCircle, Globe, ChevronLeft, ChevronRight, Users as UsersIcon, MapPin, Copy, Upload, FileText, ShieldCheck } from "lucide-react";
 
 const COUNTRIES = [
@@ -94,7 +95,7 @@ export function Booking() {
         channel
       });
 
-      const whatsappNumber = settings.whatsappNumber || '212661000000';
+      const whatsappNumber = primaryWhatsappDigits(settings) || "212661000000";
       const activityPrice = dailyPrice ? `\n*Tarif :* ${totalPrice.toLocaleString()} ${activity.price?.includes('DH') ? 'DH' : '€'} (${dailyPrice.toLocaleString()} x ${durationInDays} jours)` : '';
       const activityImage = activity.image ? `\n*Aperçu :* ${activity.image}` : '';
       

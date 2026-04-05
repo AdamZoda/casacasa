@@ -306,8 +306,15 @@ export function AppearanceManager() {
                   <label className="text-[10px] uppercase tracking-widest text-text-primary/40">WhatsApp Phone Number</label>
                   <input
                     type="text"
-                    value={formData.whatsappNumber}
-                    onChange={(e) => setFormData({...formData, whatsappNumber: e.target.value})}
+                    value={formData.whatsappNumbers[0] ?? ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        whatsappNumbers: e.target.value.trim()
+                          ? [e.target.value, ...formData.whatsappNumbers.slice(1)].filter(Boolean)
+                          : formData.whatsappNumbers.slice(1),
+                      })
+                    }
                     placeholder="212600000000"
                     className="w-full bg-text-primary/5 border border-border-primary p-4 text-sm focus:outline-none focus:border-brand-gold transition-all"
                   />
@@ -321,7 +328,7 @@ export function AppearanceManager() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">Floating Button Preview</p>
-                    <p className="text-[10px] text-text-primary/40 mt-1">Links to: wa.me/{formData.whatsappNumber || '...'}</p>
+                    <p className="text-[10px] text-text-primary/40 mt-1">wa.me/{formData.whatsappNumbers[0]?.replace(/\D/g, "") || "…"}</p>
                   </div>
                 </div>
               </div>

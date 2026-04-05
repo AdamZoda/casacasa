@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import React, { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
+import { isPathHidden } from "../lib/hiddenPages";
 import { Send, CheckCircle2, Instagram, Facebook, Linkedin } from "lucide-react";
 
 export function Footer() {
   const { language, subscribeNewsletter, settings, universes } = useAppContext();
   const t = translations[language];
+  const hp = settings.hiddenPages ?? [];
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
 
@@ -23,9 +25,9 @@ export function Footer() {
 
   const title = settings.footerTitle || t.footer.title;
   const cta = settings.footerCta || t.footer.cta;
-  const phone = settings.phone || '+212 5XX XX XX XX';
+  const phones = settings.phones.filter(Boolean);
   const emailContact = settings.contactEmail || 'contact@casaprivilege.com';
-  const socialLinks = settings.socialLinks || { instagram: '#', facebook: '#', linkedin: '#' };
+  const socialLinks = settings.socialLinks;
 
   return (
     <footer className="pt-40 pb-16 px-6 bg-[#050505] text-white border-t border-white/5">
@@ -39,10 +41,22 @@ export function Footer() {
             <p className="text-white/40 text-[11px] leading-[2.2] tracking-widest uppercase font-light max-w-xs italic">
               "L'excellence n'est pas un acte, mais une habitude. Nous créons des moments suspendus pour les âmes les plus exigeantes."
             </p>
-            <div className="flex gap-6 pt-4">
-              {socialLinks.instagram && <a href={socialLinks.instagram} className="p-3 border border-white/10 rounded-full hover:border-brand-gold hover:text-brand-gold transition-all duration-500"><Instagram size={18} /></a>}
-              {socialLinks.linkedin && <a href={socialLinks.linkedin} className="p-3 border border-white/10 rounded-full hover:border-brand-gold hover:text-brand-gold transition-all duration-500"><Linkedin size={18} /></a>}
-              {socialLinks.facebook && <a href={socialLinks.facebook} className="p-3 border border-white/10 rounded-full hover:border-brand-gold hover:text-brand-gold transition-all duration-500"><Facebook size={18} /></a>}
+            <div className="flex flex-wrap gap-3 pt-4">
+              {socialLinks.instagram.map((url) => (
+                <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="p-3 border border-white/10 rounded-full hover:border-brand-gold hover:text-brand-gold transition-all duration-500">
+                  <Instagram size={18} />
+                </a>
+              ))}
+              {socialLinks.linkedin.map((url) => (
+                <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="p-3 border border-white/10 rounded-full hover:border-brand-gold hover:text-brand-gold transition-all duration-500">
+                  <Linkedin size={18} />
+                </a>
+              ))}
+              {socialLinks.facebook.map((url) => (
+                <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="p-3 border border-white/10 rounded-full hover:border-brand-gold hover:text-brand-gold transition-all duration-500">
+                  <Facebook size={18} />
+                </a>
+              ))}
             </div>
           </div>
 
@@ -50,20 +64,29 @@ export function Footer() {
           <div className="space-y-10">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-black text-brand-gold">Les Univers</h4>
             <ul className="space-y-6">
-               {universes.slice(0, 5).map(u => (
-                 <li key={u.id}>
-                    <Link to={`/universe/${u.id}`} className="text-white/30 hover:text-white transition-colors text-xs uppercase tracking-widest font-light flex items-center gap-4 group">
+               {!isPathHidden("/universe", hp) &&
+                 universes.slice(0, 5).map((u) => (
+                   <li key={u.id}>
+                     <Link
+                       to={`/universe/${u.id}`}
+                       className="text-white/30 hover:text-white transition-colors text-xs uppercase tracking-widest font-light flex items-center gap-4 group"
+                     >
                        <span className="w-4 h-px bg-brand-gold/20 group-hover:w-8 transition-all duration-500" />
                        {u.name}
-                    </Link>
-                 </li>
-               ))}
-               <li>
-                  <Link to="/store" className="text-white/30 hover:text-white transition-colors text-xs uppercase tracking-widest font-light flex items-center gap-4 group">
+                     </Link>
+                   </li>
+                 ))}
+               {!isPathHidden("/store", hp) && (
+                 <li>
+                   <Link
+                     to="/store"
+                     className="text-white/30 hover:text-white transition-colors text-xs uppercase tracking-widest font-light flex items-center gap-4 group"
+                   >
                      <span className="w-4 h-px bg-brand-gold/20 group-hover:w-8 transition-all duration-500" />
                      Boutique Exclusive
-                  </Link>
-               </li>
+                   </Link>
+                 </li>
+               )}
             </ul>
           </div>
 
@@ -71,22 +94,32 @@ export function Footer() {
           <div className="space-y-10">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-black text-brand-gold">Salon Privé</h4>
             <div className="space-y-8">
-               <div className="flex flex-col gap-2">
-                  <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Contact Direct</span>
-                  <a href={`tel:${phone}`} className="text-2xl font-serif text-white hover:text-brand-gold transition-colors">{phone}</a>
+               <div className="flex flex-col gap-3">
+                  <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Contact direct</span>
+                  {phones.length > 0 ? (
+                    phones.map((p) => (
+                      <a key={p} href={`tel:${p.replace(/\s/g, "")}`} className="text-xl font-serif text-white hover:text-brand-gold transition-colors block">
+                        {p}
+                      </a>
+                    ))
+                  ) : (
+                    <span className="text-xl font-serif text-white/35">+212 5XX XX XX XX</span>
+                  )}
                </div>
                <div className="flex flex-col gap-2">
                   <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Ligne Sécurisée</span>
                   <a href={`mailto:${emailContact}`} className="text-lg italic font-light text-white/60 hover:text-white transition-colors">{emailContact}</a>
                </div>
-               <Link to="/contact">
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    className="mt-4 px-8 py-4 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] hover:bg-brand-gold transition-all duration-500 rounded-sm"
-                  >
+               {!isPathHidden("/contact", hp) && (
+                 <Link to="/contact">
+                   <motion.button
+                     whileHover={{ scale: 1.05 }}
+                     className="mt-4 px-8 py-4 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] hover:bg-brand-gold transition-all duration-500 rounded-sm"
+                   >
                      Solliciter le Concierge
-                  </motion.button>
-               </Link>
+                   </motion.button>
+                 </Link>
+               )}
             </div>
           </div>
 

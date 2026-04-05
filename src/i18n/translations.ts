@@ -65,6 +65,19 @@ export const translations = {
       noResults: "Aucun résultat trouvé pour",
       favorites: "Favoris",
       emptyFavorites: "Vous n'avez pas encore de favoris."
+    },
+    errors: {
+      pageUnavailableKicker: "Indisponible",
+      pageUnavailableTitle: "Cette page est indisponible",
+      pageUnavailableBody:
+        "Cette section du site est temporairement désactivée. Vous pouvez retourner à l’accueil ou utiliser le menu si d’autres pages restent accessibles.",
+      backHome: "Retour à l’accueil"
+    },
+    mobile: {
+      desktopOnlyKicker: "Grand écran",
+      desktopOnlyTitle: "Non disponible sur téléphone",
+      desktopOnlyBody:
+        "L’espace profil et l’administration sont accessibles depuis une tablette (grand format) ou un ordinateur, pour une meilleure lisibilité et des actions plus sûres.",
     }
   },
   en: {
@@ -133,6 +146,19 @@ export const translations = {
       noResults: "No results found for",
       favorites: "Favorites",
       emptyFavorites: "You have no favorites yet."
+    },
+    errors: {
+      pageUnavailableKicker: "Unavailable",
+      pageUnavailableTitle: "This page is unavailable",
+      pageUnavailableBody:
+        "This part of the site is temporarily disabled. You can return to the home page or use the menu if other sections remain open.",
+      backHome: "Back to home"
+    },
+    mobile: {
+      desktopOnlyKicker: "Larger screen",
+      desktopOnlyTitle: "Not available on phone",
+      desktopOnlyBody:
+        "Your profile and the admin area are available on a tablet (large view) or a computer for better readability and safer workflows.",
     }
   }
 };

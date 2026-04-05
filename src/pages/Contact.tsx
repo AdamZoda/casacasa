@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { MessageCircle, Send, CheckCircle2, Ticket, Mail, Phone, MapPin, ExternalLink, ShieldCheck, User } from "lucide-react";
+import { MessageCircle, Send, CheckCircle2, Ticket, Mail, Phone, MapPin, ExternalLink, ShieldCheck, User, LogIn } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 
 export function Contact() {
   const { settings, addTicket, addTicketMessage, fetchTicketMessages } = useAppContext();
+  const { user, loading: authLoading } = useAuth();
   const [step, setStep] = useState<'auth' | 'chat'>('auth');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -22,7 +25,7 @@ export function Contact() {
       setMessages(data);
     };
     loadMessages();
-    const interval = setInterval(loadMessages, 3000);
+    const interval = setInterval(loadMessages, 10000);
     return () => clearInterval(interval);
   }, [ticketId]);
 
@@ -30,27 +33,54 @@ export function Contact() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    if (!user?.email) return;
+    setEmail(user.email);
+    const displayName = String(user.user_metadata?.full_name ?? "").trim();
+    setName(displayName || user.email.split("@")[0] || "");
+  }, [user]);
+
+  useEffect(() => {
+    if (!user && step === "chat") {
+      setStep("auth");
+      setTicketId(null);
+      setMessages([]);
+    }
+  }, [user, step]);
+
   const handleStartTicket = async (e: FormEvent) => {
     e.preventDefault();
-    if (!email || !name) return;
-    const { data: existing } = await supabase.from('tickets').select('*').eq('user_email', email).eq('status', 'open').single();
+    if (!user?.email) return;
+    const userEmail = user.email;
+    const userName =
+      String(user.user_metadata?.full_name ?? name).trim() || userEmail.split("@")[0] || "Membre";
+    const { data: existing } = await supabase
+      .from("tickets")
+      .select("*")
+      .eq("user_email", userEmail)
+      .eq("status", "open")
+      .maybeSingle();
     if (existing) {
       setTicketId(existing.id);
-      setStep('chat');
+      setStep("chat");
     } else {
-      if (!subject) {
+      if (!subject.trim()) {
         alert("Veuillez entrer un sujet pour créer un nouveau ticket.");
         return;
       }
-      const newId = await addTicket({ user_name: name, user_email: email, subject: subject });
+      const newId = await addTicket({
+        user_name: userName,
+        user_email: userEmail,
+        subject: subject.trim(),
+      });
       setTicketId(newId);
-      setStep('chat');
+      setStep("chat");
     }
   };
 
   const handleSendMessage = async (e: FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !ticketId) return;
+    if (!user || !newMessage.trim() || !ticketId) return;
     await addTicketMessage({
       ticket_id: ticketId,
       sender: 'user',
@@ -61,10 +91,36 @@ export function Contact() {
     setMessages(updated);
   };
 
+  const phoneRows = settings.phones
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => ({
+      icon: Phone,
+      label: "Ligne directe",
+      value: p,
+      link: `tel:${p.replace(/\s/g, "")}`,
+      gold: false,
+    }));
+  const waRows = settings.whatsappNumbers
+    .map((n) => n.replace(/\D/g, ""))
+    .filter(Boolean)
+    .map((d) => ({
+      icon: MessageCircle,
+      label: "WhatsApp",
+      value: `+${d}`,
+      link: `https://wa.me/${d}`,
+      gold: true,
+    }));
   const contactOptions = [
-    { icon: Phone, label: "Direct Line", value: settings.phone, link: `tel:${settings.phone}` },
-    { icon: Mail, label: "Private Email", value: settings.contactEmail, link: `mailto:${settings.contactEmail}` },
-    { icon: MessageCircle, label: "WhatsApp VIP", value: `+${settings.whatsappNumber}`, link: `https://wa.me/${settings.whatsappNumber}`, gold: true },
+    ...phoneRows,
+    {
+      icon: Mail,
+      label: "E-mail",
+      value: settings.contactEmail,
+      link: `mailto:${settings.contactEmail}`,
+      gold: false,
+    },
+    ...waRows,
   ];
 
   return (
@@ -98,7 +154,7 @@ export function Contact() {
           <div className="grid grid-cols-1 gap-8 max-w-md">
             {contactOptions.map((opt, i) => (
               <motion.a
-                key={opt.label}
+                key={`${opt.label}-${opt.link}-${i}`}
                 href={opt.link}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -174,39 +230,61 @@ export function Contact() {
                   <h3 className="text-4xl font-serif mb-6 tracking-tight">Accès Privilège</h3>
                   <div className="h-px w-10 bg-brand-gold mx-auto mb-6" />
                   <p className="text-text-primary/40 font-light text-sm tracking-widest leading-relaxed max-w-xs mx-auto uppercase">
-                    Veuillez valider votre identité pour rejoindre le salon privé de discussion.
+                    Connectez-vous pour créer un ticket et échanger avec le concierge.
                   </p>
                 </div>
 
-                <form onSubmit={handleStartTicket} className="w-full max-w-md space-y-10">
-                  <div className="space-y-8">
-                    {['name', 'email', 'subject'].map((field) => (
-                      <div key={field} className="relative group">
-                        <input 
-                          type={field === 'email' ? 'email' : 'text'} 
-                          placeholder={field === 'name' ? 'VOTRE NOM' : field === 'email' ? 'VOTRE EMAIL' : 'SUJET DE LA DEMANDE'} 
-                          required 
-                          value={field === 'name' ? name : field === 'email' ? email : subject}
-                          onChange={e => {
-                            if (field === 'name') setName(e.target.value);
-                            else if (field === 'email') setEmail(e.target.value);
-                            else setSubject(e.target.value);
-                          }}
-                          className="w-full bg-transparent border-b border-border-primary py-5 text-text-primary focus:outline-none focus:border-brand-gold transition-all duration-500 font-light text-xl tracking-widest placeholder:text-text-primary/10"
-                        />
-                        <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-brand-gold group-focus-within:w-full transition-all duration-1000" />
-                      </div>
-                    ))}
+                {authLoading ? (
+                  <p className="text-sm tracking-widest uppercase text-text-primary/35">Chargement…</p>
+                ) : !user ? (
+                  <div className="flex w-full max-w-md flex-col items-center gap-8">
+                    <p className="text-text-primary/50 text-sm leading-relaxed">
+                      La création de ticket est réservée aux membres connectés.
+                    </p>
+                    <Link
+                      to="/auth"
+                      className="inline-flex w-full items-center justify-center gap-2 py-8 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-1000 uppercase tracking-[0.35em] text-[11px] font-black shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)]"
+                    >
+                      <LogIn size={18} strokeWidth={1.25} aria-hidden />
+                      Se connecter
+                    </Link>
                   </div>
-                  <motion.button
-                    type="submit"
-                    whileHover={{ scale: 1.02, letterSpacing: "0.6em" }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full py-8 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-1000 uppercase tracking-[0.5em] text-[11px] font-black mt-16 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)]"
-                  >
-                    Solliciter l'Accès
-                  </motion.button>
-                </form>
+                ) : (
+                  <form onSubmit={(e) => void handleStartTicket(e)} className="w-full max-w-md space-y-10">
+                    <div className="space-y-4 text-left border border-border-primary/40 bg-text-primary/[0.03] px-6 py-5 rounded-sm">
+                      <p className="text-[10px] uppercase tracking-[0.35em] text-text-primary/35 font-bold">Compte</p>
+                      <p className="text-sm text-text-primary/80 truncate" title={email}>
+                        {email}
+                      </p>
+                      {name ? (
+                        <p className="text-xs text-text-primary/50">
+                          <span className="uppercase tracking-widest text-[9px] text-text-primary/30">Nom affiché</span>
+                          <br />
+                          {name}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="relative group">
+                      <input
+                        type="text"
+                        placeholder="SUJET DE LA DEMANDE"
+                        required
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        className="w-full bg-transparent border-b border-border-primary py-5 text-text-primary focus:outline-none focus:border-brand-gold transition-all duration-500 font-light text-xl tracking-widest placeholder:text-text-primary/10"
+                      />
+                      <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-brand-gold group-focus-within:w-full transition-all duration-1000" />
+                    </div>
+                    <motion.button
+                      type="submit"
+                      whileHover={{ scale: 1.02, letterSpacing: "0.6em" }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full py-8 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-1000 uppercase tracking-[0.5em] text-[11px] font-black mt-8 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)]"
+                    >
+                      Solliciter l&apos;Accès
+                    </motion.button>
+                  </form>
+                )}
               </motion.div>
             )}
 

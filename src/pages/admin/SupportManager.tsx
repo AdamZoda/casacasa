@@ -1,284 +1,387 @@
-import { useState, useEffect, useRef, FormEvent } from "react";
+import { useState, useEffect, useRef, useMemo, useDeferredValue, type FormEvent } from "react";
 import { supabase } from "../../lib/supabase";
-import { Send, CheckCircle, Ticket as TicketIcon, MessageCircle, Search, Clock, ArrowLeft, MoreVertical, ShieldCheck, User } from "lucide-react";
+import { useAppContext, type Ticket, type TicketMessage } from "../../context/AppContext";
+import {
+  Send,
+  Ticket as TicketIcon,
+  MessageCircle,
+  Search,
+  Clock,
+  ShieldCheck,
+  User,
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
+const POLL_TICKETS_MS = 12_000;
+const POLL_MESSAGES_MS = 8_000;
+
+function ticketSort(a: Ticket, b: Ticket): number {
+  if (a.status === "open" && b.status !== "open") return -1;
+  if (a.status !== "open" && b.status === "open") return 1;
+  return (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0);
+}
+
+function formatTicketDate(iso: string): string {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return "—";
+  return new Date(t).toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function SupportManager() {
-  const [tickets, setTickets] = useState<any[]>([]);
-  const [activeTicket, setActiveTicket] = useState<any | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const { tickets, refreshTickets, updateTicketStatus, fetchTicketMessages } = useAppContext();
+  const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
+  const [messages, setMessages] = useState<TicketMessage[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const deferredSearch = useDeferredValue(searchTerm.trim().toLowerCase());
+  const searchPending = searchTerm.trim().toLowerCase() !== deferredSearch;
+
+  const filteredTickets = useMemo(() => {
+    const q = deferredSearch;
+    const list = tickets.filter((t) => {
+      const name = (t.user_name ?? "").toLowerCase();
+      const subj = (t.subject ?? "").toLowerCase();
+      const mail = (t.user_email ?? "").toLowerCase();
+      const id = String(t.id ?? "").toLowerCase();
+      return !q || name.includes(q) || subj.includes(q) || mail.includes(q) || id.includes(q);
+    });
+    return [...list].sort(ticketSort);
+  }, [tickets, deferredSearch]);
+
   useEffect(() => {
-    fetchTickets();
-    const interval = setInterval(fetchTickets, 10000);
+    void refreshTickets();
+    const interval = setInterval(() => void refreshTickets(), POLL_TICKETS_MS);
     return () => clearInterval(interval);
-  }, []);
-
-  const fetchTickets = async () => {
-    const { data } = await supabase.from('tickets').select('*').order('created_at', { ascending: false });
-    if (data) setTickets(data);
-  };
+  }, [refreshTickets]);
 
   useEffect(() => {
-    if (!activeTicket) return;
-    const fetchMessages = async () => {
-      const { data } = await supabase.from('ticket_messages').select('*').eq('ticket_id', activeTicket.id).order('created_at', { ascending: true });
-      if (data) setMessages(data);
+    if (!activeTicket) {
+      setMessages([]);
+      return;
+    }
+    const next = tickets.find((t) => t.id === activeTicket.id);
+    if (next) setActiveTicket(next);
+    else {
+      setActiveTicket(null);
+      return;
+    }
+
+    const load = async () => {
+      const data = await fetchTicketMessages(activeTicket.id);
+      setMessages(data);
     };
-    fetchMessages();
-    const interval = setInterval(fetchMessages, 3000);
+    void load();
+    const interval = setInterval(() => void load(), POLL_MESSAGES_MS);
     return () => clearInterval(interval);
-  }, [activeTicket]);
+  }, [activeTicket?.id, tickets, fetchTicketMessages]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleSendMessage = async (e: FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !activeTicket) return;
+    if (!newMessage.trim() || !activeTicket || activeTicket.status !== "open") return;
 
-    const tmpId = `msg-${Date.now()}`;
-    const msgData = {
-      id: tmpId,
+    const msgData: TicketMessage = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       ticket_id: activeTicket.id,
-      sender: 'admin',
+      sender: "admin",
       content: newMessage.trim(),
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, msgData]);
-    setNewMessage('');
+    setMessages((prev) => [...prev, msgData]);
+    setNewMessage("");
 
-    await supabase.from('ticket_messages').insert({
+    const { error } = await supabase.from("ticket_messages").insert({
       id: msgData.id,
       ticket_id: msgData.ticket_id,
       sender: msgData.sender,
-      content: msgData.content
+      content: msgData.content,
     });
+    if (error) {
+      console.error("[Supabase] ticket_messages:", error.message);
+      setMessages((prev) => prev.filter((m) => m.id !== msgData.id));
+    }
   };
 
   const handleCloseTicket = async () => {
     if (!activeTicket) return;
-    await supabase.from('tickets').update({ status: 'closed' }).eq('id', activeTicket.id);
-    setActiveTicket(prev => prev ? { ...prev, status: 'closed' } : null);
-    fetchTickets();
+    await updateTicketStatus(activeTicket.id, "closed");
+    setActiveTicket((prev) => (prev ? { ...prev, status: "closed" } : null));
+    void refreshTickets();
   };
 
-  const filteredTickets = tickets.filter(t => 
-    t.user_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    t.subject.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const openCount = tickets.filter((t) => t.status === "open").length;
 
   return (
-    <div className="h-[calc(100vh-200px)] flex flex-col space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
-          <h2 className="text-4xl font-serif mb-2">Concierge Support</h2>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-text-primary/40 font-medium">Command Center • Active Requests</p>
+    <div className="flex flex-col gap-6 md:gap-8 min-h-[min(72vh,720px)] pb-4">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+        <div className="min-w-0">
+          <div className="h-px w-14 bg-brand-gold/70 mb-4" />
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif mb-2 text-balance">Conciergerie &amp; tickets</h2>
+          <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-text-primary/45 font-semibold">
+            Centre de commande · demandes actives
+          </p>
         </div>
-        <div className="relative w-full md:w-72">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-primary/30" size={16} />
-          <input 
-            type="text" 
-            placeholder="Rechercher un ticket..."
+        <div className="relative w-full lg:max-w-md shrink-0">
+          <Search
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-text-primary/35 pointer-events-none"
+            size={17}
+            aria-hidden
+          />
+          <input
+            type="search"
+            placeholder="Rechercher un ticket (nom, sujet, e-mail)…"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-bg-primary border border-border-primary rounded-full pl-12 pr-4 py-3 text-xs focus:outline-none focus:border-brand-gold transition-colors"
+            autoComplete="off"
+            className={`admin-input w-full rounded-full pl-11 pr-4 py-3.5 text-sm font-medium normal-case transition-opacity ${
+              searchPending ? "opacity-70" : ""
+            }`}
+            aria-label="Rechercher un ticket"
+            aria-busy={searchPending}
           />
         </div>
       </div>
 
-      <div className="flex-grow flex gap-6 overflow-hidden">
-        {/* Sidebar: Tickets List */}
-        <div className="w-full md:w-[380px] flex flex-col bg-bg-primary border border-border-primary rounded-2xl overflow-hidden shadow-sm">
-          <div className="px-6 py-5 border-b border-border-primary bg-text-primary/[0.02] flex justify-between items-center">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-text-primary/60">Tickets ({filteredTickets.length})</span>
-            <div className="flex gap-1">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] text-green-500 font-medium uppercase tracking-tighter">Live</span>
+      <div className="flex flex-col lg:flex-row flex-1 gap-5 lg:gap-6 min-h-0 lg:min-h-[520px]">
+        {/* Liste tickets */}
+        <div className="admin-card flex flex-col overflow-hidden p-0 w-full lg:w-[min(100%,380px)] lg:shrink-0 lg:max-h-[min(72vh,680px)]">
+          <div className="px-4 py-4 sm:px-5 border-b border-border-primary/70 bg-text-primary/[0.03] flex justify-between items-center gap-3">
+            <span className="text-[10px] uppercase tracking-[0.2em] font-black text-text-primary/55">
+              Tickets ({filteredTickets.length})
+            </span>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400/50 opacity-50" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]" />
+              </span>
+              <span className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">Live</span>
+              {openCount > 0 ? (
+                <span className="text-[9px] font-black text-text-primary/35 tabular-nums ml-1">
+                  · {openCount} ouvert{openCount > 1 ? "s" : ""}
+                </span>
+              ) : null}
             </div>
           </div>
-          
-          <div className="flex-grow overflow-y-auto custom-scrollbar p-2">
-            <AnimatePresence initial={false}>
-              {filteredTickets.map((t, index) => (
-                <motion.button
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  key={t.id}
-                  onClick={() => setActiveTicket(t)}
-                  className={`group w-full text-left p-5 rounded-xl mb-2 transition-all duration-300 relative overflow-hidden ${
-                    activeTicket?.id === t.id 
-                      ? 'bg-brand-gold text-brand-black shadow-xl shadow-brand-gold/10 scale-[0.98]' 
-                      : 'hover:bg-text-primary/5'
-                  }`}
-                >
-                  {t.status === 'open' && activeTicket?.id !== t.id && (
-                    <div className="absolute top-0 right-0 w-1 h-full bg-brand-gold" />
-                  )}
-                  
-                  <div className="flex justify-between items-start mb-3">
-                    <span className={`font-serif text-base leading-none ${activeTicket?.id === t.id ? 'text-brand-black' : 'text-text-primary'}`}>
-                      {t.user_name}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Clock size={10} className="text-current opacity-40" />
-                      <span className="text-[9px] uppercase tracking-tighter opacity-50">
-                        {new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <p className={`text-xs font-medium mb-1 truncate ${activeTicket?.id === t.id ? 'text-brand-black/80' : 'text-brand-gold'}`}>
-                    {t.subject}
-                  </p>
-                  
-                  <div className="flex items-center justify-between mt-4">
-                    <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${
-                      activeTicket?.id === t.id 
-                        ? 'border-brand-black/20 text-brand-black' 
-                        : t.status === 'open' 
-                          ? 'border-green-500/30 text-green-600 bg-green-500/5' 
-                          : 'border-text-primary/20 text-text-primary/40'
-                    }`}>
-                      {t.status}
-                    </span>
-                    <span className={`text-[10px] italic opacity-40`}>#{t.id.slice(-4)}</span>
-                  </div>
-                </motion.button>
-              ))}
-            </AnimatePresence>
-            
-            {filteredTickets.length === 0 && (
-              <div className="h-64 flex flex-col items-center justify-center text-center px-12">
-                <TicketIcon size={40} className="mb-4 text-text-primary/10" />
-                <p className="text-xs uppercase tracking-widest text-text-primary/40 leading-relaxed">Aucune demande trouvée</p>
+
+          <div className="flex-1 overflow-y-auto overscroll-contain p-2 min-h-[220px] lg:min-h-0">
+            {filteredTickets.length === 0 ? (
+              <div className="h-56 flex flex-col items-center justify-center text-center px-8">
+                <TicketIcon size={36} className="mb-4 text-text-primary/15" strokeWidth={1} aria-hidden />
+                <p className="text-[11px] uppercase tracking-[0.25em] text-text-primary/40 font-bold leading-relaxed">
+                  Aucune demande trouvée
+                </p>
+                <p className="text-xs text-text-primary/25 mt-2 max-w-[240px]">
+                  Ajustez la recherche ou attendez un nouveau ticket depuis le site.
+                </p>
               </div>
+            ) : (
+              <ul className="space-y-2" role="list">
+                {filteredTickets.map((t) => {
+                  const selected = activeTicket?.id === t.id;
+                  return (
+                    <li key={t.id}>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTicket(t)}
+                        className={`group w-full text-left p-4 rounded-xl transition-all duration-300 border relative overflow-hidden ${
+                          selected
+                            ? "bg-brand-gold text-brand-black border-brand-gold shadow-lg shadow-brand-gold/15"
+                            : "border-transparent hover:bg-text-primary/[0.04] hover:border-border-primary/40"
+                        }`}
+                      >
+                        {t.status === "open" && !selected ? (
+                          <div className="absolute top-0 right-0 w-1 h-full bg-brand-gold/90 rounded-l" aria-hidden />
+                        ) : null}
+
+                        <div className="flex justify-between items-start gap-2 mb-2">
+                          <span
+                            className={`font-serif text-[15px] leading-tight truncate ${selected ? "text-brand-black" : "text-text-primary"}`}
+                          >
+                            {t.user_name || "Invité"}
+                          </span>
+                          <div className="flex items-center gap-1.5 shrink-0 opacity-60">
+                            <Clock size={11} aria-hidden />
+                            <span className="text-[9px] uppercase tracking-tight">
+                              {new Date(t.created_at).toLocaleTimeString("fr-FR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                        </div>
+
+                        <p
+                          className={`text-xs font-medium truncate mb-3 ${selected ? "text-brand-black/85" : "text-brand-gold"}`}
+                        >
+                          {t.subject || "Sans sujet"}
+                        </p>
+
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={`text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border font-black ${
+                              selected
+                                ? "border-brand-black/25 text-brand-black"
+                                : t.status === "open"
+                                  ? "border-emerald-500/35 text-emerald-600 dark:text-emerald-400 bg-emerald-500/8"
+                                  : "border-text-primary/20 text-text-primary/45"
+                            }`}
+                          >
+                            {t.status === "open" ? "Ouvert" : "Clôturé"}
+                          </span>
+                          <span className={`text-[10px] font-mono opacity-40 truncate max-w-[5rem]`}>
+                            #{String(t.id).slice(-6)}
+                          </span>
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </div>
         </div>
 
-        {/* Chat / Detail Area */}
-        <div className="flex-grow flex flex-col bg-bg-primary border border-border-primary rounded-2xl overflow-hidden shadow-2xl relative">
+        {/* Détail / conversation */}
+        <div className="admin-card flex flex-col flex-1 overflow-hidden p-0 min-h-[420px] lg:min-h-0 lg:max-h-[min(72vh,680px)]">
           <AnimatePresence mode="wait">
             {activeTicket ? (
-              <motion.div 
+              <motion.div
                 key={activeTicket.id}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                className="flex flex-col h-full"
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25 }}
+                className="flex flex-col h-full min-h-0"
               >
-                {/* Header */}
-                <div className="px-8 py-6 border-b border-border-primary bg-text-primary/[0.01] flex justify-between items-center gap-4">
-                  <div className="flex items-center gap-5">
-                    <div className="w-12 h-12 rounded-full bg-brand-gold/10 flex items-center justify-center border border-brand-gold/20">
-                      <User size={22} className="text-brand-gold" />
+                <div className="px-4 py-5 sm:px-6 sm:py-6 border-b border-border-primary/60 bg-text-primary/[0.02] flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-11 h-11 rounded-full bg-brand-gold/12 flex items-center justify-center border border-brand-gold/25 shrink-0">
+                      <User size={20} className="text-brand-gold" aria-hidden />
                     </div>
-                    <div>
-                      <h3 className="font-serif text-xl mb-0.5">{activeTicket.user_name}</h3>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[10px] uppercase tracking-widest text-text-primary/40">{activeTicket.user_email}</span>
-                        <div className="w-1 h-1 rounded-full bg-text-primary/20" />
-                        <span className="text-[10px] uppercase tracking-[0.2em] text-brand-gold font-bold">Privileged Access</span>
-                      </div>
+                    <div className="min-w-0">
+                      <h3 className="font-serif text-lg sm:text-xl truncate">{activeTicket.user_name || "Invité"}</h3>
+                      <p className="text-[10px] uppercase tracking-widest text-text-primary/40 truncate mt-0.5">
+                        {activeTicket.user_email}
+                      </p>
+                      <p className="text-[9px] text-text-primary/30 mt-1">{formatTicketDate(activeTicket.created_at)}</p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                    {activeTicket.status === 'open' ? (
-                      <button 
-                        onClick={handleCloseTicket}
-                        className="group flex items-center gap-3 px-6 py-3 bg-text-primary text-bg-primary rounded-full hover:bg-brand-gold hover:text-brand-black transition-all duration-500 text-[10px] uppercase tracking-widest font-bold shadow-lg"
+
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    {activeTicket.status === "open" ? (
+                      <button
+                        type="button"
+                        onClick={() => void handleCloseTicket()}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-300 text-[10px] uppercase tracking-widest font-black"
                       >
-                        <ShieldCheck size={14} className="group-hover:scale-110 transition-transform" />
-                        Resolve Guest Request
+                        <ShieldCheck size={14} aria-hidden />
+                        Clôturer la demande
                       </button>
                     ) : (
-                      <div className="flex items-center gap-2 px-6 py-3 bg-text-primary/5 text-text-primary/40 rounded-full border border-border-primary text-[10px] uppercase tracking-widest font-bold italic">
-                        Archived / Closed
+                      <div className="px-5 py-2.5 rounded-full border border-border-primary text-[10px] uppercase tracking-widest font-bold text-text-primary/40 bg-text-primary/[0.03]">
+                        Ticket archivé
                       </div>
                     )}
-                    <button className="p-3 text-text-primary/20 hover:text-text-primary transition-colors">
-                      <MoreVertical size={18} />
-                    </button>
                   </div>
                 </div>
 
-                {/* Messages Container */}
-                <div className="flex-grow overflow-y-auto p-10 space-y-8 bg-gradient-to-b from-text-primary/[0.02] to-transparent">
-                  {/* First Message (Guest Request Original) */}
-                  <div className="flex flex-col items-center mb-12">
-                    <div className="h-px w-24 bg-border-primary/30 mb-4" />
-                    <span className="text-[9px] uppercase tracking-[0.4em] text-text-primary/30 font-medium">Conversation Started</span>
+                <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-6 sm:px-8 sm:py-8 space-y-6 bg-gradient-to-b from-text-primary/[0.02] to-transparent min-h-0">
+                  <div className="flex flex-col items-center mb-6">
+                    <div className="h-px w-16 bg-border-primary/40 mb-3" />
+                    <span className="text-[9px] uppercase tracking-[0.35em] text-text-primary/35 font-bold">
+                      Fil de conversation
+                    </span>
                   </div>
 
-                  {messages.map((m, i) => {
-                    const isSelf = m.sender === 'admin';
+                  {messages.map((m) => {
+                    const isAdmin = m.sender === "admin";
                     return (
-                      <motion.div 
-                        key={m.id} 
-                        initial={{ opacity: 0, x: isSelf ? 20 : -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className={`p-6 max-w-[65%] shadow-xl ${
-                          isSelf 
-                            ? 'bg-text-primary text-bg-primary rounded-2xl rounded-tr-none' 
-                            : 'bg-bg-primary border border-border-primary text-text-primary rounded-2xl rounded-tl-none font-light'
-                        }`}>
-                          <p className="text-sm leading-relaxed mb-3">{m.content}</p>
-                          <div className={`flex items-center gap-2 text-[8px] uppercase tracking-tighter opacity-40 ${isSelf ? 'justify-end' : 'justify-start'}`}>
-                            {isSelf && <ShieldCheck size={10} />}
-                            {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <div key={m.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
+                        <div
+                          className={`p-4 sm:p-5 max-w-[min(100%,28rem)] shadow-sm ${
+                            isAdmin
+                              ? "bg-text-primary text-bg-primary rounded-2xl rounded-tr-md"
+                              : "bg-bg-primary border border-border-primary rounded-2xl rounded-tl-md"
+                          }`}
+                        >
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{m.content}</p>
+                          <div
+                            className={`flex items-center gap-2 mt-2 text-[8px] uppercase tracking-tight opacity-45 ${
+                              isAdmin ? "justify-end" : "justify-start"
+                            }`}
+                          >
+                            {isAdmin ? <ShieldCheck size={10} aria-hidden /> : null}
+                            {new Date(m.created_at).toLocaleString("fr-FR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              day: "2-digit",
+                              month: "2-digit",
+                            })}
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     );
                   })}
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Form Wrapper */}
-                <div className={`p-8 bg-bg-primary border-t border-border-primary transition-opacity ${activeTicket.status !== 'open' ? 'opacity-30 pointer-events-none' : ''}`}>
-                  <form onSubmit={handleSendMessage} className="flex gap-4 items-center bg-text-primary/[0.03] p-1 rounded-full border border-border-primary focus-within:border-brand-gold/50 transition-all shadow-inner">
-                    <input 
-                      type="text" 
-                      placeholder="Type your response to the guest..." 
+                <div
+                  className={`p-4 sm:p-6 border-t border-border-primary shrink-0 bg-bg-primary/95 backdrop-blur-sm ${
+                    activeTicket.status !== "open" ? "opacity-40 pointer-events-none" : ""
+                  }`}
+                >
+                  <form
+                    onSubmit={(e) => void handleSendMessage(e)}
+                    className="flex gap-3 items-center bg-text-primary/[0.04] p-1.5 pl-2 rounded-full border border-border-primary focus-within:border-brand-gold/40 transition-colors"
+                  >
+                    <label htmlFor="support-reply" className="sr-only">
+                      Réponse au client
+                    </label>
+                    <input
+                      id="support-reply"
+                      type="text"
+                      placeholder="Votre message au client…"
                       value={newMessage}
-                      onChange={e => setNewMessage(e.target.value)}
-                      className="flex-grow bg-transparent px-8 py-5 text-sm focus:outline-none placeholder:text-text-primary/20 italic font-light"
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      disabled={activeTicket.status !== "open"}
+                      className="flex-1 min-w-0 bg-transparent px-4 py-3.5 text-sm focus:outline-none placeholder:text-text-primary/30"
                     />
-                    <button 
-                      type="submit" 
-                      disabled={!newMessage.trim()} 
-                      className="bg-text-primary text-bg-primary w-14 h-14 rounded-full flex items-center justify-center hover:bg-brand-gold hover:text-brand-black transition-all duration-500 shadow-xl disabled:opacity-20"
+                    <button
+                      type="submit"
+                      disabled={!newMessage.trim() || activeTicket.status !== "open"}
+                      className="bg-text-primary text-bg-primary w-12 h-12 rounded-full flex items-center justify-center hover:bg-brand-gold hover:text-brand-black transition-all duration-300 disabled:opacity-25 shrink-0"
+                      aria-label="Envoyer"
                     >
-                      <Send size={18} />
+                      <Send size={18} aria-hidden />
                     </button>
                   </form>
                 </div>
               </motion.div>
             ) : (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex-grow flex flex-col items-center justify-center text-center p-20"
+                exit={{ opacity: 0 }}
+                className="flex-1 flex flex-col items-center justify-center text-center px-8 py-16 min-h-[360px]"
               >
-                <div className="w-24 h-24 rounded-full bg-text-primary/[0.02] flex items-center justify-center mb-8 border border-border-primary/50 relative">
-                  <MessageCircle size={32} className="text-text-primary/10" />
-                  <div className="absolute inset-0 rounded-full border border-brand-gold/20 animate-ping" />
+                <div className="w-20 h-20 rounded-full bg-text-primary/[0.04] flex items-center justify-center mb-6 border border-border-primary/50">
+                  <MessageCircle size={30} className="text-text-primary/20" strokeWidth={1} aria-hidden />
                 </div>
-                <h3 className="text-2xl font-serif mb-3 opacity-60">Waiting Area</h3>
-                <p className="text-xs uppercase tracking-[0.3em] text-text-primary/30 max-w-xs leading-loose">
-                  Sélectionnez une demande à traiter pour initier le protocole de conciergerie.
+                <h3 className="text-xl sm:text-2xl font-serif mb-3 text-text-primary/70">Espace d&apos;attente</h3>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-text-primary/35 max-w-sm leading-relaxed font-semibold">
+                  Sélectionnez une demande dans la liste pour afficher la conversation et répondre en conciergerie.
                 </p>
               </motion.div>
             )}

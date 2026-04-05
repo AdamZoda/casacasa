@@ -5,15 +5,19 @@ import { useAppContext } from "../context/AppContext";
 
 export function Newsletter() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "success">("idle");
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const { subscribeNewsletter } = useAppContext();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    subscribeNewsletter(email);
-    setStatus("success");
-    setEmail("");
+    const ok = await subscribeNewsletter(email);
+    if (ok) {
+      setStatus("success");
+      setEmail("");
+    } else {
+      setStatus("error");
+    }
   };
 
   return (
@@ -38,6 +42,9 @@ export function Newsletter() {
             Rejoignez notre lettre confidentielle pour recevoir des accès VIP et récits exclusifs directement dans votre boîte privée.
           </p>
 
+          {status === "error" ? (
+            <p className="text-red-400/90 text-sm mb-6">Impossible d&apos;enregistrer l&apos;email pour le moment. Réessayez plus tard.</p>
+          ) : null}
           {status === "success" ? (
              <motion.div 
                initial={{ scale: 0.8, opacity: 0 }} 

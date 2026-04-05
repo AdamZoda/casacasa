@@ -20,8 +20,8 @@ export function JournalTeaser() {
               transition={{ duration: 1.5, ease: "circOut" }}
               className="h-px w-24 bg-brand-gold mb-10 origin-left" 
             />
-            <h2 className="text-5xl md:text-7xl font-serif leading-tight mb-8">
-              Le Journal <br /><span className="text-brand-gold italic">De l'Excellence</span>
+            <h2 className="text-5xl md:text-5xl font-serif leading-tight mb-5">
+              Le Journal <span className="text-brand-gold italic">De l'Excellence</span>
             </h2>
             <p className="text-text-primary/40 font-light text-lg tracking-wide uppercase">
               Récits exclusifs, destinations secrètes et art de vivre.

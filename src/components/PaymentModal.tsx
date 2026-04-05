@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, MessageCircle, Upload, CheckCircle2 } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -17,7 +18,7 @@ export function PaymentModal({ isOpen, onClose, items, total }: PaymentModalProp
 
   const handleWhatsApp = () => {
     const text = encodeURIComponent(`Bonjour Casa Privilege, je souhaite régler ma commande de ${total?.toLocaleString() || ''} MAD.`);
-    window.open(`https://wa.me/${settings.whatsappNumber}?text=${text}`, '_blank');
+    window.open(`https://wa.me/${primaryWhatsappDigits(settings) || "212600000000"}?text=${text}`, "_blank");
     onClose();
   };
 
