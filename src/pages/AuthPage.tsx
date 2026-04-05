@@ -74,7 +74,7 @@ export function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden pt-24 pb-16 px-6">
+    <div className="relative flex min-h-[100dvh] min-h-screen items-center justify-center overflow-hidden px-4 pb-10 pt-24 sm:px-6 sm:pb-16">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-bg-primary">
         <div className="absolute inset-0 opacity-[0.02]" style={{
@@ -91,8 +91,10 @@ export function AuthPage() {
         className="relative w-full max-w-md"
       >
         {/* Logo */}
-        <div className="text-center mb-12">
-          <h1 className="font-serif text-3xl tracking-[0.15em] text-text-primary mb-3">CASA PRIVILEGE</h1>
+        <div className="mb-8 text-center sm:mb-12">
+          <h1 className="mb-3 font-serif text-2xl tracking-[0.12em] text-text-primary sm:text-3xl sm:tracking-[0.15em]">
+            CASA PRIVILEGE
+          </h1>
           <div className="w-12 h-px bg-brand-gold mx-auto mb-4" />
           <p className="text-xs uppercase tracking-[0.3em] text-text-primary/40">
             {language === 'fr' ? 'Espace Membre Sécurisé' : 'Secure Member Area'}
@@ -100,19 +102,21 @@ export function AuthPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-bg-primary border border-border-primary shadow-2xl shadow-black/5 p-10 md:p-12">
+        <div className="border border-border-primary bg-bg-primary p-6 shadow-2xl shadow-black/5 sm:p-10 md:p-12">
           {/* Tab Switcher */}
-          <div className="flex items-center gap-0 mb-10 border-b border-border-primary">
+          <div className="mb-8 flex items-center gap-0 border-b border-border-primary sm:mb-10">
             <button
+              type="button"
               onClick={() => switchMode()}
-              className={`flex-1 pb-4 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-500 relative text-center ${mode === 'login' ? 'text-brand-gold' : 'text-text-primary/40 hover:text-text-primary/60'}`}
+              className={`relative min-h-12 flex-1 touch-manipulation pb-4 text-center text-xs font-medium uppercase tracking-[0.2em] transition-all duration-500 ${mode === "login" ? "text-brand-gold" : "text-text-primary/40 hover:text-text-primary/60"}`}
             >
               {language === 'fr' ? 'Connexion' : 'Sign In'}
               {mode === 'login' && <motion.div layoutId="authTab" className="absolute bottom-0 left-0 right-0 h-px bg-brand-gold" />}
             </button>
             <button
+              type="button"
               onClick={() => switchMode()}
-              className={`flex-1 pb-4 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-500 relative text-center ${mode === 'signup' ? 'text-brand-gold' : 'text-text-primary/40 hover:text-text-primary/60'}`}
+              className={`relative min-h-12 flex-1 touch-manipulation pb-4 text-center text-xs font-medium uppercase tracking-[0.2em] transition-all duration-500 ${mode === "signup" ? "text-brand-gold" : "text-text-primary/40 hover:text-text-primary/60"}`}
             >
               {language === 'fr' ? 'Créer un compte' : 'Sign Up'}
               {mode === 'signup' && <motion.div layoutId="authTab" className="absolute bottom-0 left-0 right-0 h-px bg-brand-gold" />}
@@ -170,7 +174,7 @@ export function AuthPage() {
                       onChange={handleChange}
                       required
                       placeholder={language === 'fr' ? 'Votre nom complet' : 'Your full name'}
-                      className="w-full bg-transparent border-b border-border-primary pl-8 pr-0 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors text-text-primary placeholder:text-text-primary/20 rounded-none"
+                      className="w-full rounded-none border-b border-border-primary bg-transparent py-3 pl-8 pr-0 text-base text-text-primary placeholder:text-text-primary/20 transition-colors focus:border-brand-gold focus:outline-none"
                     />
                   </div>
                 </div>
@@ -190,7 +194,7 @@ export function AuthPage() {
                     onChange={handleChange}
                     required
                     placeholder="email@example.com"
-                    className="w-full bg-transparent border-b border-border-primary pl-8 pr-0 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors text-text-primary placeholder:text-text-primary/20 rounded-none"
+                    className="w-full rounded-none border-b border-border-primary bg-transparent py-3 pl-8 pr-0 text-base text-text-primary placeholder:text-text-primary/20 transition-colors focus:border-brand-gold focus:outline-none"
                   />
                 </div>
               </div>
@@ -210,12 +214,12 @@ export function AuthPage() {
                     required
                     minLength={6}
                     placeholder="••••••••"
-                    className="w-full bg-transparent border-b border-border-primary pl-8 pr-10 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors text-text-primary placeholder:text-text-primary/20 rounded-none"
+                    className="w-full rounded-none border-b border-border-primary bg-transparent py-3 pl-8 pr-10 text-base text-text-primary placeholder:text-text-primary/20 transition-colors focus:border-brand-gold focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 text-text-primary/30 hover:text-brand-gold transition-colors"
+                    className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-text-primary/30 transition-colors hover:text-brand-gold touch-manipulation"
                   >
                     {showPassword ? <EyeOff size={16} strokeWidth={1.5} /> : <Eye size={16} strokeWidth={1.5} />}
                   </button>
@@ -238,7 +242,7 @@ export function AuthPage() {
                       required
                       minLength={6}
                       placeholder="••••••••"
-                      className="w-full bg-transparent border-b border-border-primary pl-8 pr-0 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors text-text-primary placeholder:text-text-primary/20 rounded-none"
+                      className="w-full rounded-none border-b border-border-primary bg-transparent py-3 pl-8 pr-0 text-base text-text-primary placeholder:text-text-primary/20 transition-colors focus:border-brand-gold focus:outline-none"
                     />
                   </div>
                 </div>
@@ -248,7 +252,7 @@ export function AuthPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-brand-gold text-brand-black py-4 mt-4 text-xs uppercase tracking-[0.2em] font-medium hover:bg-brand-gold/90 transition-all duration-500 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-4 flex min-h-12 w-full items-center justify-center gap-3 bg-brand-gold py-4 text-xs font-medium uppercase tracking-[0.2em] text-brand-black transition-all duration-500 hover:bg-brand-gold/90 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation"
               >
                 {loading ? (
                   <Loader2 size={16} className="animate-spin" />

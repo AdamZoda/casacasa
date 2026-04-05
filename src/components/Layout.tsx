@@ -9,7 +9,6 @@ import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
 import { useAuth } from "../context/AuthContext";
 import { translations } from "../i18n/translations";
 import { isPathHidden, LAYOUT_NAV_LINKS } from "../lib/hiddenPages";
-import { useIsPhoneViewport } from "../hooks/useIsPhoneViewport";
 
 export function Layout() {
   const location = useLocation();
@@ -21,7 +20,6 @@ export function Layout() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const t = translations[language];
   const hp = settings.hiddenPages ?? [];
-  const isPhone = useIsPhoneViewport();
 
   // Update document title on route change
   useEffect(() => {
@@ -148,50 +146,96 @@ export function Layout() {
                 {theme === "light" ? <Moon size={18} strokeWidth={1} /> : <Sun size={18} strokeWidth={1} />}
               </button>
 
-              {/* Compte : menu déroulant à partir de md (évite profil/admin sur téléphone dans le header) */}
-              <div className="relative group hidden md:block">
+              {/* Grand écran : menu compte au survol */}
+              <div className="relative group hidden lg:block">
                 {user ? (
                   <>
-                    <button className="hover:text-brand-gold transition-colors flex items-center gap-2 py-2">
-                      <div className="w-7 h-7 rounded-full bg-brand-gold/15 flex items-center justify-center text-brand-gold text-[10px] font-bold uppercase">
-                        {user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U'}
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 py-2 transition-colors hover:text-brand-gold"
+                      aria-expanded={false}
+                      aria-haspopup="true"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-gold/15 text-[10px] font-bold uppercase text-brand-gold">
+                        {user.user_metadata?.full_name?.[0] || user.email?.[0] || "U"}
                       </div>
                     </button>
-                    <div className="absolute right-0 mt-0 w-56 py-3 bg-bg-primary border border-border-primary shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right translate-y-2 group-hover:translate-y-0 z-50">
-                      <div className="px-6 py-2 mb-2 border-b border-border-primary">
-                        <p className="text-xs font-medium text-text-primary truncate">{user.user_metadata?.full_name || user.email}</p>
-                        <p className="text-[10px] text-text-primary/40 truncate mt-0.5">{user.email}</p>
+                    <div className="invisible absolute right-0 z-50 mt-0 w-56 origin-top-right translate-y-2 border border-border-primary bg-bg-primary py-3 opacity-0 shadow-2xl transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                      <div className="mb-2 border-b border-border-primary px-6 py-2">
+                        <p className="truncate text-xs font-medium text-text-primary">
+                          {user.user_metadata?.full_name || user.email}
+                        </p>
+                        <p className="mt-0.5 truncate text-[10px] text-text-primary/40">{user.email}</p>
                       </div>
-                      <Link to="/profile" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.profile}</Link>
-                      <Link to="/profile" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.favorites}</Link>
-                      <Link to="/profile" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.settings}</Link>
-                      <div className="border-t border-border-primary my-2"></div>
-                      <Link to="/admin" className="block px-6 py-2.5 text-xs tracking-widest uppercase text-text-primary hover:text-brand-gold hover:bg-brand-gold/5 transition-colors">{t.user.admin}</Link>
-                      <div className="border-t border-border-primary my-2"></div>
-                      <button onClick={async () => { await signOut(); navigate('/'); }} className="block w-full text-left px-6 py-2.5 text-xs tracking-widest uppercase text-red-400 hover:text-red-500 hover:bg-red-500/5 transition-colors">
-                        <span className="flex items-center gap-2"><LogOut size={14} /> {language === 'fr' ? 'Déconnexion' : 'Sign Out'}</span>
+                      <Link
+                        to="/profile"
+                        className="block px-6 py-2.5 text-xs uppercase tracking-widest text-text-primary transition-colors hover:bg-brand-gold/5 hover:text-brand-gold"
+                      >
+                        {t.user.profile}
+                      </Link>
+                      <Link
+                        to="/profile"
+                        className="block px-6 py-2.5 text-xs uppercase tracking-widest text-text-primary transition-colors hover:bg-brand-gold/5 hover:text-brand-gold"
+                      >
+                        {t.user.favorites}
+                      </Link>
+                      <Link
+                        to="/profile"
+                        className="block px-6 py-2.5 text-xs uppercase tracking-widest text-text-primary transition-colors hover:bg-brand-gold/5 hover:text-brand-gold"
+                      >
+                        {t.user.settings}
+                      </Link>
+                      <div className="my-2 border-t border-border-primary" />
+                      <Link
+                        to="/admin"
+                        className="block px-6 py-2.5 text-xs uppercase tracking-widest text-text-primary transition-colors hover:bg-brand-gold/5 hover:text-brand-gold"
+                      >
+                        {t.user.admin}
+                      </Link>
+                      <div className="my-2 border-t border-border-primary" />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await signOut();
+                          navigate("/");
+                        }}
+                        className="block w-full px-6 py-2.5 text-left text-xs uppercase tracking-widest text-red-400 transition-colors hover:bg-red-500/5 hover:text-red-500"
+                      >
+                        <span className="flex items-center gap-2">
+                          <LogOut size={14} /> {language === "fr" ? "Déconnexion" : "Sign Out"}
+                        </span>
                       </button>
                     </div>
                   </>
                 ) : (
-                  <Link
-                    to="/auth"
-                    className="flex items-center gap-2 py-2 transition-colors hover:text-brand-gold"
-                  >
+                  <Link to="/auth" className="flex items-center gap-2 py-2 transition-colors hover:text-brand-gold">
                     <LogIn size={18} strokeWidth={1} />
                   </Link>
                 )}
               </div>
 
-              {!user && (
-                <Link
-                  to="/auth"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-lg transition-colors hover:text-brand-gold active:bg-white/10 touch-manipulation md:hidden"
-                  aria-label={language === "fr" ? "Se connecter" : "Sign in"}
-                >
-                  <LogIn size={18} strokeWidth={1} />
-                </Link>
-              )}
+              {/* Tablette / téléphone : accès direct profil ou connexion */}
+              <div className="lg:hidden">
+                {user ? (
+                  <Link
+                    to="/profile"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg transition-colors hover:text-brand-gold active:bg-white/10 touch-manipulation"
+                    aria-label={t.user.profile}
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-gold/15 text-[10px] font-bold uppercase text-brand-gold">
+                      {user.user_metadata?.full_name?.[0] || user.email?.[0] || "U"}
+                    </div>
+                  </Link>
+                ) : (
+                  <Link
+                    to="/auth"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg transition-colors hover:text-brand-gold active:bg-white/10 touch-manipulation"
+                    aria-label={language === "fr" ? "Se connecter" : "Sign in"}
+                  >
+                    <LogIn size={18} strokeWidth={1} />
+                  </Link>
+                )}
+              </div>
 
               {!isPathHidden("/cart", hp) && (
                 <Link
@@ -298,49 +342,39 @@ export function Layout() {
                 <span className="text-xs uppercase tracking-[0.2em] text-text-primary/60">{t.user.account}</span>
                 {user ? (
                   <div className="flex flex-col gap-2">
-                    {isPhone ? (
-                      <>
-                        <p className="truncate px-1 text-xs text-text-primary/50" title={user.email ?? undefined}>
-                          {user.email}
-                        </p>
-                        <p className="px-1 text-[10px] uppercase tracking-widest text-text-primary/35">
-                          {language === "fr"
-                            ? "Profil et admin : depuis un ordinateur ou une grande tablette."
-                            : "Profile and admin: use a computer or large tablet."}
-                        </p>
-                      </>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-3 sm:gap-6">
-                        <Link
-                          to="/profile"
-                          className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <User size={16} strokeWidth={1} /> {t.user.profile}
-                        </Link>
-                        <Link
-                          to="/profile"
-                          className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <Heart size={16} strokeWidth={1} /> {t.user.favorites}
-                        </Link>
-                        <Link
-                          to="/profile"
-                          className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <Settings size={16} strokeWidth={1} /> {t.user.settings}
-                        </Link>
-                        <Link
-                          to="/admin"
-                          className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <Shield size={16} strokeWidth={1} /> {t.user.admin}
-                        </Link>
-                      </div>
-                    )}
+                    <p className="truncate px-1 text-xs text-text-primary/50" title={user.email ?? undefined}>
+                      {user.email}
+                    </p>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-6">
+                      <Link
+                        to="/profile"
+                        className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <User size={16} strokeWidth={1} /> {t.user.profile}
+                      </Link>
+                      <Link
+                        to="/profile"
+                        className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Heart size={16} strokeWidth={1} /> {t.user.favorites}
+                      </Link>
+                      <Link
+                        to="/profile"
+                        className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Settings size={16} strokeWidth={1} /> {t.user.settings}
+                      </Link>
+                      <Link
+                        to="/admin"
+                        className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Shield size={16} strokeWidth={1} /> {t.user.admin}
+                      </Link>
+                    </div>
                     <button
                       type="button"
                       onClick={async () => {

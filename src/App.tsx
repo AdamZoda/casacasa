@@ -4,7 +4,6 @@ import { AppProvider } from "./context/AppContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Layout } from "./components/Layout";
 import { PublicPageGuard } from "./components/PublicPageGuard";
-import { DesktopOnlyRoute } from "./components/DesktopOnlyRoute";
 
 const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })));
 const Universe = lazy(() => import("./pages/Universe").then((m) => ({ default: m.Universe })));
@@ -77,25 +76,11 @@ export default function App() {
                   <Route path="journal" element={<Journal />} />
                   <Route path="journal/:id" element={<JournalPost />} />
                 </Route>
-                <Route
-                  path="profile"
-                  element={
-                    <DesktopOnlyRoute>
-                      <ProfilePage />
-                    </DesktopOnlyRoute>
-                  }
-                />
+                <Route path="profile" element={<ProfilePage />} />
                 <Route path="auth" element={<AuthPage />} />
               </Route>
 
-              <Route
-                path="/admin"
-                element={
-                  <DesktopOnlyRoute>
-                    <AdminLayout />
-                  </DesktopOnlyRoute>
-                }
-              >
+              <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="reservations" element={<Reservations />} />
                 <Route path="content" element={<ContentManager />} />

@@ -1,19 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useAppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import { translations } from "../i18n/translations";
 import { User, Lock, Globe, Save, CheckCircle2, Camera, Heart, Calendar, Trash2, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 
 export function ProfilePage() {
+  const { user, loading: authLoading } = useAuth();
   const { language, setLanguage, favorites, toggleFavorite, activities, products, reservations } = useAppContext();
   const t = translations[language];
   
   const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'reservations'>('profile');
   const [isSaved, setIsSaved] = useState(false);
   const [formData, setFormData] = useState({
-    name: "Jean Dupont",
-    email: "jean.dupont@example.com",
+    name: "",
+    email: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
@@ -22,6 +24,16 @@ export function ProfilePage() {
   const favoriteActivities = activities.filter(a => favorites.includes(a.id));
   const favoriteProducts = products.filter(p => favorites.includes(p.id));
   const allFavorites = [...favoriteActivities.map(a => ({ ...a, type: 'activity' as const })), ...favoriteProducts.map(p => ({ ...p, type: 'product' as const }))];
+
+  useEffect(() => {
+    if (!user) return;
+    const displayName = String(user.user_metadata?.full_name ?? "").trim();
+    setFormData((prev) => ({
+      ...prev,
+      email: user.email ?? prev.email,
+      name: displayName || prev.name || (user.email?.split("@")[0] ?? ""),
+    }));
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -36,15 +48,30 @@ export function ProfilePage() {
   };
 
   // Get initials for avatar
-  const initials = formData.name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
+  const initials = (formData.name || user?.email || "?")
+    .split(/\s+/)
+    .map((n) => n[0])
+    .join("")
     .substring(0, 2)
-    .toUpperCase();
+    .toUpperCase() || "U";
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center bg-bg-primary pt-28">
+        <div
+          className="h-9 w-9 animate-spin rounded-full border-2 border-brand-gold/30 border-t-brand-gold"
+          aria-hidden
+        />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
 
   return (
-    <div className="pt-32 pb-24 px-6 min-h-screen bg-bg-primary">
+    <div className="min-h-screen bg-bg-primary px-4 pb-20 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -52,41 +79,59 @@ export function ProfilePage() {
           transition={{ duration: 0.6 }}
         >
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center gap-8 mb-12 pb-12 border-b border-border-primary">
-            <div className="relative w-24 h-24 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold text-3xl font-serif shrink-0">
+          <div className="mb-10 flex flex-col gap-6 border-b border-border-primary pb-10 sm:mb-12 sm:gap-8 sm:pb-12 md:flex-row md:items-center">
+            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-gold/10 font-serif text-2xl text-brand-gold sm:h-24 sm:w-24 sm:text-3xl">
               {initials}
-              <button type="button" className="absolute bottom-0 right-0 bg-bg-primary border border-border-primary rounded-full p-2 hover:text-brand-gold transition-colors shadow-sm">
+              <button
+                type="button"
+                className="absolute bottom-0 right-0 rounded-full border border-border-primary bg-bg-primary p-2 shadow-sm transition-colors hover:text-brand-gold touch-manipulation"
+              >
                 <Camera size={14} />
               </button>
             </div>
-            <div>
-              <h1 className="text-4xl font-serif text-text-primary mb-2">{t.profile.title}</h1>
-              <p className="text-text-primary/60 text-sm uppercase tracking-widest">{formData.email}</p>
+            <div className="min-w-0">
+              <h1 className="mb-2 font-serif text-3xl text-text-primary sm:text-4xl">{t.profile.title}</h1>
+              <p className="truncate text-sm uppercase tracking-widest text-text-primary/60">{formData.email || user.email}</p>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex items-center gap-12 mb-16 border-b border-border-primary">
-            <button 
-              onClick={() => setActiveTab('profile')}
-              className={`pb-6 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-500 relative ${activeTab === 'profile' ? 'text-brand-gold' : 'text-text-primary/40 hover:text-text-primary'}`}
+          {/* Tabs — défilable sur petit écran */}
+          <div className="-mx-1 mb-12 flex snap-x snap-mandatory gap-6 overflow-x-auto border-b border-border-primary pb-px sm:mb-16 sm:gap-10 md:gap-12 [scrollbar-width:thin]">
+            <button
+              type="button"
+              onClick={() => setActiveTab("profile")}
+              className={`relative shrink-0 snap-start pb-4 text-xs font-medium uppercase tracking-[0.2em] transition-all duration-500 sm:pb-6 ${
+                activeTab === "profile" ? "text-brand-gold" : "text-text-primary/40 hover:text-text-primary"
+              }`}
             >
               {t.user.profile}
-              {activeTab === 'profile' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-px bg-brand-gold" />}
+              {activeTab === "profile" && (
+                <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-px bg-brand-gold" />
+              )}
             </button>
-            <button 
-              onClick={() => setActiveTab('favorites')}
-              className={`pb-6 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-500 relative ${activeTab === 'favorites' ? 'text-brand-gold' : 'text-text-primary/40 hover:text-text-primary'}`}
+            <button
+              type="button"
+              onClick={() => setActiveTab("favorites")}
+              className={`relative shrink-0 snap-start pb-4 text-xs font-medium uppercase tracking-[0.2em] transition-all duration-500 sm:pb-6 ${
+                activeTab === "favorites" ? "text-brand-gold" : "text-text-primary/40 hover:text-text-primary"
+              }`}
             >
               {t.user.favorites} ({allFavorites.length})
-              {activeTab === 'favorites' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-px bg-brand-gold" />}
+              {activeTab === "favorites" && (
+                <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-px bg-brand-gold" />
+              )}
             </button>
-            <button 
-              onClick={() => setActiveTab('reservations')}
-              className={`pb-6 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-500 relative ${activeTab === 'reservations' ? 'text-brand-gold' : 'text-text-primary/40 hover:text-text-primary'}`}
+            <button
+              type="button"
+              onClick={() => setActiveTab("reservations")}
+              className={`relative shrink-0 snap-start pb-4 text-xs font-medium uppercase tracking-[0.2em] transition-all duration-500 sm:pb-6 ${
+                activeTab === "reservations" ? "text-brand-gold" : "text-text-primary/40 hover:text-text-primary"
+              }`}
             >
               {t.user.reservations} ({reservations.length})
-              {activeTab === 'reservations' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-px bg-brand-gold" />}
+              {activeTab === "reservations" && (
+                <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-px bg-brand-gold" />
+              )}
             </button>
           </div>
 
@@ -122,7 +167,7 @@ export function ProfilePage() {
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="w-full bg-transparent border-b border-border-primary px-0 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors text-text-primary rounded-none"
+                        className="w-full bg-transparent border-b border-border-primary px-0 py-3 text-base focus:outline-none focus:border-brand-gold transition-colors text-text-primary rounded-none"
                       />
                     </div>
                     <div className="space-y-2">
@@ -132,7 +177,7 @@ export function ProfilePage() {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full bg-transparent border-b border-border-primary px-0 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors text-text-primary rounded-none"
+                        className="w-full bg-transparent border-b border-border-primary px-0 py-3 text-base focus:outline-none focus:border-brand-gold transition-colors text-text-primary rounded-none"
                       />
                     </div>
                   </div>
@@ -161,7 +206,7 @@ export function ProfilePage() {
                         name="currentPassword"
                         value={formData.currentPassword}
                         onChange={handleChange}
-                        className="w-full bg-transparent border-b border-border-primary px-0 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors text-text-primary rounded-none"
+                        className="w-full bg-transparent border-b border-border-primary px-0 py-3 text-base focus:outline-none focus:border-brand-gold transition-colors text-text-primary rounded-none"
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -172,7 +217,7 @@ export function ProfilePage() {
                           name="newPassword"
                           value={formData.newPassword}
                           onChange={handleChange}
-                          className="w-full bg-transparent border-b border-border-primary px-0 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors text-text-primary rounded-none"
+                          className="w-full bg-transparent border-b border-border-primary px-0 py-3 text-base focus:outline-none focus:border-brand-gold transition-colors text-text-primary rounded-none"
                         />
                       </div>
                       <div className="space-y-2">
@@ -182,7 +227,7 @@ export function ProfilePage() {
                           name="confirmPassword"
                           value={formData.confirmPassword}
                           onChange={handleChange}
-                          className="w-full bg-transparent border-b border-border-primary px-0 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors text-text-primary rounded-none"
+                          className="w-full bg-transparent border-b border-border-primary px-0 py-3 text-base focus:outline-none focus:border-brand-gold transition-colors text-text-primary rounded-none"
                         />
                       </div>
                     </div>
@@ -210,7 +255,7 @@ export function ProfilePage() {
                       <select 
                         value={language}
                         onChange={(e) => setLanguage(e.target.value as 'fr' | 'en')}
-                        className="w-full md:w-1/2 bg-transparent border-b border-border-primary px-0 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors text-text-primary appearance-none rounded-none"
+                        className="w-full md:w-1/2 bg-transparent border-b border-border-primary px-0 py-3 text-base focus:outline-none focus:border-brand-gold transition-colors text-text-primary appearance-none rounded-none"
                       >
                         <option value="fr" className="bg-bg-primary text-text-primary">Français</option>
                         <option value="en" className="bg-bg-primary text-text-primary">English</option>
