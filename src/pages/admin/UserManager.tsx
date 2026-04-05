@@ -74,7 +74,11 @@ export function UserManager() {
       />
 
       <AdminTableCard>
+<<<<<<< HEAD
         <div className="overflow-x-auto">
+=======
+        <div className="admin-table-x-scroll">
+>>>>>>> e1b3035 (Initial commit)
           <table className="admin-table w-full text-left border-collapse min-w-[1000px] table-fixed">
             <colgroup>
               <col className="w-[19%]" />
@@ -213,6 +217,12 @@ export function UserManager() {
             </tbody>
           </table>
         </div>
+<<<<<<< HEAD
+=======
+        <p className="border-t border-border-primary/50 px-3 py-2 text-center text-[9px] uppercase tracking-[0.2em] text-text-primary/40 md:hidden">
+          Faites défiler horizontalement pour voir tout le tableau
+        </p>
+>>>>>>> e1b3035 (Initial commit)
       </AdminTableCard>
     </div>
   );

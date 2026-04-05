@@ -95,6 +95,10 @@
   .admin-nav-link {
     @apply flex items-center gap-3.5 rounded-lg px-3.5 py-2.5 text-sm font-medium tracking-wide transition-all duration-300 outline-none;
     @apply text-text-primary/55 hover:bg-text-primary/[0.06] hover:text-text-primary;
+<<<<<<< HEAD
+=======
+    touch-action: manipulation;
+>>>>>>> e1b3035 (Initial commit)
   }
 
   .admin-nav-link[data-active="true"] {
@@ -118,6 +122,11 @@
     max-height: min(70vh, 720px);
     overflow: auto;
     overscroll-behavior: contain;
+<<<<<<< HEAD
+=======
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+>>>>>>> e1b3035 (Initial commit)
   }
 
   .admin-table-scroll thead th {
@@ -143,4 +152,40 @@
     @apply rounded-lg border border-border-primary bg-bg-primary/80 px-3 py-2 outline-none transition-colors cursor-pointer text-[10px] uppercase tracking-widest;
     @apply focus:border-brand-gold/50 focus:ring-2 focus:ring-brand-gold/15;
   }
+<<<<<<< HEAD
+=======
+
+  /* Téléphone : nav tactile, tableaux scrollables, typo lisible (pas microscopique) */
+  @media (max-width: 767px) {
+    .admin-nav-link {
+      min-height: 2.75rem;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+      font-size: 0.8125rem;
+    }
+
+    .admin-table-scroll {
+      max-height: min(58dvh, 520px);
+    }
+
+    .admin-table th {
+      padding: 0.625rem 0.45rem;
+      font-size: 0.625rem;
+      line-height: 1.35;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+
+    #admin-main .admin-card {
+      border-radius: 0.75rem;
+    }
+  }
+
+  .admin-table-x-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
+  }
+>>>>>>> e1b3035 (Initial commit)
 }

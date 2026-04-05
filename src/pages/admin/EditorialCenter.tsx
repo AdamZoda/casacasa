@@ -12,6 +12,7 @@ export function EditorialCenter() {
   ];
 
   return (
+<<<<<<< HEAD
     <div className="space-y-10 pb-16">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 border-b border-border-primary/20 pb-12">
         <div className="space-y-6">
@@ -25,6 +26,21 @@ export function EditorialCenter() {
             Signature <span className="text-brand-gold italic">Casa Privilege</span>
           </h1>
           <p className="text-text-primary/40 font-light text-lg max-w-2xl italic leading-relaxed">
+=======
+    <div className="space-y-6 pb-12 sm:space-y-10 sm:pb-16">
+      <div className="flex flex-col justify-between gap-6 border-b border-border-primary/20 pb-8 sm:gap-10 sm:pb-12 lg:flex-row lg:items-end">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="h-px w-10 bg-brand-gold opacity-50 sm:w-12" />
+            <p className="text-[8px] font-black uppercase italic tracking-[0.22em] text-brand-gold sm:text-[10px] sm:tracking-[0.5em]">
+              Prestige & éditorial
+            </p>
+          </div>
+          <h1 className="font-serif text-2xl leading-snug tracking-tight sm:text-3xl sm:leading-normal md:text-4xl md:tracking-tighter lg:text-5xl xl:text-6xl">
+            Signature <span className="text-brand-gold italic">Casa Privilege</span>
+          </h1>
+          <p className="max-w-2xl text-sm font-light italic leading-relaxed text-text-primary/40 sm:text-base md:text-lg">
+>>>>>>> e1b3035 (Initial commit)
             Services d&apos;exception et chroniques : pilotez l&apos;image éditoriale de la maison.
           </p>
         </div>
@@ -35,7 +51,11 @@ export function EditorialCenter() {
               key={tab.to}
               to={tab.to}
               className={({ isActive }) =>
+<<<<<<< HEAD
                 `relative shrink-0 px-6 py-4 md:px-10 md:py-5 flex items-center gap-3 md:gap-4 transition-all duration-500 rounded-lg overflow-hidden ${
+=======
+                `relative flex min-h-[3.25rem] shrink-0 items-center gap-3 overflow-hidden rounded-lg px-5 py-3.5 transition-all duration-500 touch-manipulation sm:px-6 sm:py-4 md:gap-4 md:px-10 md:py-5 ${
+>>>>>>> e1b3035 (Initial commit)
                   isActive ? "text-brand-black" : "text-text-primary/30 hover:text-text-primary"
                 }`
               }

@@ -124,7 +124,11 @@ export function SupportManager() {
   const openCount = tickets.filter((t) => t.status === "open").length;
 
   return (
+<<<<<<< HEAD
     <div className="flex flex-col gap-6 md:gap-8 min-h-[min(72vh,720px)] pb-4">
+=======
+    <div className="flex min-h-0 flex-col gap-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:min-h-[min(72vh,720px)] md:gap-8">
+>>>>>>> e1b3035 (Initial commit)
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
         <div className="min-w-0">
           <div className="h-px w-14 bg-brand-gold/70 mb-4" />
@@ -156,7 +160,11 @@ export function SupportManager() {
 
       <div className="flex flex-col lg:flex-row flex-1 gap-5 lg:gap-6 min-h-0 lg:min-h-[520px]">
         {/* Liste tickets */}
+<<<<<<< HEAD
         <div className="admin-card flex flex-col overflow-hidden p-0 w-full lg:w-[min(100%,380px)] lg:shrink-0 lg:max-h-[min(72vh,680px)]">
+=======
+        <div className="admin-card flex max-h-[min(42dvh,320px)] w-full flex-col overflow-hidden p-0 lg:max-h-[min(72vh,680px)] lg:w-[min(100%,380px)] lg:shrink-0">
+>>>>>>> e1b3035 (Initial commit)
           <div className="px-4 py-4 sm:px-5 border-b border-border-primary/70 bg-text-primary/[0.03] flex justify-between items-center gap-3">
             <span className="text-[10px] uppercase tracking-[0.2em] font-black text-text-primary/55">
               Tickets ({filteredTickets.length})
@@ -175,7 +183,11 @@ export function SupportManager() {
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="flex-1 overflow-y-auto overscroll-contain p-2 min-h-[220px] lg:min-h-0">
+=======
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
+>>>>>>> e1b3035 (Initial commit)
             {filteredTickets.length === 0 ? (
               <div className="h-56 flex flex-col items-center justify-center text-center px-8">
                 <TicketIcon size={36} className="mb-4 text-text-primary/15" strokeWidth={1} aria-hidden />
@@ -195,7 +207,11 @@ export function SupportManager() {
                       <button
                         type="button"
                         onClick={() => setActiveTicket(t)}
+<<<<<<< HEAD
                         className={`group w-full text-left p-4 rounded-xl transition-all duration-300 border relative overflow-hidden ${
+=======
+                        className={`group relative w-full min-h-[3.5rem] touch-manipulation overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
+>>>>>>> e1b3035 (Initial commit)
                           selected
                             ? "bg-brand-gold text-brand-black border-brand-gold shadow-lg shadow-brand-gold/15"
                             : "border-transparent hover:bg-text-primary/[0.04] hover:border-border-primary/40"
@@ -254,7 +270,11 @@ export function SupportManager() {
         </div>
 
         {/* Détail / conversation */}
+<<<<<<< HEAD
         <div className="admin-card flex flex-col flex-1 overflow-hidden p-0 min-h-[420px] lg:min-h-0 lg:max-h-[min(72vh,680px)]">
+=======
+        <div className="admin-card flex min-h-[min(48dvh,380px)] flex-1 flex-col overflow-hidden p-0 lg:min-h-0 lg:max-h-[min(72vh,680px)]">
+>>>>>>> e1b3035 (Initial commit)
           <AnimatePresence mode="wait">
             {activeTicket ? (
               <motion.div
@@ -361,7 +381,11 @@ export function SupportManager() {
                     <button
                       type="submit"
                       disabled={!newMessage.trim() || activeTicket.status !== "open"}
+<<<<<<< HEAD
                       className="bg-text-primary text-bg-primary w-12 h-12 rounded-full flex items-center justify-center hover:bg-brand-gold hover:text-brand-black transition-all duration-300 disabled:opacity-25 shrink-0"
+=======
+                      className="flex h-12 min-h-12 min-w-12 shrink-0 items-center justify-center rounded-full bg-text-primary text-bg-primary transition-all duration-300 hover:bg-brand-gold hover:text-brand-black disabled:opacity-25 touch-manipulation"
+>>>>>>> e1b3035 (Initial commit)
                       aria-label="Envoyer"
                     >
                       <Send size={18} aria-hidden />

@@ -1,9 +1,18 @@
 import { motion } from "motion/react";
 import { useAppContext } from "../context/AppContext";
+<<<<<<< HEAD
 import { Heart, ShoppingBag } from "lucide-react";
 
 export function Store() {
   const { products, addToCart, favorites, toggleFavorite } = useAppContext();
+=======
+import { translations } from "../i18n/translations";
+import { Heart, ShoppingBag } from "lucide-react";
+
+export function Store() {
+  const { products, addToCart, favorites, toggleFavorite, language } = useAppContext();
+  const t = translations[language];
+>>>>>>> e1b3035 (Initial commit)
 
   return (
     <div className="pt-32 pb-32 px-6 max-w-[1600px] mx-auto min-h-screen">
@@ -58,16 +67,30 @@ export function Store() {
                 referrerPolicy="no-referrer"
               />
               
+<<<<<<< HEAD
               {/* Add to cart overlay */}
               <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20">
                 <button 
+=======
+              {/* Add to cart — bureau : au survol ; tactile : bouton sous la fiche */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 hidden p-4 md:block md:translate-y-full md:transition-transform md:duration-500 md:ease-out md:group-hover:pointer-events-auto md:group-hover:translate-y-0">
+                <button
+                  type="button"
+>>>>>>> e1b3035 (Initial commit)
                   onClick={(e) => {
                     e.preventDefault();
                     addToCart(product);
                   }}
+<<<<<<< HEAD
                   className="w-full bg-brand-black text-brand-gold py-4 text-[10px] tracking-[0.2em] uppercase font-medium flex items-center justify-center gap-3 hover:bg-brand-gold hover:text-brand-black transition-colors duration-300"
                 >
                   <ShoppingBag size={14} /> Ajouter au Panier
+=======
+                  className="pointer-events-auto flex w-full items-center justify-center gap-3 bg-brand-black py-4 text-[10px] font-medium uppercase tracking-[0.2em] text-brand-gold transition-colors duration-300 hover:bg-brand-gold hover:text-brand-black"
+                >
+                  <ShoppingBag size={14} strokeWidth={1.5} aria-hidden />
+                  {t.store.addToCart}
+>>>>>>> e1b3035 (Initial commit)
                 </button>
               </div>
             </div>
@@ -83,9 +106,26 @@ export function Store() {
                 </div>
               </div>
               <p className="text-[10px] tracking-[0.2em] uppercase text-text-primary/40 mb-4">{product.category}</p>
+<<<<<<< HEAD
               <p className="text-sm font-light text-text-primary/60 line-clamp-2 mt-auto leading-relaxed">
                 {product.description}
               </p>
+=======
+              <p className="mt-auto line-clamp-2 text-sm font-light leading-relaxed text-text-primary/60">
+                {product.description}
+              </p>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  addToCart(product);
+                }}
+                className="md:hidden mt-5 flex min-h-12 w-full touch-manipulation items-center justify-center gap-2.5 border border-brand-gold/50 bg-brand-gold py-3.5 text-xs font-medium uppercase tracking-[0.18em] text-brand-black transition-colors active:bg-brand-gold/90"
+              >
+                <ShoppingBag size={16} strokeWidth={1.5} aria-hidden />
+                {t.store.buy}
+              </button>
+>>>>>>> e1b3035 (Initial commit)
             </div>
           </motion.div>
         ))}

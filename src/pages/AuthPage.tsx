@@ -1,10 +1,18 @@
+<<<<<<< HEAD
 import { useState } from "react";
+=======
+import { useCallback, useState } from "react";
+>>>>>>> e1b3035 (Initial commit)
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Shield, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+<<<<<<< HEAD
+=======
+import { TurnstileWidget } from "../components/TurnstileWidget";
+>>>>>>> e1b3035 (Initial commit)
 
 export function AuthPage() {
   const { signIn, signUp } = useAuth();
@@ -25,17 +33,91 @@ export function AuthPage() {
     confirmPassword: '',
   });
 
+<<<<<<< HEAD
+=======
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const onTurnstileToken = useCallback((token: string | null) => {
+    setTurnstileToken(token);
+  }, []);
+
+  const hasTurnstileSiteKey = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY);
+
+>>>>>>> e1b3035 (Initial commit)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     setError(null);
   };
 
+<<<<<<< HEAD
+=======
+  const verifyTurnstile = async (): Promise<boolean> => {
+    if (!hasTurnstileSiteKey) {
+      setError(
+        language === 'fr'
+          ? 'La vérification de sécurité n’est pas configurée (clé site manquante).'
+          : 'Security verification is not configured (missing site key).'
+      );
+      return false;
+    }
+    if (!turnstileToken) {
+      setError(
+        language === 'fr'
+          ? 'Complétez la vérification de sécurité ci-dessous.'
+          : 'Please complete the security verification below.'
+      );
+      return false;
+    }
+    let res: Response;
+    try {
+      res = await fetch('/api/verify-turnstile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: turnstileToken }),
+      });
+    } catch {
+      setError(
+        language === 'fr'
+          ? 'Impossible de joindre le serveur de vérification.'
+          : 'Could not reach the verification server.'
+      );
+      setTurnstileResetKey((k) => k + 1);
+      return false;
+    }
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      const code = data?.error;
+      setError(
+        language === 'fr'
+          ? code === 'server_misconfigured'
+            ? 'Erreur serveur : secret Turnstile manquant (Vercel / .env).'
+            : 'Vérification de sécurité refusée. Réessayez.'
+          : code === 'server_misconfigured'
+            ? 'Server error: Turnstile secret missing (set TURNSTILE_SECRET_KEY on Vercel).'
+            : 'Security verification failed. Please try again.'
+      );
+      setTurnstileResetKey((k) => k + 1);
+      return false;
+    }
+    return true;
+  };
+
+>>>>>>> e1b3035 (Initial commit)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
     setLoading(true);
 
+<<<<<<< HEAD
+=======
+    const turnstileOk = await verifyTurnstile();
+    if (!turnstileOk) {
+      setLoading(false);
+      return;
+    }
+
+>>>>>>> e1b3035 (Initial commit)
     if (mode === 'signup') {
       if (formData.password !== formData.confirmPassword) {
         setError(language === 'fr' ? 'Les mots de passe ne correspondent pas.' : 'Passwords do not match.');
@@ -71,6 +153,10 @@ export function AuthPage() {
     setMode(prev => prev === 'login' ? 'signup' : 'login');
     setError(null);
     setSuccess(null);
+<<<<<<< HEAD
+=======
+    setTurnstileResetKey((k) => k + 1);
+>>>>>>> e1b3035 (Initial commit)
   };
 
   return (
@@ -248,6 +334,20 @@ export function AuthPage() {
                 </div>
               )}
 
+<<<<<<< HEAD
+=======
+              <div className="flex flex-col items-center gap-2 pt-2">
+                <TurnstileWidget
+                  resetKey={turnstileResetKey}
+                  onToken={onTurnstileToken}
+                  className="min-h-[65px]"
+                />
+                <p className="text-[10px] text-text-primary/35 text-center uppercase tracking-[0.2em]">
+                  {language === 'fr' ? 'Protection anti-robot (Cloudflare)' : 'Bot protection (Cloudflare)'}
+                </p>
+              </div>
+
+>>>>>>> e1b3035 (Initial commit)
               {/* Submit Button */}
               <button
                 type="submit"

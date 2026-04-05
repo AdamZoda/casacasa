@@ -96,10 +96,14 @@ export function Layout() {
               <span className="truncate text-[1.2rem] font-serif tracking-tighter transition-colors duration-500 hover:text-brand-gold sm:text-2xl md:text-3xl">
                 {settings.logoText || "CASA PRIVILEGE"}
               </span>
+<<<<<<< HEAD
               <div className="hidden lg:flex items-center gap-2 ml-4 px-3 py-1 bg-green-500/5 rounded-full border border-green-500/20">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
                 <span className="text-[8px] uppercase tracking-widest font-black text-green-500/80">Concierge Online</span>
               </div>
+=======
+              
+>>>>>>> e1b3035 (Initial commit)
             </Link>
           </div>
           
@@ -111,6 +115,7 @@ export function Layout() {
             ))}
           </div>
 
+<<<<<<< HEAD
           <div className="flex shrink-0 items-center gap-2 sm:gap-4 md:gap-8">
             <div className="hidden sm:flex items-center gap-3 text-[11px] font-medium tracking-widest">
               <button 
@@ -123,12 +128,38 @@ export function Layout() {
               <button 
                 onClick={() => setLanguage('en')} 
                 className={`transition-colors ${language === 'en' ? 'text-brand-gold' : 'hover:text-brand-gold opacity-60 hover:opacity-100'}`}
+=======
+          <div className="flex min-w-0 shrink-0 items-center gap-1 sm:gap-4 md:gap-8">
+            <div className="flex items-center gap-1.5 text-[10px] font-medium tracking-widest sm:gap-3 sm:text-[11px]">
+              <button
+                type="button"
+                onClick={() => setLanguage("fr")}
+                className={`min-h-9 min-w-8 touch-manipulation rounded-md px-1 transition-colors sm:min-h-0 sm:min-w-0 sm:px-0 ${language === "fr" ? "text-brand-gold" : "opacity-70 hover:text-brand-gold hover:opacity-100"}`}
+                aria-pressed={language === "fr"}
+                aria-label={language === "fr" ? "Français" : "Switch to French"}
+              >
+                FR
+              </button>
+              <span className="opacity-25 sm:opacity-20" aria-hidden>
+                |
+              </span>
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                className={`min-h-9 min-w-8 touch-manipulation rounded-md px-1 transition-colors sm:min-h-0 sm:min-w-0 sm:px-0 ${language === "en" ? "text-brand-gold" : "opacity-70 hover:text-brand-gold hover:opacity-100"}`}
+                aria-pressed={language === "en"}
+                aria-label={language === "en" ? "English" : "Switch to English"}
+>>>>>>> e1b3035 (Initial commit)
               >
                 EN
               </button>
             </div>
 
+<<<<<<< HEAD
             <div className="flex items-center gap-1 sm:gap-3 md:gap-5">
+=======
+            <div className="flex items-center gap-0.5 sm:gap-3 md:gap-5">
+>>>>>>> e1b3035 (Initial commit)
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(true)}
@@ -141,7 +172,12 @@ export function Layout() {
               <button
                 type="button"
                 onClick={toggleTheme}
+<<<<<<< HEAD
                 className="hidden sm:inline-flex sm:h-10 sm:w-10 sm:items-center sm:justify-center sm:rounded-lg sm:transition-colors sm:hover:text-brand-gold"
+=======
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg transition-colors hover:text-brand-gold active:bg-white/10 touch-manipulation sm:h-10 sm:w-10"
+                aria-label={theme === "light" ? (language === "fr" ? "Mode sombre" : "Dark mode") : language === "fr" ? "Mode clair" : "Light mode"}
+>>>>>>> e1b3035 (Initial commit)
               >
                 {theme === "light" ? <Moon size={18} strokeWidth={1} /> : <Sun size={18} strokeWidth={1} />}
               </button>
@@ -284,7 +320,43 @@ export function Layout() {
               </button>
             </div>
 
+<<<<<<< HEAD
             <nav className="flex flex-grow flex-col justify-start gap-1 px-4 py-8 sm:px-6 sm:py-10">
+=======
+            {/* Langue + thème visibles tout de suite (sans défiler) */}
+            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border-primary px-4 py-3 sm:px-6">
+              <div className="flex items-center gap-3 text-xs font-medium tracking-widest">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-text-primary/50">
+                  {language === "fr" ? "Langue" : "Language"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setLanguage("fr")}
+                  className={`min-h-11 min-w-11 touch-manipulation rounded-lg px-3 transition-colors ${language === "fr" ? "text-brand-gold" : "hover:text-brand-gold"}`}
+                >
+                  FR
+                </button>
+                <span className="opacity-30">|</span>
+                <button
+                  type="button"
+                  onClick={() => setLanguage("en")}
+                  className={`min-h-11 min-w-11 touch-manipulation rounded-lg px-3 transition-colors ${language === "en" ? "text-brand-gold" : "hover:text-brand-gold"}`}
+                >
+                  EN
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg px-3 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
+                aria-label={theme === "light" ? (language === "fr" ? "Mode sombre" : "Dark mode") : language === "fr" ? "Mode clair" : "Light mode"}
+              >
+                {theme === "light" ? <Moon size={18} strokeWidth={1} /> : <Sun size={18} strokeWidth={1} />}
+              </button>
+            </div>
+
+            <nav className="flex flex-grow flex-col justify-start gap-1 px-4 py-6 sm:px-6 sm:py-8">
+>>>>>>> e1b3035 (Initial commit)
               {LAYOUT_NAV_LINKS.filter((item) => !isPathHidden(item.path, hp)).map((item) => (
                 <Link
                   key={item.to}
@@ -298,6 +370,7 @@ export function Layout() {
             </nav>
 
             <div className="flex shrink-0 flex-col gap-6 border-t border-border-primary bg-brand-gold/5 p-4 sm:gap-8 sm:p-8">
+<<<<<<< HEAD
               <div className="flex min-h-11 items-center justify-between gap-4">
                 <span className="text-xs uppercase tracking-[0.2em] text-text-primary/60">Language</span>
                 <div className="flex items-center gap-4 text-xs font-medium tracking-widest">
@@ -339,6 +412,9 @@ export function Layout() {
               </div>
 
               <div className="flex flex-col gap-4 border-t border-border-primary pt-6">
+=======
+              <div className="flex flex-col gap-4">
+>>>>>>> e1b3035 (Initial commit)
                 <span className="text-xs uppercase tracking-[0.2em] text-text-primary/60">{t.user.account}</span>
                 {user ? (
                   <div className="flex flex-col gap-2">
@@ -388,6 +464,7 @@ export function Layout() {
                     </button>
                   </div>
                 ) : (
+<<<<<<< HEAD
                   <Link
                     to="/auth"
                     className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-sm uppercase tracking-widest transition-colors hover:text-brand-gold touch-manipulation"
@@ -395,6 +472,31 @@ export function Layout() {
                   >
                     <LogIn size={16} strokeWidth={1} /> {language === "fr" ? "Se connecter" : "Sign In"}
                   </Link>
+=======
+                  <div className="flex flex-col gap-2 sm:gap-3">
+                    <Link
+                      to="/auth"
+                      className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-sm uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <LogIn size={16} strokeWidth={1} /> {language === "fr" ? "Se connecter" : "Sign In"}
+                    </Link>
+                    <Link
+                      to="/profile"
+                      className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <User size={16} strokeWidth={1} /> {t.user.profile}
+                    </Link>
+                    <Link
+                      to="/admin"
+                      className="flex min-h-12 items-center gap-3 rounded-lg px-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Shield size={16} strokeWidth={1} /> {t.user.admin}
+                    </Link>
+                  </div>
+>>>>>>> e1b3035 (Initial commit)
                 )}
               </div>
             </div>

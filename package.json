@@ -23,11 +23,20 @@
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "dotenv": "^17.2.3",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.4",
+=======
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vercel/node": "^5.7.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    "dotenv": "^17.2.3",
+>>>>>>> e1b3035 (Initial commit)
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",

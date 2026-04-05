@@ -12,6 +12,7 @@ export function ClientExperienceCenter() {
   ];
 
   return (
+<<<<<<< HEAD
     <div className="space-y-10 pb-16">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 border-b border-border-primary/20 pb-12">
         <div className="space-y-6">
@@ -25,6 +26,21 @@ export function ClientExperienceCenter() {
             Expérience <span className="text-brand-gold italic">client</span>
           </h1>
           <p className="text-text-primary/40 font-light text-lg max-w-2xl italic leading-relaxed">
+=======
+    <div className="space-y-6 pb-12 sm:space-y-10 sm:pb-16">
+      <div className="flex flex-col justify-between gap-6 border-b border-border-primary/20 pb-8 sm:gap-10 sm:pb-12 lg:flex-row lg:items-end">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="h-px w-10 bg-brand-gold opacity-50 sm:w-12" />
+            <p className="text-[8px] font-black uppercase italic tracking-[0.22em] text-brand-gold sm:text-[10px] sm:tracking-[0.5em]">
+              Satisfaction & fidélité
+            </p>
+          </div>
+          <h1 className="font-serif text-2xl leading-snug tracking-tight sm:text-3xl sm:leading-normal md:text-4xl md:tracking-tighter lg:text-5xl xl:text-6xl">
+            Expérience <span className="text-brand-gold italic">client</span>
+          </h1>
+          <p className="max-w-2xl text-sm font-light italic leading-relaxed text-text-primary/40 sm:text-base md:text-lg">
+>>>>>>> e1b3035 (Initial commit)
             Cultivez l&apos;excellence relationnelle et transformez chaque demande en une expérience mémorable.
           </p>
         </div>
@@ -36,7 +52,11 @@ export function ClientExperienceCenter() {
               key={tab.to}
               to={tab.to}
               className={({ isActive }) =>
+<<<<<<< HEAD
                 `relative flex-1 min-w-[min(100%,11.5rem)] sm:min-w-[13rem] lg:flex-none lg:min-w-[270px] px-3 py-3.5 sm:px-5 sm:py-4 flex items-center justify-center transition-all duration-500 rounded-lg overflow-hidden ${
+=======
+                `relative flex min-h-[3.25rem] min-w-[min(100%,11.5rem)] flex-1 touch-manipulation items-center justify-center overflow-hidden rounded-lg px-3 py-3.5 transition-all duration-500 sm:min-w-[13rem] sm:px-5 sm:py-4 lg:min-w-[270px] lg:flex-none ${
+>>>>>>> e1b3035 (Initial commit)
                   isActive ? "text-brand-black" : "text-text-primary/30 hover:text-text-primary"
                 }`
               }

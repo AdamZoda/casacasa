@@ -44,6 +44,7 @@ type AdminPageHeaderProps = {
 
 export function AdminPageHeader({ kicker, title, subtitle, action }: AdminPageHeaderProps) {
   return (
+<<<<<<< HEAD
     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 pb-6 border-b border-border-primary/60">
       <div className="min-w-0">
         {kicker && (
@@ -55,6 +56,25 @@ export function AdminPageHeader({ kicker, title, subtitle, action }: AdminPageHe
         )}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
+=======
+    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 md:gap-6 pb-4 md:pb-6 border-b border-border-primary/60">
+      <div className="min-w-0">
+        {kicker && (
+          <p className="mb-1.5 text-[8px] font-black uppercase italic tracking-[0.2em] text-brand-gold sm:mb-2 sm:text-[9px] sm:tracking-[0.35em] md:text-[10px] md:tracking-[0.45em]">
+            {kicker}
+          </p>
+        )}
+        <h2 className="text-balance font-serif text-xl leading-snug sm:text-2xl sm:leading-snug md:text-3xl md:leading-tight lg:text-4xl">
+          {title}
+        </h2>
+        {subtitle && (
+          <p className="mt-1.5 max-w-2xl text-[11px] font-normal normal-case leading-relaxed tracking-normal text-text-primary/50 sm:mt-2 sm:text-xs md:uppercase md:tracking-wider md:text-text-primary/45 lg:tracking-widest">
+            {subtitle}
+          </p>
+        )}
+      </div>
+      {action ? <div className="w-full shrink-0 md:w-auto md:max-w-[min(100%,24rem)]">{action}</div> : null}
+>>>>>>> e1b3035 (Initial commit)
     </div>
   );
 }
@@ -67,8 +87,13 @@ type AdminCardProps = {
 
 const cardPadding = {
   none: "",
+<<<<<<< HEAD
   md: "p-6 md:p-8",
   lg: "p-8 md:p-10",
+=======
+  md: "p-4 sm:p-5 md:p-6 lg:p-8",
+  lg: "p-4 sm:p-6 md:p-7 lg:p-10",
+>>>>>>> e1b3035 (Initial commit)
 };
 
 /** Carte standard du panneau (ombre + bordure + rayon). */
@@ -78,7 +103,13 @@ export function AdminCard({ children, className, padding = "lg" }: AdminCardProp
 
 /** Enveloppe tableau : même surface que AdminCard, sans padding interne. */
 export function AdminTableCard({ children, className }: { children: ReactNode; className?: string }) {
+<<<<<<< HEAD
   return <div className={cn("admin-card overflow-hidden p-0", className)}>{children}</div>;
+=======
+  return (
+    <div className={cn("admin-card overflow-hidden p-0 max-md:rounded-xl", className)}>{children}</div>
+  );
+>>>>>>> e1b3035 (Initial commit)
 }
 
 type StatusTone = "neutral" | "success" | "warning" | "danger";
@@ -105,7 +136,11 @@ export function AdminStatusPill({
   return (
     <span
       className={cn(
+<<<<<<< HEAD
         "inline-flex items-center gap-1.5 text-[8px] uppercase tracking-widest font-black px-3 py-1.5 rounded-full border",
+=======
+        "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wide sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-[8px] sm:font-black sm:tracking-widest",
+>>>>>>> e1b3035 (Initial commit)
         statusToneClass[tone],
         className
       )}

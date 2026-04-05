@@ -48,6 +48,13 @@ export const translations = {
     services: {
       title: "Excellence Sur Mesure"
     },
+<<<<<<< HEAD
+=======
+    store: {
+      buy: "Acheter",
+      addToCart: "Ajouter au panier"
+    },
+>>>>>>> e1b3035 (Initial commit)
     footer: {
       title: "Élevez Votre Réalité",
       cta: "Demander un Accès Privé",
@@ -123,6 +130,13 @@ export const translations = {
     services: {
       title: "Curated Excellence"
     },
+<<<<<<< HEAD
+=======
+    store: {
+      buy: "Buy",
+      addToCart: "Add to cart"
+    },
+>>>>>>> e1b3035 (Initial commit)
     footer: {
       title: "Elevate Your Reality",
       cta: "Request Private Access",

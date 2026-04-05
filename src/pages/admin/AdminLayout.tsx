@@ -36,11 +36,20 @@ function isNavActive(path: string, item: (typeof navItems)[number]) {
 type SidebarNavProps = {
   currentPath: string;
   onNavigate?: () => void;
+<<<<<<< HEAD
+=======
+  /** ex. flex-grow sur la sidebar bureau */
+  className?: string;
+>>>>>>> e1b3035 (Initial commit)
 };
 
 function SidebarBrand() {
   return (
+<<<<<<< HEAD
     <div className="p-6 md:p-8 border-b border-border-primary/80">
+=======
+    <div className="border-b border-border-primary/80 p-6 pl-[max(1.5rem,env(safe-area-inset-left))] md:p-8">
+>>>>>>> e1b3035 (Initial commit)
       <Link to="/admin" className="group block">
         <p className="text-[9px] tracking-[0.35em] font-black text-brand-gold/90 uppercase mb-1">Casa Privilege</p>
         <h1 className="font-serif text-xl md:text-2xl tracking-[0.2em] text-text-primary group-hover:text-brand-gold transition-colors">
@@ -51,9 +60,21 @@ function SidebarBrand() {
   );
 }
 
+<<<<<<< HEAD
 function SidebarNav({ currentPath, onNavigate }: SidebarNavProps) {
   return (
     <nav className="flex-grow py-6 px-3 flex flex-col gap-0.5" aria-label="Navigation administration">
+=======
+function SidebarNav({ currentPath, onNavigate, className }: SidebarNavProps) {
+  return (
+    <nav
+      className={cn(
+        "flex flex-col gap-0.5 px-3 py-6 pl-[max(0.75rem,env(safe-area-inset-left))] md:pl-3",
+        className
+      )}
+      aria-label="Navigation administration"
+    >
+>>>>>>> e1b3035 (Initial commit)
       {navItems.map((item) => {
         const active = isNavActive(currentPath, item);
         return (
@@ -76,7 +97,11 @@ function SidebarNav({ currentPath, onNavigate }: SidebarNavProps) {
 
 function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
   return (
+<<<<<<< HEAD
     <div className="p-3 border-t border-border-primary/80 space-y-1 mt-auto">
+=======
+    <div className="mt-auto space-y-1 border-t border-border-primary/80 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] md:pb-3 md:pl-3">
+>>>>>>> e1b3035 (Initial commit)
       <Link
         to="/"
         onClick={onNavigate}
@@ -118,6 +143,7 @@ export function AdminLayout() {
   const closeMobile = () => setMobileOpen(false);
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-bg-primary text-text-primary flex font-sans">
       {/* Barre mobile */}
       <header className="md:hidden sticky top-0 z-30 flex items-center justify-between gap-3 px-4 py-3 border-b border-border-primary bg-bg-primary/90 backdrop-blur-md">
@@ -125,14 +151,30 @@ export function AdminLayout() {
           type="button"
           onClick={() => setMobileOpen(true)}
           className="flex items-center justify-center w-11 h-11 rounded-xl border border-border-primary text-text-primary hover:bg-text-primary/[0.04] transition-colors"
+=======
+    <div className="min-h-[100dvh] min-h-screen bg-bg-primary text-text-primary flex flex-col md:flex-row font-sans">
+      {/* Barre mobile — safe area encoche / status bar */}
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border-primary bg-bg-primary/95 backdrop-blur-md pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl border border-border-primary text-text-primary transition-colors hover:bg-text-primary/[0.04] active:bg-text-primary/[0.08] touch-manipulation"
+>>>>>>> e1b3035 (Initial commit)
           aria-expanded={mobileOpen}
           aria-controls="admin-mobile-drawer"
         >
           <Menu size={22} strokeWidth={1.5} aria-hidden />
           <span className="sr-only">Ouvrir le menu</span>
         </button>
+<<<<<<< HEAD
         <span className="text-[10px] tracking-[0.25em] font-black text-brand-gold uppercase truncate">Console</span>
         <div className="w-11" aria-hidden />
+=======
+        <span className="min-w-0 truncate text-center text-[10px] font-black uppercase tracking-[0.25em] text-brand-gold">
+          Console
+        </span>
+        <div className="min-h-11 min-w-11 shrink-0" aria-hidden />
+>>>>>>> e1b3035 (Initial commit)
       </header>
 
       {/* Drawer mobile */}
@@ -152,24 +194,49 @@ export function AdminLayout() {
         />
         <aside
           className={cn(
+<<<<<<< HEAD
             "admin-sidebar absolute left-0 top-0 bottom-0 w-[min(20rem,92vw)] flex flex-col border-r border-border-primary shadow-2xl transition-transform duration-300 ease-out",
+=======
+            "admin-sidebar absolute bottom-0 left-0 top-0 flex max-h-[100dvh] min-h-0 w-[min(20.5rem,min(92vw,100%-2.5rem))] max-w-[calc(100vw-env(safe-area-inset-left)-0.5rem)] flex-col overflow-hidden border-r border-border-primary shadow-2xl transition-transform duration-300 ease-out",
+            "pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]",
+>>>>>>> e1b3035 (Initial commit)
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
           aria-label="Menu administration"
         >
+<<<<<<< HEAD
           <div className="flex items-center justify-end px-3 pt-3">
             <button
               type="button"
               onClick={closeMobile}
               className="flex items-center justify-center w-10 h-10 rounded-xl border border-border-primary/80 hover:bg-text-primary/[0.05] transition-colors"
+=======
+          <div className="flex shrink-0 items-center justify-end px-3 pt-2 pr-[max(0.75rem,env(safe-area-inset-right))]">
+            <button
+              type="button"
+              onClick={closeMobile}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-border-primary/80 transition-colors hover:bg-text-primary/[0.05] active:bg-text-primary/[0.08] touch-manipulation"
+>>>>>>> e1b3035 (Initial commit)
               aria-label="Fermer le menu"
             >
               <X size={20} strokeWidth={1.5} />
             </button>
           </div>
+<<<<<<< HEAD
           <SidebarBrand />
           <SidebarNav currentPath={path} onNavigate={closeMobile} />
           <SidebarFooter onNavigate={closeMobile} />
+=======
+          <div className="shrink-0">
+            <SidebarBrand />
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1 [-webkit-overflow-scrolling:touch]">
+            <SidebarNav currentPath={path} onNavigate={closeMobile} />
+          </div>
+          <div className="shrink-0">
+            <SidebarFooter onNavigate={closeMobile} />
+          </div>
+>>>>>>> e1b3035 (Initial commit)
         </aside>
       </div>
 
@@ -179,12 +246,20 @@ export function AdminLayout() {
         aria-label="Navigation administration"
       >
         <SidebarBrand />
+<<<<<<< HEAD
         <SidebarNav currentPath={path} />
+=======
+        <SidebarNav currentPath={path} className="flex-grow" />
+>>>>>>> e1b3035 (Initial commit)
         <SidebarFooter />
       </aside>
 
       <main
+<<<<<<< HEAD
         className="flex-grow min-w-0 min-h-screen px-4 py-8 sm:px-6 md:px-10 lg:px-12 lg:py-10 overflow-y-auto bg-[radial-gradient(ellipse_85%_55%_at_50%_-18%,rgba(229,169,58,0.07),transparent)] dark:bg-[radial-gradient(ellipse_80%_45%_at_50%_-12%,rgba(229,169,58,0.09),transparent)]"
+=======
+        className="flex-grow min-w-0 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-8 md:min-h-screen md:px-10 lg:px-12 lg:py-10 pb-[max(1.25rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] bg-[radial-gradient(ellipse_85%_55%_at_50%_-18%,rgba(229,169,58,0.07),transparent)] dark:bg-[radial-gradient(ellipse_80%_45%_at_50%_-12%,rgba(229,169,58,0.09),transparent)]"
+>>>>>>> e1b3035 (Initial commit)
         id="admin-main"
       >
         <Outlet />

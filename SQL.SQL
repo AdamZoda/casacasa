@@ -125,6 +125,11 @@ CREATE TABLE public.site_settings (
   bank_beneficiary text DEFAULT 'COMANE EXCELLENCE SARL'::text,
   bank_rib text DEFAULT ''::text,
   hidden_pages ARRAY DEFAULT '{}'::text[],
+<<<<<<< HEAD
+=======
+  phones jsonb NOT NULL DEFAULT '[]'::jsonb,
+  whatsapp_numbers jsonb NOT NULL DEFAULT '[]'::jsonb,
+>>>>>>> e1b3035 (Initial commit)
   CONSTRAINT site_settings_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.testimonials (
