@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-black: #111111;
+  --color-brand-white: #FFFFFF;
+  --color-brand-cream: #F9F8F6;
+  --color-brand-gray: #888888;
+  --color-brand-gold: var(--brand-gold, #E5A93A);
+  --color-brand-dark: #1A1A1A;
+
+  --color-bg-primary: var(--bg-primary);
+  --color-text-primary: var(--text-primary);
+  --color-border-primary: var(--border-primary);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+}
+
+@layer base {
+  :root {
+    --bg-primary: #F9F8F6;
+    --text-primary: #111111;
+    --border-primary: rgba(17, 17, 17, 0.1);
+  }
+  
+  .dark {
+    --bg-primary: #111111;
+    --text-primary: #F9F8F6;
+    --border-primary: rgba(249, 248, 246, 0.1);
+  }
+
+  .testimonial-card-gradient {
+    background: linear-gradient(145deg, rgba(29,29,31,1) 0%, rgba(20,20,22,1) 100%);
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    animation: marquee 40s linear infinite;
+  }
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    @apply font-sans antialiased selection:bg-brand-gold selection:text-brand-black;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif font-normal tracking-wide;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Console admin — surfaces, focus, tables (complète Tailwind sur #admin-main) */
+/* -------------------------------------------------------------------------- */
+@layer components {
+  .admin-card {
+    border-radius: 1rem;
+    border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
+    background-color: color-mix(in srgb, var(--bg-primary) 96%, transparent);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--text-primary) 4%, transparent),
+      0 18px 48px -28px color-mix(in srgb, var(--text-primary) 35%, transparent);
+  }
+
+  .dark .admin-card {
+    border-color: color-mix(in srgb, var(--text-primary) 10%, transparent);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--text-primary) 6%, transparent),
+      0 24px 56px -32px rgba(0, 0, 0, 0.55);
+  }
+
+  .admin-sidebar {
+    background: linear-gradient(
+      165deg,
+      var(--bg-primary) 0%,
+      color-mix(in srgb, var(--bg-primary) 94%, #e5a93a 6%) 100%
+    );
+  }
+
+  .dark .admin-sidebar {
+    background: linear-gradient(
+      165deg,
+      var(--bg-primary) 0%,
+      color-mix(in srgb, var(--bg-primary) 92%, #e5a93a 8%) 100%
+    );
+  }
+
+  .admin-nav-link {
+    @apply flex items-center gap-3.5 rounded-lg px-3.5 py-2.5 text-sm font-medium tracking-wide transition-all duration-300 outline-none;
+    @apply text-text-primary/55 hover:bg-text-primary/[0.06] hover:text-text-primary;
+    touch-action: manipulation;
+  }
+
+  .admin-nav-link[data-active="true"] {
+    @apply bg-brand-gold/[0.12] text-brand-gold ring-1 ring-brand-gold/25 ring-inset;
+  }
+
+  .admin-table thead tr {
+    @apply bg-text-primary/[0.04] border-b border-border-primary;
+  }
+
+  .admin-table th {
+    @apply p-5 text-[10px] uppercase tracking-[0.2em] font-bold text-text-primary/45;
+  }
+
+  .admin-table tbody tr {
+    @apply border-b border-border-primary/40 transition-colors hover:bg-text-primary/[0.025];
+  }
+
+  /* Tableau admin avec en-tête collant (scroll vertical interne) */
+  .admin-table-scroll {
+    max-height: min(70vh, 720px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+
+  .admin-table-scroll thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: color-mix(in srgb, var(--bg-primary) 94%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--text-primary) 8%, transparent);
+  }
+
+  .dark .admin-table-scroll thead th {
+    background-color: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+  }
+
+  .admin-input {
+    @apply rounded-lg border border-border-primary bg-bg-primary/80 px-3 py-2 text-sm text-text-primary outline-none transition-colors;
+    @apply focus:border-brand-gold/50 focus:ring-2 focus:ring-brand-gold/15;
+  }
+
+  .admin-select {
+    @apply rounded-lg border border-border-primary bg-bg-primary/80 px-3 py-2 outline-none transition-colors cursor-pointer text-[10px] uppercase tracking-widest;
+    @apply focus:border-brand-gold/50 focus:ring-2 focus:ring-brand-gold/15;
+  }
+
+  /* Téléphone : nav tactile, tableaux scrollables, typo lisible (pas microscopique) */
+  @media (max-width: 767px) {
+    .admin-nav-link {
+      min-height: 2.75rem;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+      font-size: 0.8125rem;
+    }
+
+    .admin-table-scroll {
+      max-height: min(58dvh, 520px);
+    }
+
+    .admin-table th {
+      padding: 0.625rem 0.45rem;
+      font-size: 0.625rem;
+      line-height: 1.35;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+
+    #admin-main .admin-card {
+      border-radius: 0.75rem;
+    }
+  }
+
+  .admin-table-x-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
+  }
+}
