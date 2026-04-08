@@ -488,14 +488,13 @@ export function CheckoutFlow() {
               <label className="relative block border-2 border-dashed border-border-primary py-12 text-center hover:border-brand-gold transition-colors cursor-pointer group bg-text-primary/[0.02] rounded-lg">
                 <input 
                   type="file" 
-                  required
                   accept="image/jpeg,image/png,application/pdf"
                   onChange={handleFileUpload}
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                 />
                 <Upload size={32} strokeWidth={0.5} className="mx-auto mb-4 text-text-primary/20 group-hover:text-brand-gold transition-colors" />
                 <span className="text-[10px] uppercase tracking-[0.2em] text-text-primary/30 group-hover:text-text-primary transition-colors italic font-black block">
-                  {formData.receipt_base64 ? '✓ Reçu chargé' : 'Cliquez pour charger le reçu'}
+                  {formData.receipt_base64 ? '✓ Reçu chargé' : 'Cliquez pour charger le reçu (optionnel)'}
                 </span>
                 <span className="text-[9px] uppercase tracking-[0.1em] text-text-primary/20 block mt-2">(Image/PDF - Max 5MB)</span>
               </label>
@@ -510,8 +509,7 @@ export function CheckoutFlow() {
                 </button>
                 <button
                   type="submit"
-                  disabled={!formData.receipt_base64}
-                  className="flex-1 py-6 bg-text-primary text-bg-primary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-gold hover:text-brand-black transition-all duration-500 uppercase tracking-[0.3em] text-[11px] font-black"
+                  className="flex-1 py-6 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-500 uppercase tracking-[0.3em] text-[11px] font-black"
                 >
                   Valider la Commande
                 </button>

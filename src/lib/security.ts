@@ -131,7 +131,7 @@ export const validateFile = (
     };
   }
   
-  // 3. Vérifier extension
+  // 3. Vérifier extension (fallback if MIME type check passes)
   const validExtensions = allowedMimes
     .map(mime => {
       if (mime === 'image/jpeg') return ['.jpg', '.jpeg'];
@@ -141,12 +141,16 @@ export const validateFile = (
     })
     .flat();
   
-  const fileExt = '.' + file.name.split('.').pop()?.toLowerCase();
-  if (!validExtensions.includes(fileExt)) {
-    return {
-      valid: false,
-      error: 'Extension de fichier invalide'
-    };
+  // Extract extension safely - if no dot found, just use MIME check result
+  const nameParts = file.name.split('.');
+  if (nameParts.length > 1) {
+    const fileExt = '.' + nameParts[nameParts.length - 1]?.toLowerCase();
+    if (!validExtensions.includes(fileExt)) {
+      return {
+        valid: false,
+        error: 'Extension de fichier invalide'
+      };
+    }
   }
   
   return { valid: true };
