@@ -157,13 +157,16 @@ export function CheckoutFlow() {
     const encodedText = encodeURIComponent(messageText);
     window.open(`https://wa.me/${whatsappNumber.replace(/\+/g, '')}?text=${encodedText}`, '_blank');
     
-    // Créer la commande avec données sécurisées + reçu
+    // Créer la commande avec données sécurisées + reçu + contact
     addOrder({
       customer_name: safeName,
       customer_email: safeEmail,
       total: validatePrice(total),
       items: cart,
-      receipt_base64: formData.receipt_base64 || undefined
+      receipt_base64: formData.receipt_base64 || undefined,
+      user_phone: safePhone,
+      phone_code: getCountryCode(formData.country),
+      country: formData.country
     });
 
     setStep(4);
@@ -181,13 +184,17 @@ export function CheckoutFlow() {
     // ✅ SÉCURITÉ: Sanitizer les données
     const safeName = sanitizeName(formData.name);
     const safeEmail = sanitizeEmail(formData.email);
+    const safePhone = sanitizePhone(formData.phone);
 
     await addOrder({
       customer_name: safeName,
       customer_email: safeEmail,
       total: validatePrice(total),
       items: cart,
-      receipt_base64: formData.receipt_base64 || undefined
+      receipt_base64: formData.receipt_base64 || undefined,
+      user_phone: safePhone,
+      phone_code: getCountryCode(formData.country),
+      country: formData.country
     });
 
     setStep(4);

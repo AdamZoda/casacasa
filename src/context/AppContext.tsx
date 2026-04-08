@@ -149,6 +149,9 @@ export interface Order {
   total: number;
   items: any[];
   receipt_base64?: string;
+  user_phone?: string;
+  country?: string;
+  phone_code?: string;
   status: 'pending' | 'completed' | 'cancelled';
   created_at: string;
 }
@@ -440,6 +443,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         items: data.items,
         total: data.total,
         receipt_base64: data.receipt_base64 ?? null,
+        user_phone: data.user_phone ?? null,
+        country: data.country ?? null,
+        phone_code: data.phone_code ?? null,
         status: 'pending',
       })
       .select()

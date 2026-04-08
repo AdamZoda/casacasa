@@ -5,6 +5,8 @@ import {
   Search,
   User,
   Mail,
+  Phone,
+  Globe,
   CheckCircle2,
   XCircle,
   Clock,
@@ -255,6 +257,16 @@ export function OrderManager() {
                           >
                             {order.customer_email ?? "—"}
                           </span>
+                          {order.user_phone ? (
+                            <span className="text-xs text-text-primary/40 truncate" title={`${order.phone_code || ''} ${order.user_phone}`}>
+                              {order.phone_code} {order.user_phone}
+                            </span>
+                          ) : null}
+                          {order.country ? (
+                            <span className="text-xs text-text-primary/40 truncate">
+                              {order.country}
+                            </span>
+                          ) : null}
                         </div>
                       </td>
                       <td className="p-3 md:p-4 text-text-primary/50 text-sm whitespace-nowrap align-top">
@@ -442,6 +454,28 @@ export function OrderManager() {
                           <p className="text-base italic font-light break-all">{selectedOrder.customer_email ?? "—"}</p>
                         </div>
                       </div>
+                      {selectedOrder.user_phone && (
+                        <div className="flex items-start gap-4 min-w-0">
+                          <div className="w-11 h-11 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold border border-brand-gold/20 shrink-0">
+                            <Phone size={18} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[9px] tracking-widest font-black text-text-primary/35 uppercase">Téléphone</p>
+                            <p className="text-base font-light break-all">{selectedOrder.phone_code} {selectedOrder.user_phone}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedOrder.country && (
+                        <div className="flex items-start gap-4 min-w-0">
+                          <div className="w-11 h-11 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold border border-brand-gold/20 shrink-0">
+                            <Globe size={18} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[9px] tracking-widest font-black text-text-primary/35 uppercase">Pays</p>
+                            <p className="text-base font-light break-all">{selectedOrder.country}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
