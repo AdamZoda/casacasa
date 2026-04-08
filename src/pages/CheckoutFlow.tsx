@@ -157,12 +157,13 @@ export function CheckoutFlow() {
     const encodedText = encodeURIComponent(messageText);
     window.open(`https://wa.me/${whatsappNumber.replace(/\+/g, '')}?text=${encodedText}`, '_blank');
     
-    // Créer la commande avec données sécurisées
+    // Créer la commande avec données sécurisées + reçu
     addOrder({
       customer_name: safeName,
       customer_email: safeEmail,
       total: validatePrice(total),
-      items: cart
+      items: cart,
+      receipt_base64: formData.receipt_base64 || undefined
     });
 
     setStep(4);
@@ -185,7 +186,8 @@ export function CheckoutFlow() {
       customer_name: safeName,
       customer_email: safeEmail,
       total: validatePrice(total),
-      items: cart
+      items: cart,
+      receipt_base64: formData.receipt_base64 || undefined
     });
 
     setStep(4);
