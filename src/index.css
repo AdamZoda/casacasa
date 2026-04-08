@@ -21,6 +21,21 @@
     --bg-primary: #F9F8F6;
     --text-primary: #111111;
     --border-primary: rgba(17, 17, 17, 0.1);
+    --font-style: original;
+    
+    /* Timing/transitions */
+    --duration-fast: 150ms;
+    --duration-base: 300ms;
+    --duration-slow: 500ms;
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    
+    /* Shadows */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
   
   .dark {
@@ -47,14 +62,136 @@
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    transition: background-color 0.3s ease, color 0.3s ease;
-    @apply font-sans antialiased selection:bg-brand-gold selection:text-brand-black;
+    transition: background-color 0.3s ease, color 0.3s ease, font-family 0.4s ease;
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-size: 1rem;
+    line-height: 1.5;
+    letter-spacing: 0;
+    @apply antialiased selection:bg-brand-gold selection:text-brand-black;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-weight: 400;
+    font-synthesis: none;
+  }
+
+  /* Original Style: Inter (clean, modern) */
+  body.font-style-original {
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    letter-spacing: 0 !important;
+    line-height: 1.5 !important;
+    font-weight: 400 !important;
+    font-synthesis: none !important;
+  }
+
+  /* Outfit Style: Outfit (elegant, distinctive) */
+  body.font-style-outfit {
+    font-family: "Outfit", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    letter-spacing: 0.35px !important;
+    line-height: 1.6 !important;
+    font-weight: 400 !important;
+    font-synthesis: none !important;
+  }
+
+  /* Playfair Display Style: Luxury, elegant serif */
+  body.font-style-playfair {
+    font-family: "Playfair Display", ui-serif, Georgia, serif !important;
+    letter-spacing: 0.5px !important;
+    line-height: 1.7 !important;
+    font-weight: 400 !important;
+    font-synthesis: none !important;
+  }
+
+  /* Raleway Style: Modern, minimalist sans-serif */
+  body.font-style-raleway {
+    font-family: "Raleway", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    letter-spacing: 0.2px !important;
+    line-height: 1.6 !important;
+    font-weight: 400 !important;
+    font-synthesis: none !important;
+  }
+
+  /* Ensure all elements inherit the font and properties */
+  * {
+    font-family: inherit !important;
+    letter-spacing: inherit !important;
+    line-height: inherit !important;
   }
   
+  html {
+    font-family: inherit !important;
+    letter-spacing: inherit !important;
+    line-height: inherit !important;
+  }
+
+  /* Force all elements to inherit font-family, override Tailwind utilities */
+  .font-serif,
+  .font-sans,
+  .font-mono {
+    font-family: inherit !important;
+  }
+
   h1, h2, h3, h4, h5, h6 {
+    font-family: inherit !important;
+    letter-spacing: inherit !important;
     @apply font-serif font-normal tracking-wide;
   }
+  
+  /* Smooth scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Button base styles */
+  button, [role="button"], a[href] {
+    transition: background-color var(--duration-fast) var(--ease-out), 
+                color var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
+  }
+  
+  button:focus-visible, [role="button"]:focus-visible, a:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
+  }
+  
+  /* Disabled states */
+  button:disabled, [role="button"][aria-disabled="true"] {
+    @apply opacity-50 cursor-not-allowed;
+  }
+  
+  /* Smooth animations */
+  * {
+    @apply transition-colors duration-200;
+  }
+  
+  /* Link underline animation */
+  a {
+    @apply relative;
+  }
+  
+  /* Selection better contrast */
+  ::selection {
+    background-color: var(--brand-gold);
+    color: var(--brand-black);
+  }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Reusable Button Components - Custom CSS (not Tailwind utilities) */
+/* -------------------------------------------------------------------------- */
+  
+  /* Base button styles */
+  @layer components {
+    button, [role="button"], a[href*=""], .interactive {
+      transition: all 150ms cubic-bezier(0, 0, 0.2, 1);
+    }
+    
+    button:focus-visible, [role="button"]:focus-visible {
+      outline: 2px solid var(--brand-gold);
+      outline-offset: 2px;
+    }
+  }
 
 /* -------------------------------------------------------------------------- */
 /* Console admin — surfaces, focus, tables (complète Tailwind sur #admin-main) */
@@ -64,16 +201,22 @@
     border-radius: 1rem;
     border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
     background-color: color-mix(in srgb, var(--bg-primary) 96%, transparent);
-    box-shadow:
-      0 1px 0 color-mix(in srgb, var(--text-primary) 4%, transparent),
-      0 18px 48px -28px color-mix(in srgb, var(--text-primary) 35%, transparent);
+    box-shadow: var(--shadow-lg);
+    transition: box-shadow var(--duration-fast) var(--ease-out), 
+                border-color var(--duration-fast) var(--ease-out);
+  }
+  
+  .admin-card:hover {
+    box-shadow: var(--shadow-xl);
+    border-color: color-mix(in srgb, var(--text-primary) 12%, transparent);
   }
 
   .dark .admin-card {
     border-color: color-mix(in srgb, var(--text-primary) 10%, transparent);
-    box-shadow:
-      0 1px 0 color-mix(in srgb, var(--text-primary) 6%, transparent),
-      0 24px 56px -32px rgba(0, 0, 0, 0.55);
+  }
+  
+  .dark .admin-card:hover {
+    border-color: color-mix(in srgb, var(--text-primary) 15%, transparent);
   }
 
   .admin-sidebar {
@@ -93,25 +236,47 @@
   }
 
   .admin-nav-link {
-    @apply flex items-center gap-3.5 rounded-lg px-3.5 py-2.5 text-sm font-medium tracking-wide transition-all duration-300 outline-none;
+    @apply flex items-center gap-3.5 rounded-lg px-3.5 py-2.5 text-sm font-medium tracking-wide outline-none;
     @apply text-text-primary/55 hover:bg-text-primary/[0.06] hover:text-text-primary;
     touch-action: manipulation;
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  .admin-nav-link:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
   }
 
   .admin-nav-link[data-active="true"] {
     @apply bg-brand-gold/[0.12] text-brand-gold ring-1 ring-brand-gold/25 ring-inset;
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+  
+  .admin-nav-link[data-active="true"]:hover {
+    @apply bg-brand-gold/[0.18] ring-brand-gold/35;
   }
 
   .admin-table thead tr {
     @apply bg-text-primary/[0.04] border-b border-border-primary;
+    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .admin-table th {
     @apply p-5 text-[10px] uppercase tracking-[0.2em] font-bold text-text-primary/45;
+    transition: color var(--duration-fast) var(--ease-out);
   }
 
   .admin-table tbody tr {
-    @apply border-b border-border-primary/40 transition-colors hover:bg-text-primary/[0.025];
+    @apply border-b border-border-primary/40;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+  
+  .admin-table tbody tr:hover {
+    @apply bg-text-primary/[0.025];
+  }
+  
+  .admin-table tbody tr:focus-within {
+    @apply bg-text-primary/[0.05];
   }
 
   /* Tableau admin avec en-tête collant (scroll vertical interne) */
@@ -130,7 +295,10 @@
     background-color: color-mix(in srgb, var(--bg-primary) 94%, transparent);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 1px 0 color-mix(in srgb, var(--text-primary) 8%, transparent);
+    box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--text-primary) 8%, transparent),
+                0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: background-color var(--duration-base) var(--ease-out),
+                box-shadow var(--duration-base) var(--ease-out);
   }
 
   .dark .admin-table-scroll thead th {
@@ -138,13 +306,43 @@
   }
 
   .admin-input {
-    @apply rounded-lg border border-border-primary bg-bg-primary/80 px-3 py-2 text-sm text-text-primary outline-none transition-colors;
-    @apply focus:border-brand-gold/50 focus:ring-2 focus:ring-brand-gold/15;
+    @apply rounded-lg border border-border-primary bg-bg-primary/80 px-3 py-2 text-sm text-text-primary outline-none;
+    transition: border-color var(--duration-fast) var(--ease-out), 
+                box-shadow var(--duration-fast) var(--ease-out),
+                background-color var(--duration-fast) var(--ease-out);
+    box-shadow: inset var(--shadow-xs);
+  }
+  
+  .admin-input:hover {
+    @apply bg-bg-primary/95 border-border-primary;
+  }
+
+  .admin-input:focus {
+    @apply border-brand-gold/50 ring-2 ring-brand-gold/15 bg-bg-primary;
+  }
+  
+  .admin-input:disabled {
+    @apply opacity-50 cursor-not-allowed;
   }
 
   .admin-select {
-    @apply rounded-lg border border-border-primary bg-bg-primary/80 px-3 py-2 outline-none transition-colors cursor-pointer text-[10px] uppercase tracking-widest;
-    @apply focus:border-brand-gold/50 focus:ring-2 focus:ring-brand-gold/15;
+    @apply rounded-lg border border-border-primary bg-bg-primary/80 px-3 py-2 outline-none cursor-pointer text-[10px] uppercase tracking-widest;
+    transition: border-color var(--duration-fast) var(--ease-out), 
+                box-shadow var(--duration-fast) var(--ease-out),
+                background-color var(--duration-fast) var(--ease-out);
+    box-shadow: inset var(--shadow-xs);
+  }
+  
+  .admin-select:hover {
+    @apply bg-bg-primary/95 border-border-primary;
+  }
+
+  .admin-select:focus {
+    @apply border-brand-gold/50 ring-2 ring-brand-gold/15 bg-bg-primary;
+  }
+  
+  .admin-select:disabled {
+    @apply opacity-50 cursor-not-allowed;
   }
 
   /* Téléphone : nav tactile, tableaux scrollables, typo lisible (pas microscopique) */
@@ -154,6 +352,7 @@
       padding-top: 0.5rem;
       padding-bottom: 0.5rem;
       font-size: 0.8125rem;
+      transition: all var(--duration-fast) var(--ease-out);
     }
 
     .admin-table-scroll {
@@ -166,10 +365,16 @@
       line-height: 1.35;
       letter-spacing: 0.06em;
       font-weight: 600;
+      transition: color var(--duration-fast) var(--ease-out);
     }
 
     #admin-main .admin-card {
       border-radius: 0.75rem;
+      transition: all var(--duration-fast) var(--ease-out);
+    }
+    
+    button, [role="button"] {
+      transition: all var(--duration-fast) var(--ease-out);
     }
   }
 

@@ -275,6 +275,30 @@ export function SettingsView() {
                 </div>
               </div>
 
+              <div className="admin-card p-6 md:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+                <div className="flex min-w-0 items-start gap-4">
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
+                    <Palette size={22} strokeWidth={1.25} aria-hidden />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-serif text-xl md:text-2xl text-text-primary">Style de texte</h3>
+                    <p className="mt-1 text-[10px] text-text-primary/50">Sélectionnez le style de police pour tout le site</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 shrink-0">
+                  <select
+                    value={formData.fontStyle}
+                    onChange={(e) => setFormData({ ...formData, fontStyle: e.target.value as "original" | "outfit" | "playfair" | "raleway" })}
+                    className="admin-input py-3.5 px-4 text-sm min-h-[2.75rem]"
+                  >
+                    <option value="original">Original (Inter)</option>
+                    <option value="outfit">Outfit (Elegant)</option>
+                    <option value="playfair">Playfair Display (Luxury)</option>
+                    <option value="raleway">Raleway (Modern)</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="admin-card space-y-10 p-6 md:p-8 lg:p-10">
                 <div className="flex flex-col gap-4 border-b border-border-primary/40 pb-6 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">

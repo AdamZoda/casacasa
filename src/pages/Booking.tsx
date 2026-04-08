@@ -1,10 +1,11 @@
-import { useState, type FormEvent, type ChangeEvent } from "react";
+import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 import { useParams, Navigate, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { format, addDays, getDaysInMonth, startOfMonth, getDay, isBefore, isAfter, startOfDay, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useAppContext } from "../context/AppContext";
 import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
+import { supabase } from "../lib/supabase";
 import { CheckCircle2, MessageCircle, Globe, ChevronLeft, ChevronRight, Users as UsersIcon, MapPin, Copy, Upload, FileText, ShieldCheck } from "lucide-react";
 
 const COUNTRIES = [
@@ -51,6 +52,34 @@ export function Booking() {
     peopleCount: 1,
     receipt_base64: null as string | null,
   });
+
+  // Charger les infos du profil utilisateur loggé
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) return;
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error || !profile) return;
+
+        setFormData(prev => ({
+          ...prev,
+          name: profile.full_name || '',
+          email: profile.email || session.user.email || '',
+        }));
+      } catch (err) {
+        console.log('Profile loading skipped (user not authenticated)');
+      }
+    };
+
+    loadUserProfile();
+  }, []);
 
   const getNumericPrice = (priceStr: string | undefined): number => {
     if (!priceStr) return 0;

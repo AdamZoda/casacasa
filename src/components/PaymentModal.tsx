@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, MessageCircle, Upload, CheckCircle2 } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { supabase } from "../lib/supabase";
 import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
 
 interface PaymentModalProps {
@@ -15,6 +16,36 @@ export function PaymentModal({ isOpen, onClose, items, total }: PaymentModalProp
   const { addOrder, settings } = useAppContext();
   const [method, setMethod] = useState<'selection' | 'upload' | 'success'>('selection');
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+
+  // Charger les infos du profil utilisateur loggé quando abre le modal
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const loadUserProfile = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) return;
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error || !profile) return;
+
+        setFormData(prev => ({
+          ...prev,
+          name: profile.full_name || '',
+          email: profile.email || session.user.email || '',
+        }));
+      } catch (err) {
+        console.log('Profile loading skipped (user not authenticated)');
+      }
+    };
+
+    loadUserProfile();
+  }, [isOpen]);
 
   const handleWhatsApp = () => {
     const text = encodeURIComponent(`Bonjour Casa Privilege, je souhaite régler ma commande de ${total?.toLocaleString() || ''} MAD.`);

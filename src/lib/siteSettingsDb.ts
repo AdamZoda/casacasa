@@ -25,6 +25,7 @@ export interface SiteSettings {
   bankBeneficiary: string;
   bankRib: string;
   hiddenPages: string[];
+  fontStyle: "original" | "outfit" | "playfair" | "raleway";
 }
 
 /** Ligne `site_settings` telle que PostgREST / Postgres (snake_case). */
@@ -52,6 +53,7 @@ export type SiteSettingsRow = {
   bank_beneficiary?: string | null;
   bank_rib?: string | null;
   hidden_pages?: string[] | null;
+  font_style?: string | null;
 };
 
 function parseJsonStringArray(v: unknown): string[] {
@@ -134,11 +136,19 @@ export function siteSettingsToDbRow(s: SiteSettings): SiteSettingsRow {
     bank_beneficiary: s.bankBeneficiary,
     bank_rib: s.bankRib,
     hidden_pages: s.hiddenPages,
+    font_style: s.fontStyle ?? "original",
   };
 }
 
 export function dbRowToSiteSettings(row: SiteSettingsRow, prev: SiteSettings): SiteSettings {
   const arr = (v: unknown, fallback: string[]) => (Array.isArray(v) ? v.map((x) => String(x)) : fallback);
+
+  const fontStyle = (v: unknown): "original" | "outfit" | "playfair" | "raleway" => {
+    if (v === "outfit") return "outfit";
+    if (v === "playfair") return "playfair";
+    if (v === "raleway") return "raleway";
+    return "original";
+  };
 
   return {
     siteName: String(row.site_name ?? prev.siteName),
@@ -161,5 +171,6 @@ export function dbRowToSiteSettings(row: SiteSettingsRow, prev: SiteSettings): S
     bankBeneficiary: String(row.bank_beneficiary ?? prev.bankBeneficiary),
     bankRib: String(row.bank_rib ?? prev.bankRib),
     hiddenPages: arr(row.hidden_pages, prev.hiddenPages),
+    fontStyle: fontStyle(row.font_style ?? prev.fontStyle),
   };
 }

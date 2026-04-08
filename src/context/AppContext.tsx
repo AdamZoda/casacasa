@@ -293,7 +293,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     bankName: '',
     bankBeneficiary: 'COMANE EXCELLENCE SARL',
     bankRib: '',
-    hiddenPages: []
+    hiddenPages: [],
+    fontStyle: 'original'
   });
   const [cart, setCart] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -306,6 +307,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (theme === 'dark') document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   }, [theme]);
+
+  useEffect(() => {
+    const body = document.body;
+    body.classList.remove('font-style-original', 'font-style-outfit', 'font-style-playfair', 'font-style-raleway');
+    body.classList.add(`font-style-${settings.fontStyle}`);
+    console.log('✅ Font style applied:', `font-style-${settings.fontStyle}`);
+  }, [settings.fontStyle]);
 
   useEffect(() => {
     const fetchProfilesSettings = async () => {
@@ -597,11 +605,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateSettings = async (s: SiteSettings) => {
+    console.log('📝 Updating settings with fontStyle:', s.fontStyle);
     setSettings(s);
     const row = siteSettingsToDbRow(s);
+    console.log('📊 Upserting to Supabase:', row);
     const { error } = await supabase.from('site_settings').upsert(row, { onConflict: 'id' });
     if (error) {
       console.error('[Supabase] site_settings:', error.message, error);
+    } else {
+      console.log('✅ Settings saved successfully to Supabase');
     }
   };
 

@@ -13,6 +13,7 @@ const Contact = lazy(() => import("./pages/Contact").then((m) => ({ default: m.C
 const Booking = lazy(() => import("./pages/Booking").then((m) => ({ default: m.Booking })));
 const Store = lazy(() => import("./pages/Store").then((m) => ({ default: m.Store })));
 const Cart = lazy(() => import("./pages/Cart").then((m) => ({ default: m.Cart })));
+const CheckoutFlow = lazy(() => import("./pages/CheckoutFlow").then((m) => ({ default: m.CheckoutFlow })));
 const Journal = lazy(() => import("./pages/Journal").then((m) => ({ default: m.Journal })));
 const JournalPost = lazy(() => import("./pages/JournalPost").then((m) => ({ default: m.JournalPost })));
 const ProfilePage = lazy(() => import("./pages/ProfilePage").then((m) => ({ default: m.ProfilePage })));
@@ -73,6 +74,7 @@ export default function App() {
                   <Route path="book/:universeId/:activityId" element={<Booking />} />
                   <Route path="store" element={<Store />} />
                   <Route path="cart" element={<Cart />} />
+                  <Route path="checkout" element={<CheckoutFlow />} />
                   <Route path="journal" element={<Journal />} />
                   <Route path="journal/:id" element={<JournalPost />} />
                 </Route>

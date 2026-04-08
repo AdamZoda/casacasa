@@ -14,6 +14,16 @@ CREATE TABLE public.activities (
   CONSTRAINT activities_pkey PRIMARY KEY (id),
   CONSTRAINT activities_universeId_fkey FOREIGN KEY (universe_id) REFERENCES public.universes(id)
 );
+CREATE TABLE public.audit_logs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  table_name text,
+  operation text CHECK (operation = ANY (ARRAY['INSERT'::text, 'UPDATE'::text, 'DELETE'::text])),
+  user_id uuid,
+  record_id uuid,
+  new_values jsonb,
+  timestamp timestamp with time zone DEFAULT now(),
+  CONSTRAINT audit_logs_pkey PRIMARY KEY (id)
+);
 CREATE TABLE public.global_services (
   id text NOT NULL,
   title text NOT NULL,
@@ -51,6 +61,7 @@ CREATE TABLE public.orders (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   receipt_base64 text,
+  user_id uuid,
   CONSTRAINT orders_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.products (
@@ -72,6 +83,7 @@ CREATE TABLE public.profiles (
   avatar_url text,
   role text DEFAULT 'member'::text CHECK (role = ANY (ARRAY['admin'::text, 'vip'::text, 'member'::text])),
   created_at timestamp with time zone DEFAULT now(),
+  last_login timestamp with time zone,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );
@@ -100,6 +112,8 @@ CREATE TABLE public.reservations (
   booking_type text DEFAULT 'activity'::text,
   receipt_url text,
   whatsapp_confirmed boolean DEFAULT false,
+  user_email text,
+  user_id uuid,
   CONSTRAINT reservations_pkey PRIMARY KEY (id),
   CONSTRAINT reservations_activityId_fkey FOREIGN KEY (activity_id) REFERENCES public.activities(id)
 );
@@ -127,6 +141,7 @@ CREATE TABLE public.site_settings (
   hidden_pages ARRAY DEFAULT '{}'::text[],
   phones jsonb NOT NULL DEFAULT '[]'::jsonb,
   whatsapp_numbers jsonb NOT NULL DEFAULT '[]'::jsonb,
+  font_style character varying NOT NULL DEFAULT 'original'::character varying CHECK (font_style::text = ANY (ARRAY['original'::character varying, 'outfit'::character varying, 'playfair'::character varying, 'raleway'::character varying]::text[])),
   CONSTRAINT site_settings_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.testimonials (
