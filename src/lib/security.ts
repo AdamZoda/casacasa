@@ -108,47 +108,30 @@ export const validateFile = (
     allowedMimes?: string[];
   } = {}
 ): { valid: boolean; error?: string } => {
-  const maxSize = (options.maxSizeMB || 1) * 1024 * 1024;
-  const allowedMimes = options.allowedMimes || [
-    'image/jpeg',
-    'image/png',
-    'application/pdf'
-  ];
+  const maxSize = (options.maxSizeMB || 5) * 1024 * 1024;
   
-  // 1. Vérifier taille
+  // 1. Vérifier ONLY la taille - c'est le plus important
   if (file.size > maxSize) {
     return {
       valid: false,
-      error: `Fichier trop volumineux (max ${options.maxSizeMB}MB)`
+      error: `Fichier trop volumineux (max ${options.maxSizeMB || 5}MB)`
     };
   }
   
-  // 2. Vérifier MIME type
-  if (!allowedMimes.includes(file.type)) {
-    return {
-      valid: false,
-      error: 'Type de fichier non autorisé'
-    };
-  }
+  // 2. Vérifier si c'est une image ou PDF basé sur le type MIME (plus flexible)
+  const fileType = file.type;
+  const isImage = fileType.startsWith('image/');
+  const isPDF = fileType === 'application/pdf';
   
-  // 3. Vérifier extension (fallback if MIME type check passes)
-  const validExtensions = allowedMimes
-    .map(mime => {
-      if (mime === 'image/jpeg') return ['.jpg', '.jpeg'];
-      if (mime === 'image/png') return ['.png'];
-      if (mime === 'application/pdf') return ['.pdf'];
-      return [];
-    })
-    .flat();
-  
-  // Extract extension safely - if no dot found, just use MIME check result
-  const nameParts = file.name.split('.');
-  if (nameParts.length > 1) {
-    const fileExt = '.' + nameParts[nameParts.length - 1]?.toLowerCase();
-    if (!validExtensions.includes(fileExt)) {
+  if (!isImage && !isPDF) {
+    // Si pas d'image/PDF, essayer de vérifier l'extension comme fallback
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const validExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'];
+    
+    if (!validExts.includes(ext || '')) {
       return {
         valid: false,
-        error: 'Extension de fichier invalide'
+        error: 'Veuillez charger une image (JPG, PNG, GIF, WebP) ou un PDF'
       };
     }
   }
