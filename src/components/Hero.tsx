@@ -51,14 +51,16 @@ export function Hero() {
           <iframe
             src={youtubeEmbedUrl}
             className="w-full h-full object-cover"
-            allow="autoplay; fullscreen"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
             title="Hero Video Background"
           />
         ) : isVideo && bgUrl?.includes('vimeo') ? (
           <iframe
             src={bgUrl.replace('vimeo.com', 'player.vimeo.com/video').replace(/\/(\d+)/, '/$1')}
             className="w-full h-full object-cover"
-            allow="autoplay; fullscreen"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
             title="Hero Video Background"
           />
         ) : isVideo && (bgUrl?.includes('.mp4') || bgUrl?.includes('.webm') || bgUrl?.includes('.mov')) ? (
@@ -67,6 +69,8 @@ export function Hero() {
             muted
             loop
             playsInline
+            preload="auto"
+            crossOrigin="anonymous"
             className="w-full h-full object-cover"
           >
             <source src={bgUrl} type={bgUrl.includes('.webm') ? 'video/webm' : 'video/mp4'} />

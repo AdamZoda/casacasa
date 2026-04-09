@@ -28,6 +28,30 @@ import { HIDEABLE_PUBLIC_PATHS } from "../../lib/hiddenPages";
 import { uploadImage } from "../../lib/storage";
 import { AdminPageHeader } from "../../components/admin/adminShared";
 
+const isVideoUrl = (url: string): boolean => {
+  if (!url) return false;
+  return (
+    url.includes("youtube.com") ||
+    url.includes("youtu.be") ||
+    url.includes("vimeo.com") ||
+    url.includes(".mp4") ||
+    url.includes(".webm") ||
+    url.includes(".mov") ||
+    url.includes(".avi")
+  );
+};
+
+const isYouTubeUrl = (url: string): boolean => {
+  return !!url && (url.includes("youtube.com") || url.includes("youtu.be"));
+};
+
+const getYouTubeEmbedUrl = (url: string): string => {
+  const videoIdMatch =
+    url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/) ||
+    url.match(/([a-zA-Z0-9_-]{11})/);
+  return videoIdMatch ? `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=1&mute=1&controls=0&modestbranding=1` : "";
+};
+
 type TabType = "general" | "design" | "bank" | "security";
 
 type StringListProps = {
@@ -96,6 +120,12 @@ export function SettingsView() {
     setSaved(true);
     window.setTimeout(() => setSaved(false), 3000);
   };
+
+  const currentHeroBgUrl = formData.heroBackgroundUrl?.trim() || "";
+  const isHeroYouTube = isYouTubeUrl(currentHeroBgUrl);
+  const heroYouTubeEmbedUrl = isHeroYouTube ? getYouTubeEmbedUrl(currentHeroBgUrl) : "";
+  const isHeroVimeo = currentHeroBgUrl.includes("vimeo.com");
+  const isHeroDirectVideo = currentHeroBgUrl.includes(".mp4") || currentHeroBgUrl.includes(".webm") || currentHeroBgUrl.includes(".mov");
 
   const tabs: { id: TabType; label: string; icon: LucideIcon }[] = [
     { id: "general", label: "Informations", icon: Globe },
@@ -317,12 +347,43 @@ export function SettingsView() {
                 </div>
 
                 <div className="relative h-56 overflow-hidden rounded-xl border border-border-primary ring-1 ring-border-primary/30 md:h-64">
-                  {formData.heroBackgroundUrl?.trim() ? (
-                    <img
-                      src={formData.heroBackgroundUrl.trim()}
-                      className="h-full w-full scale-105 object-cover opacity-70 transition-transform duration-700 hover:scale-100"
-                      alt="Aperçu du hero"
-                    />
+                  {currentHeroBgUrl ? (
+                    isHeroYouTube && heroYouTubeEmbedUrl ? (
+                      <iframe
+                        src={heroYouTubeEmbedUrl}
+                        className="h-full w-full object-cover"
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        allowFullScreen
+                        title="Aperçu du hero YouTube"
+                      />
+                    ) : isHeroVimeo ? (
+                      <iframe
+                        src={currentHeroBgUrl.replace('vimeo.com', 'player.vimeo.com/video').replace(/\/([0-9]+)/, '/$1')}
+                        className="h-full w-full object-cover"
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        allowFullScreen
+                        title="Aperçu du hero Vimeo"
+                      />
+                    ) : isHeroDirectVideo ? (
+                      <video
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="h-full w-full object-cover"
+                      >
+                        <source
+                          src={currentHeroBgUrl}
+                          type={currentHeroBgUrl.includes('.webm') ? 'video/webm' : 'video/mp4'}
+                        />
+                      </video>
+                    ) : (
+                      <img
+                        src={currentHeroBgUrl}
+                        className="h-full w-full scale-105 object-cover opacity-70 transition-transform duration-700 hover:scale-100"
+                        alt="Aperçu du hero"
+                      />
+                    )
                   ) : (
                     <div
                       className="flex h-full w-full items-center justify-center bg-text-primary/[0.06] px-6 text-center text-[10px] uppercase tracking-widest text-text-primary/35"

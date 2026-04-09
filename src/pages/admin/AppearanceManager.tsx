@@ -100,22 +100,42 @@ export function AppearanceManager() {
 
                 {/* Live Preview */}
                 <div className="relative h-48 overflow-hidden border border-border-primary">
-                  <img
-                    src={formData.heroBackgroundUrl}
-                    alt="Hero Preview"
-                    className="w-full h-full object-cover opacity-50"
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop'; }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-transparent" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
-                    <h4 className="text-2xl font-serif mb-2">{formData.heroTitle || formData.logoText}</h4>
-                    <p className="text-xs tracking-widest uppercase opacity-70">{formData.heroSubtitle || 'Your subtitle here'}</p>
-                  </div>
+                  {formData.heroBackgroundUrl?.includes('.mp4') || formData.heroBackgroundUrl?.includes('.webm') || formData.heroBackgroundUrl?.includes('.mov') ? (
+                    <>
+                      <video
+                        src={formData.heroBackgroundUrl}
+                        className="w-full h-full object-cover opacity-50"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-transparent" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
+                        <h4 className="text-2xl font-serif mb-2">{formData.heroTitle || formData.logoText}</h4>
+                        <p className="text-xs tracking-widest uppercase opacity-70">{formData.heroSubtitle || 'Your subtitle here'}</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <img
+                        src={formData.heroBackgroundUrl}
+                        alt="Hero Preview"
+                        className="w-full h-full object-cover opacity-50"
+                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop'; }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-transparent" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
+                        <h4 className="text-2xl font-serif mb-2">{formData.heroTitle || formData.logoText}</h4>
+                        <p className="text-xs tracking-widest uppercase opacity-70">{formData.heroSubtitle || 'Your subtitle here'}</p>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                  <div className="space-y-6">
                   <div className="space-y-4">
-                    <label className="text-[10px] uppercase tracking-widest text-text-primary/40">Background Image</label>
+                    <label className="text-[10px] uppercase tracking-widest text-text-primary/40">Background Image or Video</label>
                     <div className="flex gap-4 items-center">
                       <label className="flex-grow flex items-center justify-center gap-3 bg-text-primary/5 border border-dashed border-border-primary p-8 text-xs cursor-pointer hover:border-brand-gold transition-all group">
                         {isUploading ? (
@@ -124,12 +144,12 @@ export function AppearanceManager() {
                           <Upload size={24} className="text-text-primary/20 group-hover:text-brand-gold transition-colors" />
                         )}
                         <div className="text-left">
-                          <p className="font-medium text-sm">{isUploading ? 'Chargement en cours...' : 'Cliquez pour uploader une nouvelle photo'}</p>
-                          <p className="text-[10px] text-text-primary/40 uppercase mt-1">Format recommandé: 1920x1080px</p>
+                          <p className="font-medium text-sm">{isUploading ? 'Chargement en cours...' : 'Cliquez pour uploader une image ou vidéo'}</p>
+                          <p className="text-[10px] text-text-primary/40 uppercase mt-1">Formats: JPG, PNG (1920x1080px) ou MP4, WebM (vidéo)</p>
                         </div>
                         <input 
                           type="file" 
-                          accept="image/*" 
+                          accept="image/*,video/*" 
                           className="hidden" 
                           onChange={async (e) => {
                             if (e.target.files?.[0]) {
