@@ -61,12 +61,13 @@ export function Hero() {
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
         transition={{ duration: 10, ease: "easeOut" }}
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 w-full h-full"
       >
         {isVideo && isYouTube && youtubeEmbedUrl ? (
           <iframe
             src={youtubeEmbedUrl}
-            className="w-full h-full object-cover"
+            className="absolute top-0 left-0 w-full h-full object-cover border-0"
+            style={{width: '100%', height: '100%'}}
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
             title="Hero Video Background"
@@ -74,7 +75,8 @@ export function Hero() {
         ) : isVideo && bgUrl?.includes('vimeo') ? (
           <iframe
             src={bgUrl.replace('vimeo.com', 'player.vimeo.com/video').replace(/\/(\d+)/, '/$1')}
-            className="w-full h-full object-cover"
+            className="absolute top-0 left-0 w-full h-full object-cover border-0"
+            style={{width: '100%', height: '100%'}}
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
             title="Hero Video Background"
@@ -87,15 +89,13 @@ export function Hero() {
             loop
             playsInline
             preload="metadata"
-            crossOrigin="anonymous"
-            className="w-full h-full object-cover"
+            className="absolute top-0 left-0 w-full h-full object-cover"
+            style={{width: '100%', height: '100%'}}
             onError={() => {
-              console.error('Video load error:', bgUrl);
               setVideoError(true);
             }}
           >
             <source src={bgUrl} type={getVideoMimeType(bgUrl)} />
-            Your browser does not support the video tag.
           </video>
         ) : (
           <img
@@ -103,7 +103,8 @@ export function Hero() {
             alt="Hero Background"
             fetchPriority="high"
             decoding="async"
-            className="w-full h-full object-cover"
+            className="absolute top-0 left-0 w-full h-full object-cover"
+            style={{width: '100%', height: '100%'}}
             onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop'; }}
           />
         )}
