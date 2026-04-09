@@ -1,20 +1,33 @@
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
 
 // Detect if URL is a video (YouTube, Vimeo, or direct video file)
 const isVideoUrl = (url: string): boolean => {
   if (!url) return false;
+  const normalizedUrl = url.toLowerCase();
   return (
-    url.includes('youtube.com') ||
-    url.includes('youtu.be') ||
-    url.includes('vimeo.com') ||
-    url.includes('.mp4') ||
-    url.includes('.webm') ||
-    url.includes('.mov') ||
-    url.includes('.avi')
+    normalizedUrl.includes('youtube.com') ||
+    normalizedUrl.includes('youtu.be') ||
+    normalizedUrl.includes('vimeo.com') ||
+    normalizedUrl.includes('.mp4') ||
+    normalizedUrl.includes('.webm') ||
+    normalizedUrl.includes('.mov') ||
+    normalizedUrl.includes('.avi') ||
+    normalizedUrl.includes('.flv')
   );
+};
+
+// Get video MIME type based on URL
+const getVideoMimeType = (url: string): string => {
+  const normalizedUrl = url.toLowerCase();
+  if (normalizedUrl.includes('.webm')) return 'video/webm';
+  if (normalizedUrl.includes('.mov')) return 'video/quicktime';
+  if (normalizedUrl.includes('.avi')) return 'video/x-msvideo';
+  if (normalizedUrl.includes('.flv')) return 'video/x-flv';
+  return 'video/mp4'; // default for .mp4 and others
 };
 
 // Get YouTube embed URL from various YouTube URL formats
@@ -22,20 +35,23 @@ const getYouTubeEmbedUrl = (url: string): string => {
   const videoIdMatch = 
     url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/) ||
     url.match(/([a-zA-Z0-9_-]{11})/);
-  return videoIdMatch ? `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=1&mute=1&controls=0&modestbranding=1` : '';
+  const videoId = videoIdMatch ? videoIdMatch[1] : '';
+  return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${videoId}` : '';
 };
 
 export function Hero() {
   const { language, settings } = useAppContext();
   const t = translations[language];
+  const [videoError, setVideoError] = useState(false);
 
   const bgUrl = settings.heroBackgroundUrl || 'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop';
   const title = settings.heroTitle || t.hero.title;
   const subtitle = settings.heroSubtitle || t.hero.subtitle;
   const cta = settings.heroCta || t.hero.cta;
 
-  const isVideo = isVideoUrl(bgUrl);
-  const isYouTube = bgUrl?.includes('youtube') || bgUrl?.includes('youtu.be');
+  const isVideo = isVideoUrl(bgUrl) && !videoError;
+  const normalizedBgUrl = bgUrl?.toLowerCase() || '';
+  const isYouTube = normalizedBgUrl.includes('youtube.com') || normalizedBgUrl.includes('youtu.be');
   const youtubeEmbedUrl = isYouTube ? getYouTubeEmbedUrl(bgUrl) : '';
 
   return (
@@ -63,17 +79,23 @@ export function Hero() {
             allowFullScreen
             title="Hero Video Background"
           />
-        ) : isVideo && (bgUrl?.includes('.mp4') || bgUrl?.includes('.webm') || bgUrl?.includes('.mov')) ? (
+        ) : isVideo && (bgUrl?.includes('.mp4') || bgUrl?.includes('.webm') || bgUrl?.includes('.mov') || bgUrl?.includes('.avi') || bgUrl?.includes('.flv')) ? (
           <video
+            key={bgUrl}
             autoPlay
             muted
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             crossOrigin="anonymous"
             className="w-full h-full object-cover"
+            onError={() => {
+              console.error('Video load error:', bgUrl);
+              setVideoError(true);
+            }}
           >
-            <source src={bgUrl} type={bgUrl.includes('.webm') ? 'video/webm' : 'video/mp4'} />
+            <source src={bgUrl} type={getVideoMimeType(bgUrl)} />
+            Your browser does not support the video tag.
           </video>
         ) : (
           <img

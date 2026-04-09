@@ -30,19 +30,22 @@ import { AdminPageHeader } from "../../components/admin/adminShared";
 
 const isVideoUrl = (url: string): boolean => {
   if (!url) return false;
+  const normalizedUrl = url.toLowerCase();
   return (
-    url.includes("youtube.com") ||
-    url.includes("youtu.be") ||
-    url.includes("vimeo.com") ||
-    url.includes(".mp4") ||
-    url.includes(".webm") ||
-    url.includes(".mov") ||
-    url.includes(".avi")
+    normalizedUrl.includes("youtube.com") ||
+    normalizedUrl.includes("youtu.be") ||
+    normalizedUrl.includes("vimeo.com") ||
+    normalizedUrl.includes(".mp4") ||
+    normalizedUrl.includes(".webm") ||
+    normalizedUrl.includes(".mov") ||
+    normalizedUrl.includes(".avi")
   );
 };
 
 const isYouTubeUrl = (url: string): boolean => {
-  return !!url && (url.includes("youtube.com") || url.includes("youtu.be"));
+  if (!url) return false;
+  const normalizedUrl = url.toLowerCase();
+  return normalizedUrl.includes("youtube.com") || normalizedUrl.includes("youtu.be");
 };
 
 const getYouTubeEmbedUrl = (url: string): string => {
