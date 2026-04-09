@@ -345,14 +345,17 @@ export function SettingsView() {
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
                   <div className="space-y-4">
-                    <label className={labelClass}>Image de fond (URL)</label>
+                    <label className={labelClass}>Image ou Vidéo de fond (URL)</label>
                     <input
                       type="url"
                       value={formData.heroBackgroundUrl}
                       onChange={(e) => setFormData({ ...formData, heroBackgroundUrl: e.target.value })}
-                      placeholder="https://…"
+                      placeholder="https://… (image, YouTube, Vimeo, ou vidéo MP4)"
                       className="admin-input w-full py-3.5 px-4 font-mono text-sm"
                     />
+                    <p className="text-[12px] text-text-primary/40 italic">
+                      ✓ Images: JPG, PNG | ✓ YouTube: youtube.com/watch?v=... | ✓ Vimeo: vimeo.com/... | ✓ Vidéos: URL directe .mp4 .webm
+                    </p>
                     <label className={labelClass}>Ou envoyer une image</label>
                     <label className="flex min-h-[10rem] cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border-primary bg-text-primary/[0.03] transition-colors hover:border-brand-gold/40 hover:bg-brand-gold/[0.04]">
                       {isUploading ? (

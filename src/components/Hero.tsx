@@ -3,6 +3,28 @@ import { Link } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
 
+// Detect if URL is a video (YouTube, Vimeo, or direct video file)
+const isVideoUrl = (url: string): boolean => {
+  if (!url) return false;
+  return (
+    url.includes('youtube.com') ||
+    url.includes('youtu.be') ||
+    url.includes('vimeo.com') ||
+    url.includes('.mp4') ||
+    url.includes('.webm') ||
+    url.includes('.mov') ||
+    url.includes('.avi')
+  );
+};
+
+// Get YouTube embed URL from various YouTube URL formats
+const getYouTubeEmbedUrl = (url: string): string => {
+  const videoIdMatch = 
+    url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/) ||
+    url.match(/([a-zA-Z0-9_-]{11})/);
+  return videoIdMatch ? `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=1&mute=1&controls=0&modestbranding=1` : '';
+};
+
 export function Hero() {
   const { language, settings } = useAppContext();
   const t = translations[language];
@@ -12,23 +34,53 @@ export function Hero() {
   const subtitle = settings.heroSubtitle || t.hero.subtitle;
   const cta = settings.heroCta || t.hero.cta;
 
+  const isVideo = isVideoUrl(bgUrl);
+  const isYouTube = bgUrl?.includes('youtube') || bgUrl?.includes('youtu.be');
+  const youtubeEmbedUrl = isYouTube ? getYouTubeEmbedUrl(bgUrl) : '';
+
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
-      {/* Background Image with slow zoom */}
+      {/* Background Video or Image */}
       <motion.div 
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
         transition={{ duration: 10, ease: "easeOut" }}
         className="absolute inset-0 z-0"
       >
-        <img
-          src={bgUrl}
-          alt="Hero Background"
-          fetchPriority="high"
-          decoding="async"
-          className="w-full h-full object-cover"
-          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop'; }}
-        />
+        {isVideo && isYouTube && youtubeEmbedUrl ? (
+          <iframe
+            src={youtubeEmbedUrl}
+            className="w-full h-full object-cover"
+            allow="autoplay; fullscreen"
+            title="Hero Video Background"
+          />
+        ) : isVideo && bgUrl?.includes('vimeo') ? (
+          <iframe
+            src={bgUrl.replace('vimeo.com', 'player.vimeo.com/video').replace(/\/(\d+)/, '/$1')}
+            className="w-full h-full object-cover"
+            allow="autoplay; fullscreen"
+            title="Hero Video Background"
+          />
+        ) : isVideo && (bgUrl?.includes('.mp4') || bgUrl?.includes('.webm') || bgUrl?.includes('.mov')) ? (
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full object-cover"
+          >
+            <source src={bgUrl} type={bgUrl.includes('.webm') ? 'video/webm' : 'video/mp4'} />
+          </video>
+        ) : (
+          <img
+            src={bgUrl}
+            alt="Hero Background"
+            fetchPriority="high"
+            decoding="async"
+            className="w-full h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop'; }}
+          />
+        )}
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg-primary"></div>
       </motion.div>
