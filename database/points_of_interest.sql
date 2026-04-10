@@ -1,5 +1,5 @@
 -- Create points_of_interest table
-CREATE TABLE IF NOT EXISTS points_of_interest (
+CREATE TABLE IF NOT EXISTS public.points_of_interest (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT,
@@ -12,34 +12,28 @@ CREATE TABLE IF NOT EXISTS points_of_interest (
 );
 
 -- Create indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_points_of_interest_visible ON points_of_interest(visible);
-CREATE INDEX IF NOT EXISTS idx_points_of_interest_type ON points_of_interest(type);
-CREATE INDEX IF NOT EXISTS idx_points_of_interest_coords ON points_of_interest(latitude, longitude);
+CREATE INDEX IF NOT EXISTS idx_points_of_interest_visible ON public.points_of_interest(visible);
+CREATE INDEX IF NOT EXISTS idx_points_of_interest_type ON public.points_of_interest(type);
+CREATE INDEX IF NOT EXISTS idx_points_of_interest_coords ON public.points_of_interest(latitude, longitude);
 
 -- Enable Row Level Security
-ALTER TABLE points_of_interest ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.points_of_interest ENABLE ROW LEVEL SECURITY;
 
--- Allow public read access (viewing on the map)
-CREATE POLICY "Allow public read access" ON points_of_interest
-  FOR SELECT USING (visible = true);
+-- Policy 1: Allow public read access (viewing visible POIs on the map)
+CREATE POLICY "Allow public read access for visible POIs" 
+  ON public.points_of_interest 
+  FOR SELECT 
+  USING (visible = true);
 
--- Allow authenticated admin to manage all POIs
-CREATE POLICY "Allow authenticated admin to manage" ON points_of_interest
-  FOR ALL USING (
-    auth.role() = 'authenticated' AND
-    EXISTS (
-      SELECT 1 FROM users
-      WHERE users.id = auth.uid()
-      AND users.email IN (
-        SELECT jsonb_array_elements_text(
-          (SELECT value FROM site_settings WHERE key = 'admin_emails')
-        )
-      )
-    )
-  );
+-- Policy 2: Allow authenticated users full admin access via admin panel
+CREATE POLICY "Allow authenticated admin full access" 
+  ON public.points_of_interest 
+  FOR ALL 
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
 
 -- Insert sample POIs around the world
-INSERT INTO points_of_interest (name, description, latitude, longitude, type, visible) VALUES
+INSERT INTO public.points_of_interest (name, description, latitude, longitude, type, visible) VALUES
 -- Maroc
 ('Toilettes Centre Casablanca', 'Toilettes publiques centre-ville', 33.5731, -7.5898, 'toilettes', true),
 ('Parking Marché Médina', 'Grand parking souterrain', 33.5745, -7.6112, 'parking', true),
