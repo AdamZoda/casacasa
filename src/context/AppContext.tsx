@@ -364,7 +364,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const body = document.body;
-    body.classList.remove('font-style-original', 'font-style-playfair', 'font-style-kiona');
+    body.classList.remove('font-style-original', 'font-style-playfair', 'font-style-kiona', 'font-style-riona');
     body.classList.add(`font-style-${settings.fontStyle}`);
     console.log('✅ Font style applied:', `font-style-${settings.fontStyle}`);
   }, [settings.fontStyle]);

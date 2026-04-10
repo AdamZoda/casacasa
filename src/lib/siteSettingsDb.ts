@@ -1,4 +1,4 @@
-export type SiteFontStyle = "original" | "playfair" | "kiona";
+export type SiteFontStyle = "original" | "playfair" | "kiona" | "riona";
 export type AboutVisibility = {
   showStory: boolean;
   showMission: boolean;
@@ -201,6 +201,7 @@ export function dbRowToSiteSettings(row: SiteSettingsRow, prev: SiteSettings): S
   const fontStyle = (v: unknown): SiteFontStyle => {
     if (v === "playfair") return "playfair";
     if (v === "kiona") return "kiona";
+    if (v === "riona") return "riona";
     return "original";
   };
 

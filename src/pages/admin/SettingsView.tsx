@@ -538,7 +538,7 @@ export function SettingsView() {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        fontStyle: e.target.value as "original" | "playfair" | "kiona",
+                        fontStyle: e.target.value as "original" | "playfair" | "kiona" | "riona",
                       })
                     }
                     className="admin-input py-3.5 px-4 text-sm min-h-[2.75rem]"
@@ -546,6 +546,7 @@ export function SettingsView() {
                     <option value="original">Original (Inter)</option>
                     <option value="playfair">Playfair Display (Luxury)</option>
                     <option value="kiona">Kiona Regular</option>
+                    <option value="riona">Riona</option>
                   </select>
                 </div>
               </div>
