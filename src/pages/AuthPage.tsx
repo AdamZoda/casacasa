@@ -32,8 +32,10 @@ export function AuthPage() {
     setTurnstileToken(token);
   }, []);
 
-  const turnstileEnabled = String(import.meta.env.VITE_TURNSTILE_ENABLED ?? "false").toLowerCase() === "true";
-  const hasTurnstileSiteKey = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY);
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  const turnstileEnabled = Boolean(turnstileSiteKey) &&
+    String(import.meta.env.VITE_TURNSTILE_ENABLED ?? "true").toLowerCase() !== "false";
+  const hasTurnstileSiteKey = Boolean(turnstileSiteKey);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
