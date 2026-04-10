@@ -43,6 +43,7 @@ export interface SiteSettings {
   footerTitle: string;
   footerCta: string;
   blockedDates: string[];
+  blockWeekends: boolean;
   bankName: string;
   bankBeneficiary: string;
   bankRib: string;
@@ -72,6 +73,7 @@ export type SiteSettingsRow = {
   footer_title?: string | null;
   footer_cta?: string | null;
   blocked_dates?: string[] | null;
+  block_weekends?: boolean | null;
   bank_name?: string | null;
   bank_beneficiary?: string | null;
   bank_rib?: string | null;
@@ -184,6 +186,7 @@ export function siteSettingsToDbRow(s: SiteSettings): SiteSettingsRow {
     footer_title: s.footerTitle,
     footer_cta: s.footerCta,
     blocked_dates: s.blockedDates,
+    block_weekends: s.blockWeekends,
     bank_name: s.bankName,
     bank_beneficiary: s.bankBeneficiary,
     bank_rib: s.bankRib,
@@ -219,6 +222,7 @@ export function dbRowToSiteSettings(row: SiteSettingsRow, prev: SiteSettings): S
     footerTitle: String(row.footer_title ?? prev.footerTitle),
     footerCta: String(row.footer_cta ?? prev.footerCta),
     blockedDates: arr(row.blocked_dates, prev.blockedDates),
+    blockWeekends: Boolean(row.block_weekends ?? prev.blockWeekends),
     bankName: String(row.bank_name ?? prev.bankName),
     bankBeneficiary: String(row.bank_beneficiary ?? prev.bankBeneficiary),
     bankRib: String(row.bank_rib ?? prev.bankRib),

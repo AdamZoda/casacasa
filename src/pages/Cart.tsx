@@ -1,15 +1,16 @@
 import { motion } from "motion/react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
+import { formatMoney } from "../lib/utils";
 import { Trash2, ArrowRight, ShoppingBag } from "lucide-react";
 import { translations } from "../i18n/translations";
 
 export function Cart() {
   const navigate = useNavigate();
-  const { cart, removeFromCart, language } = useAppContext();
+  const { cart, removeFromCart, language, currency, exchangeRates } = useAppContext();
   const t = translations[language];
 
-  const total = cart.reduce((sum, item) => sum + parseInt(item.price.toString().replace(/\s/g, '')), 0);
+  const total = cart.reduce((sum, item) => sum + parseInt(item.price.toString().replace(/\s/g, ''), 10), 0);
 
   return (
     <div className="pt-40 pb-32 px-6 max-w-5xl mx-auto min-h-screen">
@@ -67,7 +68,7 @@ export function Cart() {
                   <p className="text-text-primary/50 text-[10px] uppercase tracking-[0.2em]">{item.category}</p>
                 </div>
                 <div className="text-center md:text-right flex flex-col items-center md:items-end gap-4">
-                  <p className="font-serif text-2xl">{item.price} MAD</p>
+                  <p className="font-serif text-2xl">{formatMoney(item.price, currency, exchangeRates)}</p>
                   <button 
                     onClick={() => removeFromCart(item.id)}
                     className="text-text-primary/40 hover:text-red-500 transition-colors text-xs uppercase tracking-widest flex items-center gap-2"
@@ -82,7 +83,7 @@ export function Cart() {
           <div className="bg-bg-primary border border-border-primary text-text-primary p-12 flex flex-col md:flex-row justify-between items-center gap-12">
             <div className="text-center md:text-left">
               <p className="text-text-primary/50 text-[10px] uppercase tracking-[0.3em] mb-4">{t.common.total}</p>
-              <p className="text-5xl font-serif">{total.toLocaleString()} MAD</p>
+              <p className="text-5xl font-serif">{formatMoney(total, currency, exchangeRates)}</p>
             </div>
             <button 
               onClick={() => navigate('/checkout')}

@@ -15,6 +15,7 @@ import {
   X,
   ExternalLink,
   MapPin,
+  Info,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
@@ -29,6 +30,7 @@ const navItems = [
   { path: "/admin/newsletter", label: "Newsletter", icon: Mail, end: false },
   { path: "/admin/users", label: "Utilisateurs", icon: Users, end: false },
   { path: "/admin/settings", label: "Configuration", icon: Settings, end: false },
+  { path: "/admin/settings/about", label: "About Us", icon: Info, end: false },
 ] as const;
 
 function isNavActive(path: string, item: (typeof navItems)[number]) {

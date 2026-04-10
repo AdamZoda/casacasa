@@ -8,6 +8,7 @@ import {
   type SiteSettings,
   type SiteSettingsRow,
 } from '../lib/siteSettingsDb';
+import { fetchExchangeRates, type Currency, type ExchangeRates, DEFAULT_EXCHANGE_RATES } from '../lib/utils';
 import {
   activityToRow,
   dbRowToReservation,
@@ -227,6 +228,11 @@ interface AppContextType {
   favorites: string[];
   toggleFavorite: (id: string) => void;
 
+  currency: Currency;
+  setCurrency: (currency: Currency) => void;
+  exchangeRates: ExchangeRates;
+  refreshExchangeRates: () => Promise<void>;
+
   searchQuery: string;
   setSearchQuery: (q: string) => void;
 
@@ -296,7 +302,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     socialLinks: { instagram: [], facebook: [], linkedin: [], youtube: [] },
     maintenanceMode: false,
     heroBackgroundUrl: '',
-    heroTitle: '', heroSubtitle: '', heroCta: '', brandGoldColor: '#E5A93A', whatsappNumbers: [], logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: [],
+    heroTitle: '', heroSubtitle: '', heroCta: '', brandGoldColor: '#E5A93A', whatsappNumbers: [], logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: [], blockWeekends: false,
     bankName: '',
     bankBeneficiary: 'COMANE EXCELLENCE SARL',
     bankRib: '',
@@ -324,6 +330,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
   const [cart, setCart] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [currency, setCurrency] = useState<Currency>('MAD');
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRates>(DEFAULT_EXCHANGE_RATES);
   const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState<Theme>('dark');
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -333,6 +341,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (theme === 'dark') document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   }, [theme]);
+
+  useEffect(() => {
+    const storedCurrency = localStorage.getItem('currency') as Currency | null;
+    if (storedCurrency === 'MAD' || storedCurrency === 'EUR' || storedCurrency === 'USD') {
+      setCurrency(storedCurrency);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('currency', currency);
+  }, [currency]);
+
+  const refreshExchangeRates = useCallback(async () => {
+    const rates = await fetchExchangeRates('MAD');
+    setExchangeRates(rates);
+  }, []);
+
+  useEffect(() => {
+    void refreshExchangeRates();
+  }, [refreshExchangeRates]);
 
   useEffect(() => {
     const body = document.body;
@@ -674,6 +702,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       settings, updateSettings,
       cart, addToCart, removeFromCart,
       favorites, toggleFavorite,
+      currency, setCurrency, exchangeRates, refreshExchangeRates,
       searchQuery, setSearchQuery,
       profiles, deleteProfile,
       theme, toggleTheme,

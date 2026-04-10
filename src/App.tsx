@@ -114,6 +114,7 @@ export default function App() {
                 <Route path="newsletter" element={<NewsletterManager />} />
                 <Route path="points-of-interest" element={<PointOfInterestCenterPage />} />
                 <Route path="users" element={<UserManager />} />
+                <Route path="settings/about" element={<SettingsView />} />
                 <Route path="settings" element={<SettingsView />} />
 
                 <Route path="support" element={<Navigate to="/admin/experience-client/conciergerie" replace />} />

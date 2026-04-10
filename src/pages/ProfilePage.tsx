@@ -3,12 +3,13 @@ import { motion, AnimatePresence } from "motion/react";
 import { useAppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { translations } from "../i18n/translations";
+import { formatMoney } from "../lib/utils";
 import { User, Lock, Globe, Save, CheckCircle2, Camera, Heart, Calendar, Trash2, ArrowRight } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 
 export function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
-  const { language, setLanguage, favorites, toggleFavorite, activities, products, reservations } = useAppContext();
+  const { language, setLanguage, favorites, toggleFavorite, activities, products, reservations, currency, exchangeRates } = useAppContext();
   const t = translations[language];
   
   const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'reservations'>('profile');
@@ -311,7 +312,7 @@ export function ProfilePage() {
                           <span className="text-[10px] tracking-[0.2em] uppercase text-brand-gold mb-2 block">{item.category}</span>
                           <h3 className="text-xl font-serif mb-4">{item.title}</h3>
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-serif">{item.price} {item.type === 'product' ? 'MAD' : ''}</span>
+                            <span className="text-sm font-serif">{item.type === 'product' ? formatMoney(item.price, currency, exchangeRates) : item.price}</span>
                             <div className="flex items-center gap-4">
                               <button 
                                 onClick={() => toggleFavorite(item.id)}

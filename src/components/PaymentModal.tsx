@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, MessageCircle, Upload, CheckCircle2 } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { formatMoney } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
 
@@ -13,7 +14,7 @@ interface PaymentModalProps {
 }
 
 export function PaymentModal({ isOpen, onClose, items, total }: PaymentModalProps) {
-  const { addOrder, settings } = useAppContext();
+  const { addOrder, settings, currency, exchangeRates } = useAppContext();
   const [method, setMethod] = useState<'selection' | 'upload' | 'success'>('selection');
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
 
@@ -48,7 +49,7 @@ export function PaymentModal({ isOpen, onClose, items, total }: PaymentModalProp
   }, [isOpen]);
 
   const handleWhatsApp = () => {
-    const text = encodeURIComponent(`Bonjour Casa Privilege, je souhaite régler ma commande de ${total?.toLocaleString() || ''} MAD.`);
+    const text = encodeURIComponent(`Bonjour Casa Privilege, je souhaite régler ma commande de ${formatMoney(total ?? 0, currency, exchangeRates)}.`);
     window.open(`https://wa.me/${primaryWhatsappDigits(settings) || "212600000000"}?text=${text}`, "_blank");
     onClose();
   };
