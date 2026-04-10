@@ -67,6 +67,18 @@ CREATE TABLE public.orders (
   phone_code text,
   CONSTRAINT orders_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.points_of_interest (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  description text DEFAULT ''::text,
+  latitude numeric NOT NULL,
+  longitude numeric NOT NULL,
+  type text NOT NULL CHECK (type = ANY (ARRAY['toilettes'::text, 'parking'::text, 'restaurant'::text, 'shop'::text, 'other'::text])),
+  visible boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT timezone('UTC'::text, now()),
+  updated_at timestamp with time zone DEFAULT timezone('UTC'::text, now()),
+  CONSTRAINT points_of_interest_pkey PRIMARY KEY (id)
+);
 CREATE TABLE public.products (
   id text NOT NULL,
   title text NOT NULL,

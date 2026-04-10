@@ -48,6 +48,9 @@ const SettingsView = lazy(() => import("./pages/admin/SettingsView").then((m) =>
 const PointsOfInterestManager = lazy(() =>
   import("./pages/admin/PointsOfInterestManager").then((m) => ({ default: m.PointsOfInterestManager }))
 );
+const POITypesManager = lazy(() =>
+  import("./pages/admin/POITypesManager").then((m) => ({ default: m.POITypesManager }))
+);
 
 function PageFallback() {
   return (
@@ -113,6 +116,7 @@ export default function App() {
 
                 <Route path="newsletter" element={<NewsletterManager />} />
                 <Route path="points-of-interest" element={<PointsOfInterestManager />} />
+                <Route path="poi-types" element={<POITypesManager />} />
                 <Route path="users" element={<UserManager />} />
                 <Route path="settings" element={<SettingsView />} />
 

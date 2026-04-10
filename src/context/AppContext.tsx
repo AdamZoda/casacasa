@@ -140,6 +140,9 @@ export interface GlobalService {
   description: string;
   image: string;
   link: string;
+  type?: string; // Categorie: restaurant, shop, activity, etc.
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Order {
