@@ -8,6 +8,7 @@ import {
   Instagram,
   Facebook,
   Linkedin,
+  Youtube,
   ShieldAlert,
   X,
   Palette,
@@ -55,7 +56,7 @@ const getYouTubeEmbedUrl = (url: string): string => {
   return videoIdMatch ? `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=1&mute=1&controls=0&modestbranding=1` : "";
 };
 
-type TabType = "general" | "design" | "bank" | "security";
+type TabType = "general" | "about" | "design" | "bank" | "security";
 
 type StringListProps = {
   items: string[];
@@ -132,6 +133,7 @@ export function SettingsView() {
 
   const tabs: { id: TabType; label: string; icon: LucideIcon }[] = [
     { id: "general", label: "Informations", icon: Globe },
+    { id: "about", label: "About Us", icon: LayoutIcon },
     { id: "design", label: "Design & apparence", icon: Palette },
     { id: "bank", label: "Gestion RIB", icon: CreditCard },
     { id: "security", label: "Sécurité & dates", icon: ShieldAlert },
@@ -273,6 +275,113 @@ export function SettingsView() {
             </div>
           )}
 
+          {activeTab === "about" && (
+            <div className="space-y-8 animate-in fade-in duration-300">
+              <div className="admin-card space-y-8 p-6 md:p-8 lg:p-10">
+                <div className="flex items-center gap-4 pb-6 border-b border-border-primary/40">
+                  <div className="flex size-11 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
+                    <LayoutIcon size={22} strokeWidth={1.25} aria-hidden />
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-xl md:text-2xl text-text-primary">Page About Us</h3>
+                    <p className="mt-1 text-[10px] text-text-primary/50">Textes, image et visibilité des blocs.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                  <div>
+                    <label className={labelClass}>Titre principal</label>
+                    <input
+                      type="text"
+                      value={formData.about.title}
+                      onChange={(e) => setFormData({ ...formData, about: { ...formData.about, title: e.target.value } })}
+                      className="admin-input w-full py-3.5 px-4 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Sous-titre</label>
+                    <input
+                      type="text"
+                      value={formData.about.subtitle}
+                      onChange={(e) => setFormData({ ...formData, about: { ...formData.about, subtitle: e.target.value } })}
+                      className="admin-input w-full py-3.5 px-4 text-sm"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>Image (URL)</label>
+                    <input
+                      type="url"
+                      value={formData.about.imageUrl}
+                      onChange={(e) => setFormData({ ...formData, about: { ...formData.about, imageUrl: e.target.value } })}
+                      placeholder="https://..."
+                      className="admin-input w-full py-3.5 px-4 text-sm"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>Notre histoire</label>
+                    <textarea
+                      value={formData.about.story}
+                      onChange={(e) => setFormData({ ...formData, about: { ...formData.about, story: e.target.value } })}
+                      rows={4}
+                      className="admin-input w-full py-3.5 px-4 text-sm"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>Notre mission</label>
+                    <textarea
+                      value={formData.about.mission}
+                      onChange={(e) => setFormData({ ...formData, about: { ...formData.about, mission: e.target.value } })}
+                      rows={4}
+                      className="admin-input w-full py-3.5 px-4 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3 border-t border-border-primary/30 pt-6">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-text-primary/45 font-bold">Visibilité des sections</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {(
+                      [
+                        { key: "showStory" as const, label: "Histoire" },
+                        { key: "showMission" as const, label: "Mission" },
+                        { key: "showContactCard" as const, label: "Infos contact" },
+                        { key: "showSocials" as const, label: "Bloc réseaux" },
+                        { key: "showInstagram" as const, label: "Instagram" },
+                        { key: "showFacebook" as const, label: "Facebook" },
+                        { key: "showLinkedin" as const, label: "LinkedIn" },
+                        { key: "showYoutube" as const, label: "YouTube" },
+                      ] as const
+                    ).map((v) => (
+                      <button
+                        key={v.key}
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            about: {
+                              ...formData.about,
+                              visibility: {
+                                ...formData.about.visibility,
+                                [v.key]: !formData.about.visibility[v.key],
+                              },
+                            },
+                          })
+                        }
+                        className={`rounded-lg border px-4 py-3 text-xs uppercase tracking-widest transition-colors ${
+                          formData.about.visibility[v.key]
+                            ? "border-brand-gold/45 bg-brand-gold/10 text-brand-gold"
+                            : "border-border-primary/60 text-text-primary/45 hover:border-brand-gold/30 hover:text-brand-gold"
+                        }`}
+                      >
+                        {v.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === "design" && (
             <div className="space-y-8 animate-in fade-in duration-300">
               <div className="admin-card p-6 md:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
@@ -321,15 +430,35 @@ export function SettingsView() {
                 <div className="flex flex-wrap items-center gap-3 shrink-0">
                   <select
                     value={formData.fontStyle}
-                    onChange={(e) => setFormData({ ...formData, fontStyle: e.target.value as "original" | "outfit" | "playfair" | "raleway" })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        fontStyle: e.target.value as "original" | "playfair" | "kiona",
+                      })
+                    }
                     className="admin-input py-3.5 px-4 text-sm min-h-[2.75rem]"
                   >
                     <option value="original">Original (Inter)</option>
-                    <option value="outfit">Outfit (Elegant)</option>
                     <option value="playfair">Playfair Display (Luxury)</option>
-                    <option value="raleway">Raleway (Modern)</option>
+                    <option value="kiona">Kiona Regular</option>
                   </select>
                 </div>
+              </div>
+              <div className="admin-card p-6 md:p-8">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-text-primary/45 font-bold mb-3">Aperçu en direct</p>
+                <p
+                  className="text-xl md:text-2xl text-text-primary"
+                  style={{
+                    fontFamily:
+                      formData.fontStyle === "playfair"
+                        ? '"Playfair Display", ui-serif, Georgia, serif'
+                        : formData.fontStyle === "kiona"
+                          ? '"Kiona", "Inter", ui-sans-serif, system-ui, sans-serif'
+                          : '"Inter", ui-sans-serif, system-ui, sans-serif',
+                  }}
+                >
+                  Casa Privilege — Élégance, Précision, Excellence.
+                </p>
               </div>
 
               <div className="admin-card space-y-10 p-6 md:p-8 lg:p-10">
@@ -550,6 +679,7 @@ export function SettingsView() {
                       { key: "instagram" as const, Icon: Instagram, name: "Instagram" },
                       { key: "facebook" as const, Icon: Facebook, name: "Facebook" },
                       { key: "linkedin" as const, Icon: Linkedin, name: "LinkedIn" },
+                      { key: "youtube" as const, Icon: Youtube, name: "YouTube" },
                     ] as const
                   ).map(({ key, Icon, name }) => (
                     <div key={key} className="space-y-2">

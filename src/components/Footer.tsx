@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
 import { isPathHidden } from "../lib/hiddenPages";
-import { Send, CheckCircle2, Instagram, Facebook, Linkedin } from "lucide-react";
+import { Send, CheckCircle2, Instagram, Facebook, Linkedin, Youtube } from "lucide-react";
 
 export function Footer() {
   const { language, subscribeNewsletter, settings, universes } = useAppContext();
@@ -55,6 +55,11 @@ export function Footer() {
               {socialLinks.facebook.map((url) => (
                 <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="p-3 border border-white/10 rounded-full hover:border-brand-gold hover:text-brand-gold transition-all duration-500">
                   <Facebook size={18} />
+                </a>
+              ))}
+              {socialLinks.youtube.map((url) => (
+                <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="p-3 border border-white/10 rounded-full hover:border-brand-gold hover:text-brand-gold transition-all duration-500">
+                  <Youtube size={18} />
                 </a>
               ))}
             </div>
@@ -152,6 +157,9 @@ export function Footer() {
            <div className="flex flex-col md:flex-row items-center gap-12">
               <p className="text-[9px] uppercase tracking-[0.5em] text-white/20 font-black">© {new Date().getFullYear()} {settings.siteName || "Casa Privilege"} • Excellence Sur Mesure</p>
               <div className="flex gap-8">
+                 {!isPathHidden("/about", hp) && (
+                   <Link to="/about" className="text-[9px] uppercase tracking-widest text-white/15 hover:text-white transition-colors">About Us</Link>
+                 )}
                  <Link to="/privacy" className="text-[9px] uppercase tracking-widest text-white/15 hover:text-white transition-colors">Privacy</Link>
                  <Link to="/terms" className="text-[9px] uppercase tracking-widest text-white/15 hover:text-white transition-colors">Terms</Link>
               </div>

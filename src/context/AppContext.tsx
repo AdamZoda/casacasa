@@ -290,7 +290,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     contactEmail: 'contact@casaprivilege.com',
     phones: [],
     address: 'Marrakech, Maroc',
-    socialLinks: { instagram: [], facebook: [], linkedin: [] },
+    socialLinks: { instagram: [], facebook: [], linkedin: [], youtube: [] },
     maintenanceMode: false,
     heroBackgroundUrl: '',
     heroTitle: '', heroSubtitle: '', heroCta: '', brandGoldColor: '#E5A93A', whatsappNumbers: [], logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: [],
@@ -298,7 +298,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     bankBeneficiary: 'COMANE EXCELLENCE SARL',
     bankRib: '',
     hiddenPages: [],
-    fontStyle: 'original'
+    fontStyle: 'original',
+    about: {
+      title: 'À Propos de Casa Privilege',
+      subtitle: 'Une maison dédiée à l’excellence du service privé.',
+      story:
+        "Casa Privilege accompagne une clientèle exigeante avec un niveau de discrétion, de précision et d’élégance constant dans chaque interaction.",
+      mission:
+        "Créer des expériences fluides, humaines et mémorables en combinant expertise locale, standards premium et exécution irréprochable.",
+      imageUrl: '',
+      visibility: {
+        showStory: true,
+        showMission: true,
+        showContactCard: true,
+        showSocials: true,
+        showInstagram: true,
+        showFacebook: true,
+        showLinkedin: true,
+        showYoutube: true,
+      },
+    }
   });
   const [cart, setCart] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -314,7 +333,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const body = document.body;
-    body.classList.remove('font-style-original', 'font-style-outfit', 'font-style-playfair', 'font-style-raleway');
+    body.classList.remove('font-style-original', 'font-style-playfair', 'font-style-kiona');
     body.classList.add(`font-style-${settings.fontStyle}`);
     console.log('✅ Font style applied:', `font-style-${settings.fontStyle}`);
   }, [settings.fontStyle]);

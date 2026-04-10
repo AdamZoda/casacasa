@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 declare global {
   interface Window {
@@ -32,6 +32,8 @@ export function TurnstileWidget({ onToken, resetKey = 0, className }: Props) {
   const widgetIdRef = useRef<string | null>(null);
   const onTokenRef = useRef(onToken);
   onTokenRef.current = onToken;
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
@@ -50,6 +52,8 @@ export function TurnstileWidget({ onToken, resetKey = 0, className }: Props) {
         "error-callback": () => onTokenRef.current(null),
         "expired-callback": () => onTokenRef.current(null),
       });
+      setIsLoaded(true);
+      setLoadFailed(false);
     };
 
     const ensureScript = (): Promise<void> => {
@@ -71,6 +75,7 @@ export function TurnstileWidget({ onToken, resetKey = 0, className }: Props) {
         await ensureScript();
       } catch {
         onTokenRef.current(null);
+        setLoadFailed(true);
         return;
       }
       if (cancelled) return;
@@ -84,6 +89,7 @@ export function TurnstileWidget({ onToken, resetKey = 0, className }: Props) {
 
     return () => {
       cancelled = true;
+      setIsLoaded(false);
       if (widgetIdRef.current && window.turnstile) {
         try {
           window.turnstile.remove(widgetIdRef.current);
@@ -98,11 +104,32 @@ export function TurnstileWidget({ onToken, resetKey = 0, className }: Props) {
 
   if (!siteKey) {
     return (
-      <p className={`text-xs text-amber-600/90 ${className ?? ""}`}>
-        Turnstile: set VITE_TURNSTILE_SITE_KEY in your environment.
-      </p>
+      <div className={`${className ?? ""}`}>
+        <div className="min-h-[74px] w-full rounded-lg border border-amber-500/40 bg-amber-500/5 px-4 py-3 text-left">
+          <p className="text-xs font-semibold text-amber-600">Cloudflare Turnstile non configuré</p>
+          <p className="mt-1 text-[11px] text-amber-700/90">Ajoute `VITE_TURNSTILE_SITE_KEY` dans `.env`, puis redémarre `npm run dev`.</p>
+        </div>
+      </div>
     );
   }
 
-  return <div ref={containerRef} className={className} />;
+  return (
+    <div className={`${className ?? ""} w-full`}>
+      {!isLoaded && (
+        <div className={`mb-2 min-h-[74px] w-full rounded-lg border px-4 py-3 text-left ${
+          loadFailed ? "border-red-500/40 bg-red-500/5" : "border-border-primary/50 bg-text-primary/[0.03]"
+        }`}>
+          <p className={`text-xs font-semibold ${loadFailed ? "text-red-500" : "text-text-primary/60"}`}>
+            {loadFailed ? "Impossible de charger le CAPTCHA" : "Chargement du CAPTCHA Cloudflare..."}
+          </p>
+          <p className={`mt-1 text-[11px] ${loadFailed ? "text-red-500/90" : "text-text-primary/45"}`}>
+            {loadFailed
+              ? "Vérifie le domaine autorisé (localhost), tes bloqueurs de pub, puis recharge la page."
+              : "Si ce message reste bloqué, recharge la page ou désactive le bloqueur de scripts."}
+          </p>
+        </div>
+      )}
+      <div ref={containerRef} className="min-h-[65px]" />
+    </div>
+  );
 }

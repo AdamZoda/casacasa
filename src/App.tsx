@@ -16,6 +16,7 @@ const Cart = lazy(() => import("./pages/Cart").then((m) => ({ default: m.Cart })
 const CheckoutFlow = lazy(() => import("./pages/CheckoutFlow").then((m) => ({ default: m.CheckoutFlow })));
 const Journal = lazy(() => import("./pages/Journal").then((m) => ({ default: m.Journal })));
 const JournalPost = lazy(() => import("./pages/JournalPost").then((m) => ({ default: m.JournalPost })));
+const AboutPage = lazy(() => import("./pages/AboutPage").then((m) => ({ default: m.AboutPage })));
 const ProfilePage = lazy(() => import("./pages/ProfilePage").then((m) => ({ default: m.ProfilePage })));
 const AuthPage = lazy(() => import("./pages/AuthPage").then((m) => ({ default: m.AuthPage })));
 
@@ -77,6 +78,7 @@ export default function App() {
                   <Route path="checkout" element={<CheckoutFlow />} />
                   <Route path="journal" element={<Journal />} />
                   <Route path="journal/:id" element={<JournalPost />} />
+                  <Route path="about" element={<AboutPage />} />
                 </Route>
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="auth" element={<AuthPage />} />

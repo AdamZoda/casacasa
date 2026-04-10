@@ -6,7 +6,8 @@ export const translations = {
       collection: "Stores",
       services: "Services",
       journal: "Journal",
-      contact: "Contact"
+      contact: "Contact",
+      about: "About Us"
     },
     user: {
       account: "Mon Compte",
@@ -85,7 +86,8 @@ export const translations = {
       collection: "Stores",
       services: "Services",
       journal: "Journal",
-      contact: "Contact"
+      contact: "Contact",
+      about: "About Us"
     },
     user: {
       account: "My Account",
