@@ -1,11 +1,10 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Shield, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { TurnstileWidget } from "../components/TurnstileWidget";
 
 export function AuthPage() {
   const { signIn, signUp } = useAuth();
@@ -26,82 +25,9 @@ export function AuthPage() {
     confirmPassword: '',
   });
 
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
-  const onTurnstileToken = useCallback((token: string | null) => {
-    setTurnstileToken(token);
-  }, []);
-
-  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
-  const turnstileEnabled = Boolean(turnstileSiteKey) &&
-    String(import.meta.env.VITE_TURNSTILE_ENABLED ?? "true").toLowerCase() !== "false";
-  const hasTurnstileSiteKey = Boolean(turnstileSiteKey);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     setError(null);
-  };
-
-  const verifyTurnstile = async (): Promise<boolean> => {
-    if (!turnstileEnabled) return true;
-    if (!hasTurnstileSiteKey) {
-      setError(
-        language === 'fr'
-          ? 'La vérification de sécurité n’est pas configurée (clé site manquante).'
-          : 'Security verification is not configured (missing site key).'
-      );
-      return false;
-    }
-    if (!turnstileToken) {
-      setError(
-        language === 'fr'
-          ? 'Complétez la vérification de sécurité ci-dessous.'
-          : 'Please complete the security verification below.'
-      );
-      return false;
-    }
-    let res: Response;
-    try {
-      res = await fetch('/api/verify-turnstile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: turnstileToken }),
-      });
-    } catch {
-      setError(
-        language === 'fr'
-          ? 'Impossible de joindre le serveur de vérification.'
-          : 'Could not reach the verification server.'
-      );
-      setTurnstileResetKey((k) => k + 1);
-      return false;
-    }
-    if (!res.ok) {
-      const data = (await res.json().catch(() => null)) as { error?: string; errorCodes?: string[] } | null;
-      const code = data?.error;
-      const hasNetworkError = (data?.errorCodes ?? []).includes("network-error");
-      const isServerError = res.status >= 500 || code === "internal_error" || code === "server_misconfigured";
-      if (import.meta.env.DEV && isServerError) {
-        // Keep local development unblocked when Turnstile server route is unavailable.
-        return true;
-      }
-      setError(
-        language === 'fr'
-          ? code === 'server_misconfigured'
-            ? 'Erreur serveur : secret Turnstile manquant (Vercel / .env).'
-            : hasNetworkError
-              ? 'Vérification Cloudflare indisponible (réseau / bloqueur). Désactive le bloqueur et réessaie.'
-            : 'Vérification de sécurité refusée. Réessayez.'
-          : code === 'server_misconfigured'
-            ? 'Server error: Turnstile secret missing (set TURNSTILE_SECRET_KEY on Vercel).'
-            : hasNetworkError
-              ? 'Cloudflare verification is unavailable (network/adblock). Disable blockers and try again.'
-            : 'Security verification failed. Please try again.'
-      );
-      setTurnstileResetKey((k) => k + 1);
-      return false;
-    }
-    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,12 +35,6 @@ export function AuthPage() {
     setError(null);
     setSuccess(null);
     setLoading(true);
-
-    const turnstileOk = await verifyTurnstile();
-    if (!turnstileOk) {
-      setLoading(false);
-      return;
-    }
 
     if (mode === 'signup') {
       if (formData.password !== formData.confirmPassword) {
@@ -151,7 +71,6 @@ export function AuthPage() {
     setMode(prev => prev === 'login' ? 'signup' : 'login');
     setError(null);
     setSuccess(null);
-    setTurnstileResetKey((k) => k + 1);
   };
 
   return (
@@ -326,19 +245,6 @@ export function AuthPage() {
                       className="w-full rounded-none border-b border-border-primary bg-transparent py-3 pl-8 pr-0 text-base text-text-primary placeholder:text-text-primary/20 transition-colors focus:border-brand-gold focus:outline-none"
                     />
                   </div>
-                </div>
-              )}
-
-              {turnstileEnabled && (
-                <div className="flex flex-col items-center gap-2 pt-2">
-                  <TurnstileWidget
-                    resetKey={turnstileResetKey}
-                    onToken={onTurnstileToken}
-                    className="min-h-[65px]"
-                  />
-                  <p className="text-[10px] text-text-primary/35 text-center uppercase tracking-[0.2em]">
-                    {language === 'fr' ? 'Protection anti-robot (Cloudflare)' : 'Bot protection (Cloudflare)'}
-                  </p>
                 </div>
               )}
 

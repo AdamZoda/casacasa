@@ -5,7 +5,6 @@ import type { IncomingMessage } from 'node:http';
 import path from 'path';
 import type { Plugin } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
-import { verifyTurnstileToken } from './src/lib/turnstile-verify';
 
 function readRequestBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -47,56 +46,12 @@ function stripSupabaseSourceMapUrl(): Plugin {
   };
 }
 
-function turnstileVerifyDevApi(secret: string | undefined): Plugin {
-  return {
-    name: 'turnstile-verify-dev-api',
-    configureServer(server) {
-      server.middlewares.use(async (req, res, next) => {
-        const url = req.url?.split('?')[0];
-        if (url !== '/api/verify-turnstile' || req.method !== 'POST') {
-          next();
-          return;
-        }
-        if (!secret) {
-          // Local dev fallback: do not block auth flows if secret is absent.
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ ok: true, devBypass: true }));
-          return;
-        }
-        try {
-          const raw = await readRequestBody(req);
-          const body = JSON.parse(raw || '{}') as { token?: string };
-          const token = typeof body.token === 'string' ? body.token : '';
-          const { success, errorCodes } = await verifyTurnstileToken(token, secret);
-          res.setHeader('Content-Type', 'application/json');
-          if (!success) {
-            res.statusCode = 400;
-            res.end(JSON.stringify({ ok: false, error: 'verification_failed', errorCodes }));
-            return;
-          }
-          res.statusCode = 200;
-          res.end(JSON.stringify({ ok: true }));
-        } catch {
-          res.statusCode = 500;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ ok: false, error: 'internal_error' }));
-        }
-      });
-    },
-  };
-}
-
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  const turnstileSecret = env.TURNSTILE_SECRET_KEY;
-
   return {
   plugins: [
     stripSupabaseSourceMapUrl(),
     react(),
     tailwindcss(),
-    turnstileVerifyDevApi(turnstileSecret),
   ],
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', '@supabase/supabase-js'],
