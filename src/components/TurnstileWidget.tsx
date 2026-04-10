@@ -34,6 +34,7 @@ export function TurnstileWidget({ onToken, resetKey = 0, className }: Props) {
   onTokenRef.current = onToken;
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [loadTimeoutReached, setLoadTimeoutReached] = useState(false);
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
@@ -42,9 +43,18 @@ export function TurnstileWidget({ onToken, resetKey = 0, className }: Props) {
 
     const el = containerRef.current;
     let cancelled = false;
+    let timeoutId: number | null = null;
+
+    const clearTimeoutId = () => {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
 
     const mount = () => {
       if (cancelled || !window.turnstile || !el) return;
+      clearTimeoutId();
       widgetIdRef.current = window.turnstile.render(el, {
         sitekey: siteKey,
         theme: "auto",
@@ -54,17 +64,26 @@ export function TurnstileWidget({ onToken, resetKey = 0, className }: Props) {
       });
       setIsLoaded(true);
       setLoadFailed(false);
+      setLoadTimeoutReached(false);
     };
 
     const ensureScript = (): Promise<void> => {
-      if (document.querySelector(`script[src="${SCRIPT_SRC}"]`)) {
-        return Promise.resolve();
+      const existingScript = document.querySelector(`script[src="${SCRIPT_SRC}"]`) as HTMLScriptElement | null;
+      if (existingScript) {
+        return existingScript.hasAttribute('data-loaded') ? Promise.resolve() : new Promise((resolve, reject) => {
+          existingScript.addEventListener('load', () => resolve(), { once: true });
+          existingScript.addEventListener('error', () => reject(new Error('turnstile_script')), { once: true });
+        });
       }
       return new Promise((resolve, reject) => {
         const s = document.createElement("script");
         s.src = SCRIPT_SRC;
         s.async = true;
-        s.onload = () => resolve();
+        s.crossOrigin = "anonymous";
+        s.onload = () => {
+          s.setAttribute('data-loaded', 'true');
+          resolve();
+        };
         s.onerror = () => reject(new Error("turnstile_script"));
         document.head.appendChild(s);
       });
@@ -79,16 +98,28 @@ export function TurnstileWidget({ onToken, resetKey = 0, className }: Props) {
         return;
       }
       if (cancelled) return;
+      timeoutId = window.setTimeout(() => {
+        if (!cancelled && !window.turnstile) {
+          setLoadFailed(true);
+          setLoadTimeoutReached(true);
+          onTokenRef.current(null);
+        }
+      }, 10000);
+
       const poll = () => {
         if (cancelled) return;
-        if (window.turnstile) mount();
-        else requestAnimationFrame(poll);
+        if (window.turnstile) {
+          mount();
+        } else {
+          requestAnimationFrame(poll);
+        }
       };
       poll();
     })();
 
     return () => {
       cancelled = true;
+      clearTimeoutId();
       setIsLoaded(false);
       if (widgetIdRef.current && window.turnstile) {
         try {
@@ -124,7 +155,9 @@ export function TurnstileWidget({ onToken, resetKey = 0, className }: Props) {
           </p>
           <p className={`mt-1 text-[11px] ${loadFailed ? "text-red-500/90" : "text-text-primary/45"}`}>
             {loadFailed
-              ? "Vérifie le domaine autorisé (localhost), tes bloqueurs de pub, puis recharge la page."
+              ? loadTimeoutReached
+                ? "Le widget Cloudflare ne s’ouvre pas : vérifie la configuration du domaine et désactive les protections Cloudflare/iframe."
+                : "Vérifie le domaine autorisé (localhost), tes bloqueurs de pub, puis recharge la page."
               : "Si ce message reste bloqué, recharge la page ou désactive le bloqueur de scripts."}
           </p>
         </div>
