@@ -384,3 +384,90 @@
     touch-action: pan-x pan-y;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Leaflet Map Styles */
+/* -------------------------------------------------------------------------- */
+@layer components {
+  .leaflet-control-zoom {
+    @apply rounded-lg overflow-hidden border border-border-primary shadow-lg;
+  }
+
+  .leaflet-control-zoom-in,
+  .leaflet-control-zoom-out {
+    @apply bg-bg-primary text-text-primary hover:bg-bg-primary/90 transition-all duration-fast;
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    line-height: 2.5rem !important;
+    font-size: 1.2rem !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .leaflet-control-zoom-in:hover,
+  .leaflet-control-zoom-out:hover {
+    @apply bg-brand-gold/10 text-brand-gold;
+  }
+
+  .leaflet-control-attribution {
+    @apply bg-bg-primary/80 backdrop-blur text-[10px] !important;
+    border: none !important;
+  }
+
+  .leaflet-popup-content-wrapper {
+    @apply rounded-lg border border-border-primary bg-bg-primary shadow-lg !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .leaflet-popup-content {
+    @apply text-text-primary text-sm !important;
+    margin: 0 !important;
+  }
+
+  .leaflet-popup-content strong {
+    @apply text-brand-gold font-semibold !important;
+  }
+
+  .leaflet-popup-tip {
+    @apply bg-bg-primary !important;
+    border: 1px solid var(--border-primary) !important;
+  }
+
+  .leaflet-container {
+    background: var(--bg-primary) !important;
+  }
+
+  .leaflet-tile {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+  }
+
+  .custom-marker {
+    @apply filter drop-shadow-lg;
+  }
+
+  .leaflet-pane {
+    z-index: 1 !important;
+  }
+
+  .leaflet-overlay-pane {
+    z-index: 2 !important;
+  }
+
+  .leaflet-shadow-pane {
+    z-index: 3 !important;
+  }
+
+  .leaflet-marker-pane {
+    z-index: 4 !important;
+  }
+
+  .leaflet-tooltip {
+    @apply rounded-lg border border-brand-gold/30 bg-brand-gold/10 text-brand-gold text-xs !important;
+    border-radius: 0.5rem !important;
+    backdrop-filter: blur(10px) !important;
+  }
+}
+

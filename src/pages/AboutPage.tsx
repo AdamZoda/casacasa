@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { useAppContext } from "../context/AppContext";
 import { Instagram, Facebook, Linkedin, Youtube, Mail, MapPin, Phone } from "lucide-react";
+import { MapSection } from "../components/MapSection";
 
 type SocialItem = {
   key: "instagram" | "facebook" | "linkedin" | "youtube";
@@ -174,7 +175,8 @@ export function AboutPage() {
             </div>
           </section>
         )}
-      </div>
+        {/* Map Section */}
+        <MapSection />      </div>
     </div>
   );
 }

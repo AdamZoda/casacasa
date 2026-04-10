@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   ExternalLink,
+  MapPin,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
@@ -24,6 +25,7 @@ const navItems = [
   { path: "/admin/experience-client", label: "Expérience client", icon: Heart, end: false },
   { path: "/admin/content", label: "Pays & offres", icon: FileText, end: false },
   { path: "/admin/signature", label: "Signature & éditorial", icon: PenTool, end: false },
+  { path: "/admin/points-of-interest", label: "Carte & Localités", icon: MapPin, end: false },
   { path: "/admin/newsletter", label: "Newsletter", icon: Mail, end: false },
   { path: "/admin/users", label: "Utilisateurs", icon: Users, end: false },
   { path: "/admin/settings", label: "Configuration", icon: Settings, end: false },
