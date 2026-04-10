@@ -58,9 +58,10 @@ function turnstileVerifyDevApi(secret: string | undefined): Plugin {
           return;
         }
         if (!secret) {
-          res.statusCode = 500;
+          // Local dev fallback: do not block auth flows if secret is absent.
+          res.statusCode = 200;
           res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ ok: false, error: 'server_misconfigured' }));
+          res.end(JSON.stringify({ ok: true, devBypass: true }));
           return;
         }
         try {

@@ -76,6 +76,11 @@ export function AuthPage() {
       const data = (await res.json().catch(() => null)) as { error?: string; errorCodes?: string[] } | null;
       const code = data?.error;
       const hasNetworkError = (data?.errorCodes ?? []).includes("network-error");
+      const isServerError = res.status >= 500 || code === "internal_error" || code === "server_misconfigured";
+      if (import.meta.env.DEV && isServerError) {
+        // Keep local development unblocked when Turnstile server route is unavailable.
+        return true;
+      }
       setError(
         language === 'fr'
           ? code === 'server_misconfigured'
