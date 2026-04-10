@@ -20,12 +20,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const { success, errorCodes } = await verifyTurnstileToken(token ?? "", secret);
-
-  if (!success) {
-    res.status(400).json({ ok: false, error: "verification_failed", errorCodes });
-    return;
+  try {
+    const { success, errorCodes } = await verifyTurnstileToken(token ?? "", secret);
+    if (!success) {
+      res.status(400).json({ ok: false, error: "verification_failed", errorCodes });
+      return;
+    }
+    res.status(200).json({ ok: true });
+  } catch {
+    res.status(500).json({ ok: false, error: "internal_error" });
   }
-
-  res.status(200).json({ ok: true });
 }

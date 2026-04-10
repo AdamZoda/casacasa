@@ -91,7 +91,7 @@ export function Layout() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Mobile Top Bar */}
-      <div className={`md:hidden fixed top-0 left-0 right-0 z-40 px-4 sm:px-6 h-[3.75rem] sm:h-[3.5rem] transition-all duration-300 ease-in-out ${mobileHeaderClasses}`}>
+      <div className={`md:hidden fixed top-0 left-0 right-0 z-40 px-3 sm:px-6 h-[3.75rem] sm:h-[3.5rem] transition-all duration-300 ease-in-out ${mobileHeaderClasses}`}>
         <div className="max-w-[1400px] mx-auto flex justify-between items-center h-full gap-4">
           <button
             type="button"
@@ -300,17 +300,17 @@ export function Layout() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -300 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden fixed inset-y-0 left-0 z-30 w-72 overflow-y-auto overscroll-contain bg-bg-primary pt-[3.75rem] sm:pt-[3.5rem] border-r border-border-primary shadow-xl"
+            className="md:hidden fixed inset-y-0 left-0 z-30 w-[88vw] max-w-80 overflow-y-auto overscroll-contain bg-bg-primary pt-[3.75rem] sm:pt-[3.5rem] border-r border-border-primary shadow-xl"
           >
             <nav className="flex flex-col h-full">
               {/* Navigation Links */}
-              <div className="flex-grow px-4 py-6 sm:px-6">
+              <div className="flex-grow px-3 py-5 sm:px-6">
                 <div className="space-y-1 mb-8">
                   {LAYOUT_NAV_LINKS.filter((item) => !isPathHidden(item.path, hp)).map((item) => (
                     <Link
                       key={item.to}
                       to={item.to}
-                      className="flex items-center gap-3 rounded-lg px-4 py-3 font-serif text-lg tracking-tight transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold active:bg-text-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold touch-manipulation"
+                      className="flex items-center gap-3 rounded-lg px-4 py-3.5 font-serif text-[1.05rem] tracking-tight transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold active:bg-text-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold touch-manipulation"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       {t.nav[item.labelKey]}

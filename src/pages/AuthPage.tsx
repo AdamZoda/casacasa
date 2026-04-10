@@ -73,15 +73,20 @@ export function AuthPage() {
       return false;
     }
     if (!res.ok) {
-      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      const data = (await res.json().catch(() => null)) as { error?: string; errorCodes?: string[] } | null;
       const code = data?.error;
+      const hasNetworkError = (data?.errorCodes ?? []).includes("network-error");
       setError(
         language === 'fr'
           ? code === 'server_misconfigured'
             ? 'Erreur serveur : secret Turnstile manquant (Vercel / .env).'
+            : hasNetworkError
+              ? 'Vérification Cloudflare indisponible (réseau / bloqueur). Désactive le bloqueur et réessaie.'
             : 'Vérification de sécurité refusée. Réessayez.'
           : code === 'server_misconfigured'
             ? 'Server error: Turnstile secret missing (set TURNSTILE_SECRET_KEY on Vercel).'
+            : hasNetworkError
+              ? 'Cloudflare verification is unavailable (network/adblock). Disable blockers and try again.'
             : 'Security verification failed. Please try again.'
       );
       setTurnstileResetKey((k) => k + 1);

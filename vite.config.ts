@@ -67,11 +67,11 @@ function turnstileVerifyDevApi(secret: string | undefined): Plugin {
           const raw = await readRequestBody(req);
           const body = JSON.parse(raw || '{}') as { token?: string };
           const token = typeof body.token === 'string' ? body.token : '';
-          const { success } = await verifyTurnstileToken(token, secret);
+          const { success, errorCodes } = await verifyTurnstileToken(token, secret);
           res.setHeader('Content-Type', 'application/json');
           if (!success) {
             res.statusCode = 400;
-            res.end(JSON.stringify({ ok: false, error: 'verification_failed' }));
+            res.end(JSON.stringify({ ok: false, error: 'verification_failed', errorCodes }));
             return;
           }
           res.statusCode = 200;

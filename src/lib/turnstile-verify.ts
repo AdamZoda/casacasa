@@ -11,19 +11,24 @@ export async function verifyTurnstileToken(
   body.set("secret", secret);
   body.set("response", token);
 
-  const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
+  try {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
 
-  const data = (await res.json()) as {
-    success?: boolean;
-    "error-codes"?: string[];
-  };
+    const data = (await res.json().catch(() => ({}))) as {
+      success?: boolean;
+      "error-codes"?: string[];
+    };
 
-  return {
-    success: data.success === true,
-    errorCodes: data["error-codes"],
-  };
+    return {
+      success: data.success === true,
+      errorCodes: data["error-codes"],
+    };
+  } catch {
+    // Network/DNS/adblock failures should not explode into a 500.
+    return { success: false, errorCodes: ["network-error"] };
+  }
 }

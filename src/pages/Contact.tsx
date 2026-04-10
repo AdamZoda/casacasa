@@ -124,14 +124,14 @@ export function Contact() {
   ];
 
   return (
-    <div className="relative pt-40 pb-32 mb-20 px-6 max-w-[1400px] mx-auto w-full min-h-screen overflow-hidden">
+    <div className="relative pt-28 md:pt-40 pb-20 md:pb-32 mb-10 md:mb-20 px-4 sm:px-6 max-w-[1400px] mx-auto w-full min-h-screen overflow-hidden">
       {/* Decorative Background Glows */}
       <div className="absolute top-1/4 -left-24 w-96 h-96 bg-brand-gold/5 rounded-full blur-[120px] -z-10 animate-pulse" />
       <div className="absolute bottom-1/4 -right-24 w-96 h-96 bg-brand-gold/10 rounded-full blur-[150px] -z-10" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 relative z-10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 relative z-10">
         {/* Left: Private Channels */}
-        <div className="space-y-16">
+        <div className="space-y-10 md:space-y-16">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -143,15 +143,15 @@ export function Contact() {
               transition={{ duration: 1.5, delay: 0.5, ease: "circOut" }}
               className="h-px w-32 bg-brand-gold mb-12 origin-left" 
             />
-            <h1 className="text-6xl md:text-8xl font-serif mb-10 leading-[0.9] tracking-tighter">
+            <h1 className="text-4xl sm:text-5xl md:text-8xl font-serif mb-6 md:mb-10 leading-[0.95] md:leading-[0.9] tracking-tight md:tracking-tighter">
               L'Art du <br /><span className="text-brand-gold">Service Privé</span>
             </h1>
-            <p className="text-text-primary/50 font-light text-xl leading-relaxed max-w-sm italic">
+            <p className="text-text-primary/50 font-light text-base md:text-xl leading-relaxed max-w-sm italic">
               "L'excellence est notre langue, la discrétion est notre signature."
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 gap-8 max-w-md">
+          <div className="grid grid-cols-1 gap-4 md:gap-8 max-w-md">
             {contactOptions.map((opt, i) => (
               <motion.a
                 key={`${opt.label}-${opt.link}-${i}`}
@@ -162,20 +162,20 @@ export function Contact() {
                 animate={{ opacity: 1, scale: 1 }}
                 whileHover={{ x: 15, scale: 1.02 }}
                 transition={{ delay: 0.4 + i * 0.15, duration: 0.6 }}
-                className={`group flex items-center gap-8 p-8 border backdrop-blur-sm transition-shadow duration-700 ${
+                className={`group flex items-center gap-4 md:gap-8 p-4 md:p-8 border backdrop-blur-sm transition-shadow duration-700 ${
                   opt.gold 
                     ? 'bg-brand-gold border-brand-gold text-brand-black shadow-2xl shadow-brand-gold/20' 
                     : 'border-border-primary hover:border-brand-gold/40 bg-text-primary/[0.03] hover:shadow-xl'
                 }`}
               >
-                <div className={`p-5 rounded-full transition-transform duration-500 group-hover:rotate-[360deg] ${opt.gold ? 'bg-brand-black/10' : 'bg-brand-gold/5 text-brand-gold'}`}>
-                  <opt.icon size={28} strokeWidth={1} />
+                <div className={`p-3 md:p-5 rounded-full transition-transform duration-500 group-hover:rotate-[360deg] ${opt.gold ? 'bg-brand-black/10' : 'bg-brand-gold/5 text-brand-gold'}`}>
+                  <opt.icon size={22} strokeWidth={1} />
                 </div>
                 <div>
-                  <p className={`text-[11px] uppercase font-bold tracking-[0.3em] mb-2 ${opt.gold ? 'text-brand-black/50' : 'text-text-primary/30'}`}>
+                  <p className={`text-[10px] uppercase font-bold tracking-[0.2em] md:tracking-[0.3em] mb-1.5 md:mb-2 ${opt.gold ? 'text-brand-black/50' : 'text-text-primary/30'}`}>
                     {opt.label}
                   </p>
-                  <p className="text-xl font-medium tracking-wide">{opt.value}</p>
+                  <p className="text-sm md:text-xl font-medium tracking-wide break-all sm:break-normal">{opt.value}</p>
                 </div>
                 <ExternalLink size={20} className={`ml-auto opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0 ${opt.gold ? 'text-brand-black' : 'text-brand-gold'}`} />
               </motion.a>
@@ -200,7 +200,7 @@ export function Contact() {
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-bg-primary/80 backdrop-blur-2xl border border-border-primary shadow-[0_60px_150px_-40px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden min-h-[750px] rounded-sm relative"
+          className="bg-bg-primary/80 backdrop-blur-2xl border border-border-primary shadow-[0_60px_150px_-40px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden min-h-[620px] md:min-h-[750px] rounded-sm relative"
         >
           {/* Subtle line decoration */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-gold/30 to-transparent" />
@@ -213,7 +213,7 @@ export function Contact() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, filter: "blur(10px)" }}
                 transition={{ duration: 0.8 }}
-                className="flex flex-col gap-12 p-16 md:p-24 items-center justify-center h-full text-center"
+                className="flex flex-col gap-8 md:gap-12 p-6 sm:p-10 md:p-24 items-center justify-center h-full text-center"
               >
                 <div className="relative">
                   <div className="w-32 h-32 rounded-full bg-brand-gold/5 flex items-center justify-center border border-brand-gold/10">
@@ -227,7 +227,7 @@ export function Contact() {
                 </div>
 
                 <div>
-                  <h3 className="text-4xl font-serif mb-6 tracking-tight">Accès Privilège</h3>
+                  <h3 className="text-3xl md:text-4xl font-serif mb-4 md:mb-6 tracking-tight">Accès Privilège</h3>
                   <div className="h-px w-10 bg-brand-gold mx-auto mb-6" />
                   <p className="text-text-primary/40 font-light text-sm tracking-widest leading-relaxed max-w-xs mx-auto uppercase">
                     Connectez-vous pour créer un ticket et échanger avec le concierge.
@@ -250,7 +250,7 @@ export function Contact() {
                     </Link>
                   </div>
                 ) : (
-                  <form onSubmit={(e) => void handleStartTicket(e)} className="w-full max-w-md space-y-10">
+                  <form onSubmit={(e) => void handleStartTicket(e)} className="w-full max-w-md space-y-6 md:space-y-10">
                     <div className="space-y-4 text-left border border-border-primary/40 bg-text-primary/[0.03] px-6 py-5 rounded-sm">
                       <p className="text-[10px] uppercase tracking-[0.35em] text-text-primary/35 font-bold">Compte</p>
                       <p className="text-sm text-text-primary/80 truncate" title={email}>
@@ -271,7 +271,7 @@ export function Contact() {
                         required
                         value={subject}
                         onChange={(e) => setSubject(e.target.value)}
-                        className="w-full bg-transparent border-b border-border-primary py-5 text-text-primary focus:outline-none focus:border-brand-gold transition-all duration-500 font-light text-xl tracking-widest placeholder:text-text-primary/10"
+                        className="w-full bg-transparent border-b border-border-primary py-4 md:py-5 text-text-primary focus:outline-none focus:border-brand-gold transition-all duration-500 font-light text-base md:text-xl tracking-[0.2em] md:tracking-widest placeholder:text-text-primary/20"
                       />
                       <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-brand-gold group-focus-within:w-full transition-all duration-1000" />
                     </div>
@@ -279,7 +279,7 @@ export function Contact() {
                       type="submit"
                       whileHover={{ scale: 1.02, letterSpacing: "0.6em" }}
                       whileTap={{ scale: 0.98 }}
-                      className="w-full py-8 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-1000 uppercase tracking-[0.5em] text-[11px] font-black mt-8 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)]"
+                      className="w-full py-4 md:py-8 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-1000 uppercase tracking-[0.25em] md:tracking-[0.5em] text-[11px] font-black mt-6 md:mt-8 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)]"
                     >
                       Solliciter l&apos;Accès
                     </motion.button>
@@ -296,26 +296,26 @@ export function Contact() {
                 className="flex flex-col h-full bg-[#faf9f8] dark:bg-[#090909]"
               >
                 {/* Chat Header */}
-                <div className="px-10 py-8 bg-text-primary text-bg-primary flex justify-between items-center z-10 shadow-3xl">
-                  <div className="flex items-center gap-6">
+                <div className="px-4 sm:px-6 md:px-10 py-4 md:py-8 bg-text-primary text-bg-primary flex justify-between items-center z-10 shadow-3xl gap-3">
+                  <div className="flex items-center gap-3 md:gap-6 min-w-0">
                     <div className="relative">
-                      <div className="w-14 h-14 rounded-full bg-brand-gold/10 flex items-center justify-center border border-brand-gold/20">
-                        <User size={24} className="text-brand-gold" />
+                      <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-brand-gold/10 flex items-center justify-center border border-brand-gold/20">
+                        <User size={20} className="text-brand-gold" />
                       </div>
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-4 border-text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-serif text-2xl leading-none mb-2">Salon Privé</h3>
-                      <p className="text-[9px] uppercase tracking-[0.4em] font-black text-brand-gold">Concierge en Ligne • Sécurisé</p>
+                      <h3 className="font-serif text-lg md:text-2xl leading-none mb-1 md:mb-2">Salon Privé</h3>
+                      <p className="text-[8px] md:text-[9px] uppercase tracking-[0.22em] md:tracking-[0.4em] font-black text-brand-gold">Concierge en Ligne • Sécurisé</p>
                     </div>
                   </div>
-                  <button onClick={() => setStep('auth')} className="text-[10px] uppercase tracking-[0.3em] font-bold opacity-30 hover:opacity-100 transition-all hover:text-brand-gold">
+                  <button onClick={() => setStep('auth')} className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-bold opacity-40 hover:opacity-100 transition-all hover:text-brand-gold shrink-0">
                     Quitter le Salon
                   </button>
                 </div>
 
                 {/* Messages */}
-                <div className="flex-grow overflow-y-auto p-12 flex flex-col gap-10 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/silk-weave.png')] opacity-95">
+                <div className="flex-grow overflow-y-auto p-4 sm:p-6 md:p-12 flex flex-col gap-5 md:gap-10 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/silk-weave.png')] opacity-95">
                   {messages.length === 0 && (
                     <div className="flex-grow flex flex-col items-center justify-center text-center px-12 opacity-20">
                       <ShieldCheck size={80} strokeWidth={0.5} className="mb-8" />
@@ -332,12 +332,12 @@ export function Contact() {
                         key={m.id} 
                         className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className={`p-8 max-w-[75%] shadow-2xl relative ${
+                        <div className={`p-4 md:p-8 max-w-[88%] md:max-w-[75%] shadow-2xl relative ${
                           isUser 
                             ? 'bg-text-primary text-bg-primary rounded-3xl rounded-tr-none' 
                             : 'bg-white dark:bg-[#111] border border-border-primary text-text-primary rounded-3xl rounded-tl-none font-light'
                         }`}>
-                          <p className="text-base leading-relaxed mb-4">{m.content}</p>
+                          <p className="text-sm md:text-base leading-relaxed mb-3 md:mb-4">{m.content}</p>
                           <div className={`flex items-center gap-3 text-[9px] uppercase tracking-tighter opacity-30 ${isUser ? 'justify-end' : 'justify-start'}`}>
                             {isUser && <CheckCircle2 size={10} />}
                             {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -350,20 +350,21 @@ export function Contact() {
                 </div>
 
                 {/* Input Container */}
-                <div className="p-10 bg-bg-primary border-t border-border-primary">
-                  <form onSubmit={handleSendMessage} className="flex gap-4 items-center bg-text-primary/[0.04] p-2 rounded-full border border-border-primary focus-within:border-brand-gold/40 focus-within:shadow-[0_0_50px_rgba(212,175,55,0.1)] transition-all">
+                <div className="p-4 sm:p-6 md:p-10 bg-bg-primary border-t border-border-primary">
+                  <form onSubmit={handleSendMessage} className="flex gap-2 md:gap-4 items-center bg-text-primary/[0.04] p-1.5 md:p-2 rounded-full border border-border-primary focus-within:border-brand-gold/40 focus-within:shadow-[0_0_50px_rgba(212,175,55,0.1)] transition-all">
                     <input 
                       type="text" placeholder="Formulez votre demande ici..." value={newMessage}
                       onChange={e => setNewMessage(e.target.value)}
-                      className="flex-grow bg-transparent px-10 py-6 text-base focus:outline-none placeholder:text-text-primary/10 italic font-light tracking-wide uppercase"
+                      className="flex-grow bg-transparent px-4 md:px-10 py-3 md:py-6 text-sm md:text-base focus:outline-none placeholder:text-text-primary/20 italic font-light tracking-wide"
                     />
                     <motion.button 
                       type="submit" disabled={!newMessage.trim()} 
                       whileHover={{ scale: 1.1, rotate: 10 }}
                       whileTap={{ scale: 0.9 }}
-                      className="bg-text-primary text-bg-primary w-16 h-16 rounded-full flex items-center justify-center hover:bg-brand-gold hover:text-brand-black transition-all duration-500 shadow-2xl disabled:opacity-10"
+                      className="bg-text-primary text-bg-primary w-11 h-11 md:w-16 md:h-16 rounded-full flex items-center justify-center hover:bg-brand-gold hover:text-brand-black transition-all duration-500 shadow-2xl disabled:opacity-10"
                     >
-                      <Send size={24} />
+                      <Send size={18} className="md:hidden" />
+                      <Send size={24} className="hidden md:block" />
                     </motion.button>
                   </form>
                 </div>
