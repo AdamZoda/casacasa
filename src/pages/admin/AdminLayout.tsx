@@ -128,7 +128,7 @@ export function AdminLayout() {
   return (
     <div className="min-h-[100dvh] min-h-screen bg-bg-primary text-text-primary flex flex-col md:flex-row font-sans">
       {/* Barre mobile — safe area encoche / status bar */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between gap-2 sm:gap-3 border-b border-border-primary bg-bg-primary/95 backdrop-blur-md pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between gap-2 sm:gap-3 border-b border-border-primary bg-bg-primary/95 backdrop-blur-md pt-[max(0.5rem,env(safe-area-inset-top))] pb-2.5 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
@@ -139,7 +139,7 @@ export function AdminLayout() {
           <Menu size={22} strokeWidth={1.5} aria-hidden />
           <span className="sr-only">Ouvrir le menu</span>
         </button>
-        <span className="min-w-0 truncate text-center text-[11px] sm:text-[12px] font-black uppercase tracking-[0.25em] text-brand-gold">
+        <span className="min-w-0 truncate text-center text-[10px] sm:text-[12px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] text-brand-gold">
           Console
         </span>
         <div className="min-h-12 min-w-12 sm:min-h-11 sm:min-w-11 shrink-0" aria-hidden />
@@ -201,7 +201,7 @@ export function AdminLayout() {
       </aside>
 
       <main
-        className="flex-grow min-w-0 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-8 md:min-h-screen md:px-10 lg:px-12 lg:py-10 pb-[max(1.25rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] bg-[radial-gradient(ellipse_85%_55%_at_50%_-18%,rgba(229,169,58,0.07),transparent)] dark:bg-[radial-gradient(ellipse_80%_45%_at_50%_-12%,rgba(229,169,58,0.09),transparent)]"
+        className="flex-grow min-w-0 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3.5 py-4 sm:px-6 sm:py-8 md:min-h-screen md:px-10 lg:px-12 lg:py-10 pb-[max(1.25rem,env(safe-area-inset-bottom))] pl-[max(0.9rem,env(safe-area-inset-left))] pr-[max(0.9rem,env(safe-area-inset-right))] bg-[radial-gradient(ellipse_85%_55%_at_50%_-18%,rgba(229,169,58,0.07),transparent)] dark:bg-[radial-gradient(ellipse_80%_45%_at_50%_-12%,rgba(229,169,58,0.09),transparent)]"
         id="admin-main"
       >
         <Outlet />

@@ -55,7 +55,7 @@ export function Hero() {
   const youtubeEmbedUrl = isYouTube ? getYouTubeEmbedUrl(bgUrl) : '';
 
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
+    <section className="relative h-[100dvh] min-h-[36rem] w-full flex items-center justify-center overflow-hidden">
       {/* Background Video or Image */}
       <motion.div 
         initial={{ scale: 1.1 }}
@@ -113,12 +113,12 @@ export function Hero() {
       </motion.div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-5xl mx-auto mt-20">
+      <div className="relative z-10 flex flex-col items-center text-center px-4 sm:px-6 max-w-5xl mx-auto mt-16 sm:mt-20">
         <motion.h1 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-          className="text-5xl md:text-7xl lg:text-8xl text-white mb-8 font-serif leading-tight drop-shadow-2xl"
+          className="text-3xl sm:text-4xl md:text-7xl lg:text-8xl text-white mb-5 sm:mb-8 font-serif leading-[1.1] md:leading-tight drop-shadow-2xl"
         >
           {title}
         </motion.h1>
@@ -127,7 +127,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
-          className="text-lg md:text-xl text-white/90 font-light tracking-[0.2em] uppercase mb-16 drop-shadow-md"
+          className="text-[11px] sm:text-sm md:text-xl text-white/90 font-light tracking-[0.18em] sm:tracking-[0.2em] uppercase mb-10 sm:mb-16 drop-shadow-md"
         >
           {subtitle}
         </motion.p>
@@ -139,9 +139,9 @@ export function Hero() {
         >
           <Link
             to="/services"
-            className="group relative inline-flex items-center justify-center px-10 py-5 bg-transparent border border-brand-gold/50 text-brand-gold hover:bg-brand-gold hover:text-brand-black transition-all duration-500 ease-out overflow-hidden"
+            className="group relative inline-flex min-h-12 items-center justify-center px-7 sm:px-10 py-3.5 sm:py-5 bg-transparent border border-brand-gold/50 text-brand-gold hover:bg-brand-gold hover:text-brand-black transition-all duration-500 ease-out overflow-hidden touch-manipulation"
           >
-            <span className="relative z-10 font-light tracking-[0.15em] text-sm uppercase">{cta}</span>
+            <span className="relative z-10 font-light tracking-[0.13em] sm:tracking-[0.15em] text-[11px] sm:text-sm uppercase">{cta}</span>
           </Link>
         </motion.div>
       </div>
@@ -151,7 +151,7 @@ export function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 2 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-10"
+        className="absolute bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 sm:gap-4 z-10"
       >
         <span className="text-white/50 text-[10px] uppercase tracking-[0.3em]"></span>
         <motion.div 
