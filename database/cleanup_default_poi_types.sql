@@ -3,3 +3,4 @@
 
 DELETE FROM public.poi_types 
 WHERE name IN ('Toilettes', 'Parking', 'Restaurant', 'Boutique', 'Autre');
+  

@@ -395,7 +395,7 @@
 
   .leaflet-control-zoom-in,
   .leaflet-control-zoom-out {
-    @apply bg-bg-primary text-text-primary hover:bg-bg-primary/90 transition-all duration-fast;
+    @apply bg-bg-primary text-text-primary hover:bg-bg-primary/90 transition-all duration-150;
     width: 2.5rem !important;
     height: 2.5rem !important;
     line-height: 2.5rem !important;
