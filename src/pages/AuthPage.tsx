@@ -32,6 +32,7 @@ export function AuthPage() {
     setTurnstileToken(token);
   }, []);
 
+  const turnstileEnabled = String(import.meta.env.VITE_TURNSTILE_ENABLED ?? "false").toLowerCase() === "true";
   const hasTurnstileSiteKey = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,6 +41,7 @@ export function AuthPage() {
   };
 
   const verifyTurnstile = async (): Promise<boolean> => {
+    if (!turnstileEnabled) return true;
     if (!hasTurnstileSiteKey) {
       setError(
         language === 'fr'
@@ -325,16 +327,18 @@ export function AuthPage() {
                 </div>
               )}
 
-              <div className="flex flex-col items-center gap-2 pt-2">
-                <TurnstileWidget
-                  resetKey={turnstileResetKey}
-                  onToken={onTurnstileToken}
-                  className="min-h-[65px]"
-                />
-                <p className="text-[10px] text-text-primary/35 text-center uppercase tracking-[0.2em]">
-                  {language === 'fr' ? 'Protection anti-robot (Cloudflare)' : 'Bot protection (Cloudflare)'}
-                </p>
-              </div>
+              {turnstileEnabled && (
+                <div className="flex flex-col items-center gap-2 pt-2">
+                  <TurnstileWidget
+                    resetKey={turnstileResetKey}
+                    onToken={onTurnstileToken}
+                    className="min-h-[65px]"
+                  />
+                  <p className="text-[10px] text-text-primary/35 text-center uppercase tracking-[0.2em]">
+                    {language === 'fr' ? 'Protection anti-robot (Cloudflare)' : 'Bot protection (Cloudflare)'}
+                  </p>
+                </div>
+              )}
 
               {/* Submit Button */}
               <button

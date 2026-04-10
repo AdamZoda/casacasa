@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Quote, Star, Plus, X, LogIn } from "lucide-react";
@@ -18,6 +18,27 @@ export function Testimonials() {
     rating: 5
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const railRef = useRef<HTMLDivElement>(null);
+  const loopedTestimonials = useMemo(
+    () => [...approvedTestimonials, ...approvedTestimonials],
+    [approvedTestimonials]
+  );
+
+  useEffect(() => {
+    const el = railRef.current;
+    if (!el || approvedTestimonials.length <= 1) return;
+    const id = window.setInterval(() => {
+      if (isPaused || isInteracting) return;
+      el.scrollLeft += 0.7;
+      const loopPoint = el.scrollWidth / 2;
+      if (el.scrollLeft >= loopPoint) {
+        el.scrollLeft -= loopPoint;
+      }
+    }, 16);
+    return () => window.clearInterval(id);
+  }, [approvedTestimonials.length, isPaused, isInteracting]);
 
   const openCommentModal = () => {
     if (!user) return;
@@ -48,8 +69,8 @@ export function Testimonials() {
   };
 
   return (
-    <section className="py-32 bg-brand-black text-white overflow-hidden relative">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="py-16 sm:py-24 md:py-32 bg-brand-black text-white overflow-hidden relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-16 relative">
           <motion.p 
             initial={{ opacity: 0, y: 10 }}
@@ -64,7 +85,7 @@ export function Testimonials() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-4xl md:text-6xl font-serif mb-12"
+            className="text-3xl sm:text-4xl md:text-6xl font-serif mb-8 sm:mb-12"
           >
             L'Expérience Casa Privilege
           </motion.h2>
@@ -96,33 +117,50 @@ export function Testimonials() {
         </div>
       </div>
 
-      {/* Infinite Scroll Container */}
+      {/* Testimonials Rail (auto + swipe) */}
       {approvedTestimonials.length > 0 ? (
-        <div className="relative w-full flex overflow-hidden border-y border-white/5 bg-white/[0.02] py-20">
-          <div className="flex animate-marquee whitespace-nowrap min-w-max hover:[animation-play-state:paused]">
-            {[...approvedTestimonials, ...approvedTestimonials, ...approvedTestimonials].map((testimonial, index) => (
+        <div className="relative w-full border-y border-white/5 bg-white/[0.02] py-10 sm:py-14 md:py-20">
+          <div className="mx-auto mb-4 flex max-w-7xl items-center justify-end px-4 sm:px-6">
+            <button
+              type="button"
+              onClick={() => setIsPaused((p) => !p)}
+              className="rounded-full border border-brand-gold/35 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-brand-gold transition-colors hover:bg-brand-gold/10 touch-manipulation"
+            >
+              {isPaused ? "Reprendre" : "Pause"}
+            </button>
+          </div>
+          <div
+            ref={railRef}
+            className="flex min-w-max gap-4 sm:gap-6 overflow-x-auto overscroll-x-contain px-4 sm:px-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            onPointerDown={() => setIsInteracting(true)}
+            onPointerUp={() => setIsInteracting(false)}
+            onPointerCancel={() => setIsInteracting(false)}
+            onPointerLeave={() => setIsInteracting(false)}
+          >
+            {loopedTestimonials.map((testimonial, index) => (
               <div
                 key={`${testimonial.id}-${index}`}
-                className="w-[400px] md:w-[500px] mx-8 flex flex-col items-center text-center group relative flex-shrink-0 whitespace-normal"
+                onClick={() => setIsPaused((p) => !p)}
+                className="w-[250px] sm:w-[320px] md:w-[450px] flex flex-col items-center text-center group relative flex-shrink-0 whitespace-normal rounded-xl border border-white/10 bg-black/20 px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 touch-manipulation"
               >
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2 opacity-5 group-hover:opacity-10 transition-opacity duration-700">
-                  <Quote size={80} strokeWidth={0.5} className="text-brand-gold" />
+                <div className="absolute -top-8 sm:-top-10 left-1/2 -translate-x-1/2 opacity-5 group-hover:opacity-10 transition-opacity duration-700">
+                  <Quote size={56} strokeWidth={0.5} className="text-brand-gold sm:size-[72px]" />
                 </div>
                 
-                <div className="flex gap-1 mb-6">
+                <div className="flex gap-1 mb-4 sm:mb-6">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} size={12} className="fill-brand-gold text-brand-gold" />
                   ))}
                 </div>
 
-                <p className="text-xl md:text-2xl font-light leading-relaxed mb-8 text-white/70 italic font-serif relative z-10 w-full px-4">
+                <p className="text-base sm:text-lg md:text-2xl font-light leading-relaxed mb-5 sm:mb-8 text-white/70 italic font-serif relative z-10 w-full">
                   "{testimonial.content}"
                 </p>
                 
-                <div className="mt-auto space-y-3">
+                <div className="mt-auto space-y-2 sm:space-y-3">
                   <div className="w-12 h-px bg-brand-gold/30 mx-auto" />
-                  <p className="font-serif text-brand-gold text-xl tracking-wide">{testimonial.name}</p>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/30 font-bold">{testimonial.role}</p>
+                  <p className="font-serif text-brand-gold text-lg sm:text-xl tracking-wide">{testimonial.name}</p>
+                  <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/30 font-bold">{testimonial.role}</p>
                 </div>
               </div>
             ))}

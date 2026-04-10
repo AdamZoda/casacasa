@@ -76,9 +76,9 @@ function StringListEditor({ items, onChange, placeholder, addLabel, inputClassNa
   const remove = (i: number) => onChange(items.filter((_, j) => j !== i));
   const add = () => onChange([...items, ""]);
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       {items.map((v, i) => (
-        <div key={i} className="flex items-center gap-2">
+        <div key={i} className="flex items-center gap-2.5">
           <input
             type="text"
             value={v}
@@ -89,7 +89,7 @@ function StringListEditor({ items, onChange, placeholder, addLabel, inputClassNa
           <button
             type="button"
             onClick={() => remove(i)}
-            className="shrink-0 rounded-lg p-2.5 text-text-primary/35 transition-colors hover:bg-red-500/10 hover:text-red-400"
+            className="shrink-0 rounded-lg p-3 text-text-primary/35 transition-colors hover:bg-red-500/10 hover:text-red-400 touch-manipulation"
             aria-label="Supprimer la ligne"
           >
             <Trash2 size={16} aria-hidden />
@@ -99,7 +99,7 @@ function StringListEditor({ items, onChange, placeholder, addLabel, inputClassNa
       <button
         type="button"
         onClick={add}
-        className="inline-flex items-center gap-2 rounded-lg border border-border-primary/50 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-text-primary/50 transition-colors hover:border-brand-gold/35 hover:text-brand-gold"
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border-primary/50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-widest text-text-primary/50 transition-colors hover:border-brand-gold/35 hover:text-brand-gold touch-manipulation"
       >
         <Plus size={14} aria-hidden />
         {addLabel}
@@ -167,7 +167,7 @@ export function SettingsView() {
     "text-[10px] uppercase tracking-[0.22em] text-text-primary/55 font-bold border-l-2 border-brand-gold pl-4";
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-10 pb-24">
+    <div className="max-w-[1600px] mx-auto space-y-8 md:space-y-10 pb-28 md:pb-24">
       <AdminPageHeader
         kicker="Paramètres"
         title="Configuration globale"
@@ -176,7 +176,7 @@ export function SettingsView() {
           <button
             type="button"
             onClick={() => handleSubmit()}
-            className={`inline-flex items-center justify-center gap-3 rounded-lg px-8 py-4 text-[10px] uppercase tracking-[0.25em] font-bold transition-all shadow-lg ${
+            className={`hidden md:inline-flex items-center justify-center gap-3 rounded-lg px-8 py-4 text-[10px] uppercase tracking-[0.25em] font-bold transition-all shadow-lg ${
               saved
                 ? "bg-emerald-600 text-white"
                 : "bg-brand-gold text-brand-black hover:bg-brand-gold/90 active:scale-[0.99]"
@@ -188,9 +188,9 @@ export function SettingsView() {
         }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
         <nav
-          className="lg:col-span-3 flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0 -mx-1 px-1 lg:mx-0 lg:px-0 lg:sticky lg:top-24 lg:self-start"
+          className="lg:col-span-3 flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-1.5 lg:pb-0 -mx-1 px-1 lg:mx-0 lg:px-0 snap-x snap-mandatory lg:snap-none lg:sticky lg:top-24 lg:self-start"
           aria-label="Sections de configuration"
         >
           {tabs.map((tab) => {
@@ -201,13 +201,13 @@ export function SettingsView() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`shrink-0 lg:w-full flex items-center gap-3.5 px-5 py-4 rounded-xl text-left text-[11px] font-semibold tracking-[0.08em] uppercase transition-all border ${
+                className={`shrink-0 snap-start min-w-[13.5rem] sm:min-w-[14.5rem] lg:min-w-0 lg:w-full flex items-center gap-3 px-4 sm:px-5 py-3.5 rounded-xl text-left text-[10px] sm:text-[11px] font-semibold tracking-[0.08em] uppercase transition-all border touch-manipulation ${
                   isActive
                     ? "bg-brand-gold/12 text-brand-gold border-brand-gold/35 shadow-[0_0_24px_rgba(229,169,58,0.12)]"
                     : "text-text-primary/45 hover:bg-text-primary/[0.05] hover:text-text-primary border-border-primary/40 hover:border-border-primary/60"
                 }`}
               >
-                <Icon size={20} strokeWidth={1.5} className="shrink-0 opacity-90" aria-hidden />
+                <Icon size={18} strokeWidth={1.5} className="shrink-0 opacity-90" aria-hidden />
                 <span className="leading-tight">{tab.label}</span>
               </button>
             );
@@ -216,7 +216,7 @@ export function SettingsView() {
 
         <div className="lg:col-span-9 min-h-[520px]">
           {activeTab === "general" && (
-            <div className="admin-card p-6 md:p-8 lg:p-10 space-y-10 animate-in fade-in duration-300">
+            <div className="admin-card p-4 sm:p-6 md:p-8 lg:p-10 space-y-8 md:space-y-10 animate-in fade-in duration-300">
               <div className="flex items-center gap-4 pb-6 border-b border-border-primary/40">
                 <div className="flex size-11 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
                   <Globe size={22} strokeWidth={1.25} aria-hidden />
@@ -277,7 +277,7 @@ export function SettingsView() {
 
           {activeTab === "about" && (
             <div className="space-y-8 animate-in fade-in duration-300">
-              <div className="admin-card space-y-8 p-6 md:p-8 lg:p-10">
+              <div className="admin-card space-y-6 md:space-y-8 p-4 sm:p-6 md:p-8 lg:p-10">
                 <div className="flex items-center gap-4 pb-6 border-b border-border-primary/40">
                   <div className="flex size-11 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
                     <LayoutIcon size={22} strokeWidth={1.25} aria-hidden />
@@ -383,8 +383,8 @@ export function SettingsView() {
           )}
 
           {activeTab === "design" && (
-            <div className="space-y-8 animate-in fade-in duration-300">
-              <div className="admin-card p-6 md:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            <div className="space-y-6 md:space-y-8 animate-in fade-in duration-300">
+              <div className="admin-card p-4 sm:p-6 md:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 md:gap-8">
                 <div className="flex min-w-0 items-start gap-4">
                   <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
                     <Palette size={22} strokeWidth={1.25} aria-hidden />
@@ -417,7 +417,7 @@ export function SettingsView() {
                 </div>
               </div>
 
-              <div className="admin-card p-6 md:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+              <div className="admin-card p-4 sm:p-6 md:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 md:gap-8">
                 <div className="flex min-w-0 items-start gap-4">
                   <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
                     <Palette size={22} strokeWidth={1.25} aria-hidden />
@@ -444,7 +444,7 @@ export function SettingsView() {
                   </select>
                 </div>
               </div>
-              <div className="admin-card p-6 md:p-8">
+              <div className="admin-card p-4 sm:p-6 md:p-8">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-text-primary/45 font-bold mb-3">Aperçu en direct</p>
                 <p
                   className="text-xl md:text-2xl text-text-primary"
@@ -461,7 +461,7 @@ export function SettingsView() {
                 </p>
               </div>
 
-              <div className="admin-card space-y-10 p-6 md:p-8 lg:p-10">
+              <div className="admin-card space-y-8 md:space-y-10 p-4 sm:p-6 md:p-8 lg:p-10">
                 <div className="flex flex-col gap-4 border-b border-border-primary/40 pb-6 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
                     <div className="flex size-11 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
@@ -612,7 +612,7 @@ export function SettingsView() {
                 </div>
               </div>
 
-              <div className="admin-card space-y-10 p-6 md:p-8 lg:p-10">
+              <div className="admin-card space-y-8 md:space-y-10 p-4 sm:p-6 md:p-8 lg:p-10">
                 <div className="border-b border-border-primary/40 pb-6">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-start gap-4">
@@ -726,7 +726,7 @@ export function SettingsView() {
           )}
 
           {activeTab === "bank" && (
-            <div className="admin-card p-6 md:p-8 lg:p-10 space-y-10 animate-in fade-in duration-300">
+            <div className="admin-card p-4 sm:p-6 md:p-8 lg:p-10 space-y-8 md:space-y-10 animate-in fade-in duration-300">
               <div className="flex items-center gap-4 pb-6 border-b border-border-primary/40">
                 <div className="flex size-11 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
                   <CreditCard size={22} strokeWidth={1.25} aria-hidden />
@@ -796,8 +796,8 @@ export function SettingsView() {
           )}
 
           {activeTab === "security" && (
-            <div className="space-y-8 animate-in fade-in duration-300">
-              <div className="admin-card p-6 md:p-8 lg:p-10 space-y-6">
+            <div className="space-y-6 md:space-y-8 animate-in fade-in duration-300">
+              <div className="admin-card p-4 sm:p-6 md:p-8 lg:p-10 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-border-primary/40">
                   <div className="flex items-center gap-4">
                     <div
@@ -826,7 +826,7 @@ export function SettingsView() {
                 <p className="text-xs text-text-primary/45">Public bloqué · admin OK.</p>
               </div>
 
-              <div className="admin-card p-6 md:p-8 lg:p-10 space-y-6">
+              <div className="admin-card p-4 sm:p-6 md:p-8 lg:p-10 space-y-6">
                 <div className="flex flex-col gap-4 border-b border-border-primary/40 pb-6 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex items-start gap-4">
                     <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
@@ -887,7 +887,7 @@ export function SettingsView() {
                 </ul>
               </div>
 
-              <div className="admin-card p-6 md:p-8 lg:p-10 space-y-8">
+              <div className="admin-card p-4 sm:p-6 md:p-8 lg:p-10 space-y-8">
                 <div className="flex items-center gap-4 pb-6 border-b border-border-primary/40">
                   <div className="flex size-11 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
                     <ShieldCheck size={22} strokeWidth={1.25} aria-hidden />
@@ -951,6 +951,21 @@ export function SettingsView() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border-primary/70 bg-bg-primary/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur md:hidden">
+        <button
+          type="button"
+          onClick={() => handleSubmit()}
+          className={`flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl px-4 text-[10px] uppercase tracking-[0.2em] font-bold transition-all touch-manipulation ${
+            saved
+              ? "bg-emerald-600 text-white"
+              : "bg-brand-gold text-brand-black hover:bg-brand-gold/90 active:scale-[0.99]"
+          }`}
+        >
+          {saved ? <ShieldCheck size={16} aria-hidden /> : <Save size={16} aria-hidden />}
+          {saved ? "Enregistré" : "Enregistrer"}
+        </button>
       </div>
     </div>
   );

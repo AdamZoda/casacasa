@@ -21,7 +21,7 @@ export function Newsletter() {
   };
 
   return (
-    <section className="py-24 px-6 md:py-32 relative overflow-hidden bg-brand-black/5 flex items-center justify-center">
+    <section className="py-16 px-4 sm:px-6 md:py-32 relative overflow-hidden bg-brand-black/5 flex items-center justify-center">
       {/* Dynamic Background Elements */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-brand-gold/10 rounded-full animate-spin [animation-duration:60s] pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-brand-gold/5 rounded-full animate-spin [animation-duration:40s] reverse pointer-events-none" />
@@ -32,13 +32,13 @@ export function Newsletter() {
            whileInView={{ opacity: 1, y: 0 }}
            transition={{ duration: 1.2 }}
         >
-          <div className="inline-flex items-center gap-4 mb-10 px-6 py-2 bg-text-primary/5 backdrop-blur-md rounded-full border border-white/10 uppercase text-[10px] tracking-[0.5em] font-black text-brand-gold">
+          <div className="inline-flex items-center gap-3 mb-6 sm:mb-10 px-4 sm:px-6 py-2 bg-text-primary/5 backdrop-blur-md rounded-full border border-white/10 uppercase text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.5em] font-black text-brand-gold">
              <ShieldCheck size={14} strokeWidth={1} /> Cercle Privilège
           </div>
-          <h2 className="text-4xl md:text-7xl font-serif leading-tight mb-12 tracking-tighter italic">
+          <h2 className="text-3xl sm:text-4xl md:text-7xl font-serif leading-tight mb-6 sm:mb-12 tracking-tight md:tracking-tighter italic">
             L'Éclat de <br /><span className="not-italic text-brand-gold">Votre Destination</span>
           </h2>
-          <p className="text-text-primary/40 font-light text-xl leading-relaxed mb-16 max-w-2xl mx-auto uppercase tracking-tighter">
+          <p className="text-text-primary/40 font-light text-sm sm:text-base md:text-xl leading-relaxed mb-8 sm:mb-16 max-w-2xl mx-auto uppercase tracking-normal sm:tracking-tighter">
             Rejoignez notre lettre confidentielle pour recevoir des accès VIP et récits exclusifs directement dans votre boîte privée.
           </p>
 
@@ -58,20 +58,20 @@ export function Newsletter() {
                 <p className="text-text-primary/40 text-sm italic">Votre accès privilégié est maintenant activé.</p>
              </motion.div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-6 p-4 bg-bg-primary border border-border-primary rounded-full shadow-2xl items-center focus-within:border-brand-gold focus-within:shadow-[0_0_80px_rgba(229,169,58,0.15)] transition-all duration-700">
+            <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-3 sm:gap-6 p-2.5 sm:p-4 bg-bg-primary border border-border-primary rounded-2xl sm:rounded-full shadow-2xl items-center focus-within:border-brand-gold focus-within:shadow-[0_0_80px_rgba(229,169,58,0.15)] transition-all duration-700">
               <input 
                 type="email" 
                 placeholder="VOTRE EMAIL" 
                 required 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full md:w-auto flex-grow bg-transparent px-10 py-6 text-xl focus:outline-none placeholder:text-text-primary/10 tracking-widest italic"
+                className="w-full md:w-auto flex-grow bg-transparent px-4 sm:px-8 md:px-10 py-3.5 sm:py-5 md:py-6 text-base sm:text-lg md:text-xl focus:outline-none placeholder:text-text-primary/20 tracking-[0.12em] sm:tracking-widest italic"
               />
               <motion.button 
                 type="submit"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full md:w-auto px-16 py-6 bg-text-primary text-bg-primary rounded-full text-[11px] font-black uppercase tracking-[0.4em] hover:bg-brand-gold hover:text-brand-black transition-all duration-700 shadow-xl"
+                className="w-full md:w-auto min-h-12 px-6 sm:px-12 md:px-16 py-3.5 sm:py-5 md:py-6 bg-text-primary text-bg-primary rounded-xl sm:rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.4em] hover:bg-brand-gold hover:text-brand-black transition-all duration-700 shadow-xl touch-manipulation"
               >
                 Intégrer le Cercle
               </motion.button>

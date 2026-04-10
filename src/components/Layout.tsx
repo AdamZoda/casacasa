@@ -92,7 +92,7 @@ export function Layout() {
     <div className="min-h-screen flex flex-col">
       {/* Mobile Top Bar */}
       <div className={`md:hidden fixed top-0 left-0 right-0 z-40 px-3 sm:px-6 h-[3.75rem] sm:h-[3.5rem] transition-all duration-300 ease-in-out ${mobileHeaderClasses}`}>
-        <div className="max-w-[1400px] mx-auto flex justify-between items-center h-full gap-4">
+        <div className="max-w-[1400px] mx-auto flex justify-between items-center h-full gap-2">
           <button
             type="button"
             className="inline-flex h-12 w-12 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg text-current transition-colors hover:text-brand-gold active:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold touch-manipulation"
@@ -107,6 +107,24 @@ export function Layout() {
               {settings.logoText || "CASA PRIVILEGE"}
             </span>
           </Link>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setLanguage(language === "fr" ? "en" : "fr")}
+              className="inline-flex h-10 min-w-10 items-center justify-center rounded-lg px-2 text-[10px] font-semibold tracking-widest transition-colors hover:text-brand-gold active:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold touch-manipulation"
+              aria-label={language === "fr" ? "Switch to English" : "Passer en français"}
+            >
+              {language === "fr" ? "FR" : "EN"}
+            </button>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:text-brand-gold active:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold touch-manipulation"
+              aria-label={theme === "light" ? (language === "fr" ? "Mode sombre" : "Dark mode") : language === "fr" ? "Mode clair" : "Light mode"}
+            >
+              {theme === "light" ? <Moon size={17} strokeWidth={1.25} /> : <Sun size={17} strokeWidth={1.25} />}
+            </button>
+          </div>
         </div>
       </div>
 
