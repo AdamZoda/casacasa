@@ -25,7 +25,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
-export function MapView({ pois, center = [33.5731, -7.5898], zoom = 12, onMarkerClick }: MapProps) {
+export function MapView({ pois, center = [20, 0], zoom = 2, onMarkerClick }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());

@@ -1,3 +1,8 @@
+# Nouveau Code SQL - Exécuter dans Supabase
+
+Copie-colle ce code entier dans **Supabase → SQL Editor → New Query** et clique **Run**
+
+```sql
 -- Create points_of_interest table
 CREATE TABLE IF NOT EXISTS points_of_interest (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -75,3 +80,32 @@ INSERT INTO points_of_interest (name, description, latitude, longitude, type, vi
 ('Parking Great Barrier Reef', 'Cairns', -16.2859, 145.7781, 'parking', true),
 ('Restaurant Meat & Wine', 'Sydney', -33.8688, 151.2093, 'restaurant', true),
 ('Boutique Aboriginal Art', 'Art autochtone', -33.8688, 151.2093, 'shop', true);
+```
+
+## Instructions:
+
+1. Accédez à https://supabase.com
+2. Ouvrez votre projet
+3. Dans la barre latérale gauche, cliquez sur **SQL Editor**
+4. Cliquez sur **New Query**
+5. Collez le code SQL ci-dessus
+6. Cliquez sur **Run** ou appuyez sur **Ctrl+Enter**
+7. Vous verrez "Success" avec "30 rows created"
+
+## Après exécution:
+
+- La carte affichera le monde entier (zoom niveau 2)
+- 30 points d'intérêt seront visibles à travers 6 continents
+- Vous pouvez filtrer par type (Toilettes, Parking, etc.)
+- Vous pouvez ajouter de nouveaux points via l'interface admin
+
+## Positions incluses:
+
+- **Maroc**: 4 POIs (Casablanca, Fes principalement)
+- **Europe**: 4 POIs (Paris, Rome, Florence)
+- **Asie**: 4 POIs (Tokyo, Singapour, Bangkok, Chiang Mai)
+- **Amérique**: 4 POIs (New York, Los Angeles, Mexico)
+- **Afrique**: 4 POIs (Victoria Falls, Kruger, Cairo)
+- **Océanie**: 4 POIs (Sydney, Cairns)
+
+Chaque continent a un mélange de toilettes 🚻, parking 🅿️, restaurant 🍽️ et boutiques 🛍️.
