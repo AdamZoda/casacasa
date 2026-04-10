@@ -59,17 +59,7 @@ REFERENCES public.poi_types(id) ON DELETE SET NULL;
 -- Step 8: Create index for type_id
 CREATE INDEX IF NOT EXISTS idx_poi_type_id ON public.points_of_interest(type_id);
 
--- Step 9: Insert default POI types
-INSERT INTO public.poi_types (name, slug, description, emoji, color, is_active, sort_order)
-VALUES
-  ('Toilettes', 'toilettes', 'Toilettes publiques', '🚻', '#FF6B6B', true, 1),
-  ('Parking', 'parking', 'Zones de stationnement', '🅿️', '#4ECDC4', true, 2),
-  ('Restaurant', 'restaurant', 'Restaurants et cafés', '🍽️', '#FFE66D', true, 3),
-  ('Boutique', 'boutique', 'Magasins et commerces', '🛍️', '#95E1D3', true, 4),
-  ('Autre', 'autre', 'Autres points d''intérêt', '📍', '#E5A93A', true, 5)
-ON CONFLICT (name) DO NOTHING;
-
--- Step 10: Logo uploads use the existing "media" bucket
+-- Step 9: Logo uploads use the existing "media" bucket
 -- The media bucket is already public and configured
 -- Logos will be stored in: media/poi-logos/[typeId]-[timestamp]
 
