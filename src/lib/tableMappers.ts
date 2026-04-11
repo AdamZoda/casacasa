@@ -54,6 +54,8 @@ export function activityToRow(a: Activity): Record<string, unknown> {
     image: a.image ?? null,
     description: a.description ?? null,
     min_advance_days: a.minAdvanceDays ?? 0,
+    has_articles: a.hasArticles ?? false,
+    article_display_type: a.articleDisplayType ?? 'direct',
   };
 }
 
@@ -69,6 +71,8 @@ export function rowToActivity(row: ActivityRow): Activity {
     image: String(row.image ?? ''),
     description: String(row.description ?? ''),
     minAdvanceDays: n,
+    hasArticles: Boolean(row.has_articles ?? (row as { hasArticles?: boolean }).hasArticles ?? false),
+    articleDisplayType: (row.article_display_type ?? (row as { articleDisplayType?: string }).articleDisplayType ?? 'direct') as 'direct' | 'articles_only',
   };
 }
 
@@ -178,6 +182,9 @@ export function reservationInputToDbRow(
     people_count: data.people_count ?? null,
     total_price: data.total_price ?? null,
     receipt_base64: data.receipt_base64 ?? null,
+    article_id: data.article_id ?? null,
+    article_title: data.article_title ?? null,
+    price_type: data.price_type ?? null,
     status: 'pending',
   };
 }
@@ -213,6 +220,9 @@ export function dbRowToReservation(row: ReservationRow): Reservation {
     people_count: typeof row.people_count === 'number' ? row.people_count : undefined,
     total_price: row.total_price != null ? Number(row.total_price) : undefined,
     receipt_base64: row.receipt_base64 != null ? String(row.receipt_base64) : undefined,
+    article_id: row.article_id != null ? String(row.article_id) : undefined,
+    article_title: row.article_title != null ? String(row.article_title) : undefined,
+    price_type: (row.price_type as Reservation['price_type']) ?? undefined,
     status: (row.status as Reservation['status']) || 'pending',
     channel: (row.channel as Reservation['channel']) || 'web',
     message: row.message != null ? String(row.message) : undefined,

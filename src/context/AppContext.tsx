@@ -46,6 +46,9 @@ export interface Reservation {
   status: 'pending' | 'confirmed' | 'cancelled';
   channel: 'web' | 'whatsapp';
   message?: string;
+  article_id?: string;
+  article_title?: string;
+  price_type?: 'fixed' | 'per_duration';
   created_at: string;
 }
 
@@ -59,6 +62,19 @@ export interface Universe {
   gallery: string[];
 }
 
+export interface Article {
+  id: string;
+  activityId: string;
+  title: string;
+  image: string;
+  description: string;
+  priceType: 'fixed' | 'per_duration';
+  price?: number;
+  durationUnit?: 'day' | 'night';
+  pricePerUnit?: number;
+  availabilityCount?: number;
+}
+
 export interface Activity {
   id: string;
   universeId: string;
@@ -68,6 +84,9 @@ export interface Activity {
   image: string;
   description: string;
   minAdvanceDays?: number;
+  hasArticles?: boolean;
+  articleDisplayType?: 'direct' | 'articles_only';
+  articles?: Article[];
 }
 
 export interface Product {
@@ -193,6 +212,12 @@ interface AppContextType {
   updateActivity: (a: Activity) => void;
   deleteActivity: (id: string) => void;
 
+  articles: Article[];
+  addArticle: (a: Article) => void;
+  updateArticle: (a: Article) => void;
+  deleteArticle: (id: string) => void;
+  getArticlesByActivityId: (activityId: string) => Article[];
+
   products: Product[];
   addProduct: (p: Product) => void;
   updateProduct: (p: Product) => void;
@@ -287,6 +312,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [ticketMessages, setTicketMessages] = useState<TicketMessage[]>([]);
   const [universes, setUniverses] = useState<Universe[]>(initUniverses);
   const [activities, setActivities] = useState<Activity[]>(initActivities);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [products, setProducts] = useState<Product[]>(initProducts);
   const [journalPosts, setJournalPosts] = useState<JournalPost[]>(initialJournalPosts);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([
@@ -415,6 +441,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const [
         uRes,
         aRes,
+        artRes,
         pRes,
         jRes,
         rRes,
@@ -425,6 +452,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ] = await Promise.all([
         supabase.from('universes').select('*'),
         supabase.from('activities').select('*'),
+        supabase.from('articles').select('*'),
         supabase.from('products').select('*'),
         supabase.from('journal_posts').select('*'),
         supabase.from('reservations').select('*').order('created_at', { ascending: false }),
@@ -439,6 +467,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (aRes.error) console.warn('[Supabase] activities:', aRes.error.message);
       else if (aRes.data?.length) setActivities(aRes.data.map((row) => rowToActivity(row)));
+
+      if (artRes.error) console.warn('[Supabase] articles:', artRes.error.message);
+      else if (artRes.data?.length) {
+        const mappedArticles = artRes.data.map((row: any) => ({
+          id: row.id,
+          activityId: row.activity_id,
+          title: row.title,
+          image: row.image,
+          description: row.description,
+          priceType: row.price_type,
+          price: row.price,
+          durationUnit: row.duration_unit,
+          pricePerUnit: row.price_per_unit,
+          availabilityCount: row.availability_count,
+        }));
+        setArticles(mappedArticles);
+      } else {
+        setArticles([]);
+      }
 
       if (pRes.error) console.warn('[Supabase] products:', pRes.error.message);
       else if (pRes.data?.length) setProducts(pRes.data.map((row) => rowToProduct(row)));
@@ -594,6 +641,52 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (error) console.error('[Supabase] activities delete:', error.message);
   };
 
+  const addArticle = async (a: Article) => {
+    setArticles((prev) => [...prev, a]);
+    const row = {
+      id: a.id,
+      activity_id: a.activityId,
+      title: a.title,
+      image: a.image,
+      description: a.description,
+      price_type: a.priceType,
+      price: a.price,
+      duration_unit: a.durationUnit,
+      price_per_unit: a.pricePerUnit,
+      availability_count: a.availabilityCount,
+    };
+    const { error } = await supabase.from('articles').insert([row]);
+    if (error) console.error('[Supabase] articles insert:', error.message);
+  };
+
+  const updateArticle = async (a: Article) => {
+    setArticles((prev) => prev.map((i) => (i.id === a.id ? a : i)));
+    const row = {
+      id: a.id,
+      activity_id: a.activityId,
+      title: a.title,
+      image: a.image,
+      description: a.description,
+      price_type: a.priceType,
+      price: a.price,
+      duration_unit: a.durationUnit,
+      price_per_unit: a.pricePerUnit,
+      availability_count: a.availabilityCount,
+    };
+    const { error } = await supabase.from('articles').update(row).eq('id', a.id);
+    if (error) console.error('[Supabase] articles update:', error.message);
+  };
+
+  const deleteArticle = async (id: string) => {
+    setArticles((prev) => prev.filter((x) => x.id !== id));
+    const { error } = await supabase.from('articles').delete().eq('id', id);
+    if (error) console.error('[Supabase] articles delete:', error.message);
+  };
+
+  const getArticlesByActivityId = (activityId: string) => {
+    return articles.filter((a) => a.activityId === activityId);
+  };
+
   const addProduct = async (p: Product) => {
     setProducts((prev) => [...prev, p]);
     const { error } = await supabase.from('products').insert(productToRow(p));
@@ -715,6 +808,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ticketMessages, addTicketMessage, fetchTicketMessages,
       universes, addUniverse, updateUniverse, deleteUniverse,
       activities, addActivity, updateActivity, deleteActivity,
+      articles, addArticle, updateArticle, deleteArticle, getArticlesByActivityId,
       products, addProduct, updateProduct, deleteProduct,
       journalPosts, addJournalPost, updateJournalPost, deleteJournalPost,
       testimonials, addTestimonial, updateTestimonial, deleteTestimonial,

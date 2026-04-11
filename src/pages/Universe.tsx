@@ -144,12 +144,23 @@ export function Universe() {
                     {activity.price}
                   </p>
                 </div>
-                <Link 
-                  to={`/book/${universe.id}/${activity.id}`}
-                  className="self-start group relative inline-flex items-center justify-center px-10 py-5 bg-transparent border border-text-primary text-text-primary hover:bg-text-primary hover:text-bg-primary transition-all duration-500 ease-out overflow-hidden"
-                >
-                  <span className="relative z-10 font-light tracking-[0.15em] text-sm uppercase">Réserver cette activité</span>
-                </Link>
+                
+                {/* Display Articles or Direct Booking */}
+                {activity.articleDisplayType === "articles_only" ? (
+                  <Link 
+                    to={`/activity/${universe.id}/${activity.id}/articles`}
+                    className="self-start group relative inline-flex items-center justify-center px-10 py-5 bg-brand-gold/10 border border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-bg-primary transition-all duration-500 ease-out overflow-hidden"
+                  >
+                    <span className="relative z-10 font-light tracking-[0.15em] text-sm uppercase">Voir les articles</span>
+                  </Link>
+                ) : (
+                  <Link 
+                    to={`/book/${universe.id}/${activity.id}`}
+                    className="self-start group relative inline-flex items-center justify-center px-10 py-5 bg-transparent border border-text-primary text-text-primary hover:bg-text-primary hover:text-bg-primary transition-all duration-500 ease-out overflow-hidden"
+                  >
+                    <span className="relative z-10 font-light tracking-[0.15em] text-sm uppercase">Réserver cette activité</span>
+                  </Link>
+                )}
               </div>
             </motion.div>
           ))}

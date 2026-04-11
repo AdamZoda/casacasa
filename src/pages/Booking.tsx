@@ -27,12 +27,13 @@ const COUNTRIES = [
 ];
 
 export function Booking() {
-  const { universeId, activityId } = useParams<{ universeId: string, activityId: string }>();
+  const { universeId, activityId, articleId } = useParams<{ universeId: string, activityId: string, articleId?: string }>();
   const navigate = useNavigate();
-  const { addReservation, universes, activities, settings, currency, exchangeRates } = useAppContext();
+  const { addReservation, universes, activities, articles, settings, currency, exchangeRates, getArticlesByActivityId } = useAppContext();
   
   const universe = universes.find(u => u.id === universeId);
   const activity = activities.find(a => a.id === activityId);
+  const article = articleId ? articles.find(ar => ar.id === articleId) : null;
 
   const minDays = activity?.minAdvanceDays || 0;
   const minDate = addDays(startOfDay(new Date()), minDays);
@@ -125,11 +126,36 @@ export function Booking() {
     return parseInt(match.join(''), 10);
   };
 
-  const dailyPrice = getNumericPrice(activity?.price);
+  // Calculate price based on article or activity
+  let dailyPrice = 0;
+  let priceType: 'fixed' | 'per_duration' = 'per_duration';
+  let durationUnit = 'day';
+
+  if (article) {
+    priceType = article.priceType;
+    durationUnit = article.durationUnit || 'day';
+    if (priceType === 'fixed') {
+      dailyPrice = article.price || 0;
+    } else {
+      dailyPrice = article.pricePerUnit || 0;
+    }
+  } else {
+    dailyPrice = getNumericPrice(activity?.price);
+  }
+
   const durationInDays = formData.startDate && formData.endDate 
     ? Math.max(1, Math.floor((formData.endDate.getTime() - formData.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
     : 0;
-  const totalPrice = dailyPrice * durationInDays * formData.peopleCount;
+  
+  // Calculate total price based on price type
+  let totalPrice = 0;
+  if (article && priceType === 'fixed') {
+    // Fixed price: price × people (no duration multiplier)
+    totalPrice = dailyPrice * formData.peopleCount;
+  } else {
+    // Per duration: price × days × people
+    totalPrice = dailyPrice * durationInDays * formData.peopleCount;
+  }
 
   if (!universe || !activity) {
     return <Navigate to="/" replace />;
@@ -169,18 +195,30 @@ export function Booking() {
         total_price: totalPrice,
         contact: `${formData.phoneCode} ${formData.phone}`,
         message: formData.message,
-        channel
+        channel,
+        article_id: article?.id,
+        article_title: article?.title,
+        price_type: priceType,
       });
 
       const whatsappNumber = primaryWhatsappDigits(settings) || "212661000000";
-      const activityPrice = dailyPrice
-        ? `\n*Tarif :* ${formatMoney(totalPrice, currency, exchangeRates)} (${formatMoney(dailyPrice, currency, exchangeRates)} x ${durationInDays} jours)`
-        : '';
-      const activityImage = activity.image ? `\n*Aperçu :* ${activity.image}` : '';
+      
+      // Format price message based on article or activity
+      let activityPrice = '';
+      if (dailyPrice) {
+        if (article && priceType === 'fixed') {
+          activityPrice = `\n*Tarif :* ${formatMoney(totalPrice, currency, exchangeRates)} (${formatMoney(dailyPrice, currency, exchangeRates)} x ${formData.peopleCount} pers)`;
+        } else {
+          activityPrice = `\n*Tarif :* ${formatMoney(totalPrice, currency, exchangeRates)} (${formatMoney(dailyPrice, currency, exchangeRates)} x ${durationInDays} ${durationInDays > 1 ? durationUnit === 'night' ? 'nuits' : 'jours' : durationUnit === 'night' ? 'nuit' : 'jour'})`;
+        }
+      }
+      
+      const activityImage = (article?.image || activity.image) ? `\n*Aperçu :* ${article?.image || activity.image}` : '';
+      const articleDisplay = article ? `\n📦 *Article :* ${article.title}` : '';
       
       const messageText = `✨ *DÉTAILS DE LA RÉSERVATION* ✨
 ---------------------------------------
-🏛️ *Activité :* ${activity.title}
+🏛️ *Activité :* ${activity.title}${articleDisplay}
 🌍 *Monde :* ${universe.name}${activityPrice}${activityImage}
 
 🕒 *Séjour :* Du ${format(formData.startDate!, 'dd/MM/yyyy')} au ${format(formData.endDate!, 'dd/MM/yyyy')}
@@ -225,7 +263,10 @@ _Demande générée via le Concierge Casa Privilege_`;
       contact: `${formData.phoneCode} ${formData.phone}`,
       message: formData.message,
       receipt_base64: formData.receipt_base64 || undefined,
-      channel: 'web'
+      channel: 'web',
+      article_id: article?.id,
+      article_title: article?.title,
+      price_type: priceType,
     });
 
     setStep(5);
@@ -307,6 +348,51 @@ _Demande générée via le Concierge Casa Privilege_`;
           {activity.title}
         </motion.p>
       </div>
+
+      {/* Produit réservé - Widget */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="mb-8 p-4 border border-border-primary/50 rounded-lg bg-text-primary/[0.02] flex gap-4"
+      >
+        {/* Image */}
+        {(article?.image || activity?.image) && (
+          <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-lg overflow-hidden border border-border-primary/30">
+            <img
+              src={article?.image || activity?.image || ''}
+              alt={article?.title || activity?.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+        
+        {/* Infos */}
+        <div className="flex-grow flex flex-col justify-center">
+          <p className="text-[10px] uppercase tracking-widest text-text-primary/40 mb-1">
+            {article ? "Article Réservé" : "Expérience"}
+          </p>
+          <h3 className="text-sm md:text-base font-medium mb-1">
+            {article ? `${activity.title} - ${article.title}` : activity.title}
+          </h3>
+          <div className="flex items-center gap-3 text-[11px] text-text-primary/60">
+            <span>
+              {article
+                ? article.priceType === 'fixed'
+                  ? `${article.price} DH`
+                  : `${article.pricePerUnit} DH/${article.durationUnit === 'night' ? 'nuit' : 'jour'}`
+                : activity.price
+              }
+            </span>
+            {article?.availabilityCount && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-text-primary/20" />
+                <span className="text-brand-gold">✓ {article.availabilityCount} dispo</span>
+              </>
+            )}
+          </div>
+        </div>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -420,7 +506,10 @@ _Demande générée via le Concierge Casa Privilege_`;
                              <div className="flex flex-col items-end">
                              <span className="text-brand-gold font-bold text-base md:text-lg leading-none">{formatMoney(totalPrice, currency, exchangeRates)}</span>
                                <span className="text-[8px] uppercase tracking-tighter text-text-primary/30 mt-1 italic">
-                                 ({formatMoney(dailyPrice, currency, exchangeRates)} x {formData.peopleCount} pers x {durationInDays}j)
+                                 {article && priceType === 'fixed'
+                                   ? `(${formatMoney(dailyPrice, currency, exchangeRates)} x ${formData.peopleCount} pers)`
+                                   : `(${formatMoney(dailyPrice, currency, exchangeRates)} x ${formData.peopleCount} pers x ${durationInDays}j)`
+                                 }
                                </span>
                              </div>
                           </div>

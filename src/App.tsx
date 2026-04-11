@@ -7,6 +7,8 @@ import { PublicPageGuard } from "./components/PublicPageGuard";
 
 const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })));
 const Universe = lazy(() => import("./pages/Universe").then((m) => ({ default: m.Universe })));
+const ActivityArticles = lazy(() => import("./pages/ActivityArticles").then((m) => ({ default: m.ActivityArticles })));
+const ArticleDetail = lazy(() => import("./pages/ArticleDetail").then((m) => ({ default: m.ArticleDetail })));
 const ServicesPage = lazy(() => import("./pages/ServicesPage").then((m) => ({ default: m.ServicesPage })));
 const BrandsPage = lazy(() => import("./pages/BrandsPage").then((m) => ({ default: m.BrandsPage })));
 const Contact = lazy(() => import("./pages/Contact").then((m) => ({ default: m.Contact })));
@@ -72,9 +74,12 @@ export default function App() {
                 <Route element={<PublicPageGuard />}>
                   <Route index element={<Home />} />
                   <Route path="universe/:id" element={<Universe />} />
+                  <Route path="activity/:universeId/:activityId/articles" element={<ActivityArticles />} />
+                  <Route path="article/:universeId/:activityId/:articleId/detail" element={<ArticleDetail />} />
                   <Route path="services" element={<ServicesPage />} />
                   <Route path="brands" element={<BrandsPage />} />
                   <Route path="contact" element={<Contact />} />
+                  <Route path="book/:universeId/:activityId/:articleId" element={<Booking />} />
                   <Route path="book/:universeId/:activityId" element={<Booking />} />
                   <Route path="store" element={<Store />} />
                   <Route path="cart" element={<Cart />} />

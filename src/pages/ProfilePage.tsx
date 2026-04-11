@@ -9,7 +9,7 @@ import { Link, Navigate } from "react-router-dom";
 
 export function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
-  const { language, setLanguage, favorites, toggleFavorite, activities, products, reservations, currency, exchangeRates } = useAppContext();
+  const { language, setLanguage, favorites, toggleFavorite, activities, articles, products, reservations, currency, exchangeRates } = useAppContext();
   const t = translations[language];
   
   const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'reservations'>('profile');
@@ -352,21 +352,42 @@ export function ProfilePage() {
               >
                 {reservations.length > 0 ? (
                   <div className="space-y-6">
-                    {reservations.map((res) => (
-                      <div key={res.id} className="flex flex-col md:flex-row md:items-center justify-between p-8 border border-border-primary bg-bg-primary gap-8">
-                        <div className="flex items-center gap-6">
-                          <div className="w-16 h-16 bg-brand-gold/5 flex items-center justify-center text-brand-gold shrink-0">
-                            <Calendar size={24} strokeWidth={1.5} />
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-serif mb-1">{res.activity_title}</h3>
+                    {reservations.map((res) => {
+                      const article = res.article_id ? articles.find((art: any) => art.id === res.article_id) : null;
+                      const activity = activities.find((a: any) => a.id === res.activity_id);
+                      const image = article?.image || activity?.image;
+                      
+                      return (
+                      <div key={res.id} className="flex flex-col p-6 border border-border-primary bg-bg-primary gap-6 rounded-lg hover:border-brand-gold/50 transition-all duration-500">
+                        {/* Produit Widget */}
+                        <div className="flex gap-4">
+                          {image && (
+                            <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border border-border-primary/30">
+                              <img
+                                src={image}
+                                alt={article?.title || activity?.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-grow">
+                            <div>
+                              <p className="text-[9px] uppercase tracking-widest text-text-primary/40 mb-1">
+                                {article ? "📦 Article Réservé" : "🎭 Expérience"}
+                              </p>
+                              <h3 className="text-xl font-serif mb-2">
+                                {res.article_title ? `${res.activity_title} - ${res.article_title}` : res.activity_title}
+                              </h3>
+                            </div>
                             <p className="text-xs tracking-[0.1em] uppercase text-text-primary/40">
                               {res.date} • {res.time}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between md:justify-end gap-12">
-                          <div className="text-right">
+
+                        {/* Statut et Actions */}
+                        <div className="flex items-center justify-between pt-4 border-t border-border-primary/20">
+                          <div className="flex items-center gap-4">
                             <span className={`inline-block px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] font-medium rounded-full ${
                               res.status === 'confirmed' ? 'bg-green-500/10 text-green-500' : 
                               res.status === 'cancelled' ? 'bg-red-500/10 text-red-500' : 
@@ -374,7 +395,7 @@ export function ProfilePage() {
                             }`}>
                               {res.status}
                             </span>
-                            <p className="text-[10px] text-text-primary/30 mt-2 uppercase tracking-widest">via {res.channel}</p>
+                            <p className="text-[10px] text-text-primary/30 uppercase tracking-widest">via {res.channel}</p>
                           </div>
                           <Link 
                             to={`/universe/${res.universe_id}`}
@@ -384,7 +405,8 @@ export function ProfilePage() {
                           </Link>
                         </div>
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-24 border border-dashed border-border-primary">
