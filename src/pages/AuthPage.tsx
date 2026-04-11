@@ -61,7 +61,7 @@ export function AuthPage() {
       if (error) {
         setError(error);
       } else {
-        navigate('/profile');
+        navigate('/');
       }
     }
     setLoading(false);

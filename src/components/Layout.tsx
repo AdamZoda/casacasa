@@ -7,6 +7,7 @@ import { Moon, Sun, User, ShoppingBag, LogIn, LogOut, Menu, X, Heart, Settings, 
 import { useAppContext } from "../context/AppContext";
 import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
 import { useAuth } from "../context/AuthContext";
+import { useAdminAccess } from "../hooks/useAdminAccess";
 import { translations } from "../i18n/translations";
 import { isPathHidden, LAYOUT_NAV_LINKS } from "../lib/hiddenPages";
 
@@ -14,6 +15,7 @@ export function Layout() {
   const location = useLocation();
   const { cart, theme, toggleTheme, language, setLanguage, currency, setCurrency, settings } = useAppContext();
   const { user, loading: authLoading, signOut } = useAuth();
+  const { isAdmin } = useAdminAccess();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -257,12 +259,14 @@ export function Layout() {
                         {t.user.settings}
                       </Link>
                       <div className="my-2 border-t border-border-primary" />
-                      <Link
-                        to="/admin"
-                        className="block px-6 py-2.5 text-xs uppercase tracking-widest text-text-primary transition-colors hover:bg-brand-gold/5 hover:text-brand-gold"
-                      >
-                        {t.user.admin}
-                      </Link>
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          className="block px-6 py-2.5 text-xs uppercase tracking-widest text-text-primary transition-colors hover:bg-brand-gold/5 hover:text-brand-gold"
+                        >
+                          {t.user.admin}
+                        </Link>
+                      )}
                       <div className="my-2 border-t border-border-primary" />
                       <button
                         type="button"
@@ -473,13 +477,15 @@ export function Layout() {
                         >
                           <Settings size={14} strokeWidth={1} /> {t.user.settings}
                         </Link>
-                        <Link
-                          to="/admin"
-                          className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <Shield size={14} strokeWidth={1} /> {t.user.admin}
-                        </Link>
+                        {isAdmin && (
+                          <Link
+                            to="/admin"
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs uppercase tracking-widest transition-colors hover:bg-text-primary/[0.06] hover:text-brand-gold touch-manipulation"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <Shield size={14} strokeWidth={1} /> {t.user.admin}
+                          </Link>
+                        )}
                         <button
                           type="button"
                           onClick={async () => {

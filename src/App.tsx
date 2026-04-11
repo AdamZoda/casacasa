@@ -4,6 +4,7 @@ import { AppProvider } from "./context/AppContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Layout } from "./components/Layout";
 import { PublicPageGuard } from "./components/PublicPageGuard";
+import { RequireAdmin } from "./components/RequireAdmin";
 
 const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })));
 const Universe = lazy(() => import("./pages/Universe").then((m) => ({ default: m.Universe })));
@@ -92,7 +93,14 @@ export default function App() {
                 <Route path="auth" element={<AuthPage />} />
               </Route>
 
-              <Route path="/admin" element={<AdminLayout />}>
+              <Route
+                path="/admin"
+                element={
+                  <RequireAdmin>
+                    <AdminLayout />
+                  </RequireAdmin>
+                }
+              >
                 <Route index element={<Dashboard />} />
                 <Route path="reservations" element={<Reservations />} />
                 <Route path="content" element={<ContentManager />} />

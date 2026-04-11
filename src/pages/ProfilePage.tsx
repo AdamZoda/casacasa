@@ -1,11 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext, type Article, type Reservation } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { translations } from "../i18n/translations";
 import { formatMoney } from "../lib/utils";
 import { User, Lock, Globe, Save, CheckCircle2, Camera, Heart, Calendar, Trash2, ArrowRight } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
+
+function findArticleForReservation(articles: Article[], articleId?: string): Article | null {
+  if (!articleId) return null;
+  const id = String(articleId).trim();
+  return articles.find((a) => String(a.id).trim() === id) ?? null;
+}
+
+function reservationDisplayHeading(res: Reservation, article: Article | null): string {
+  const actT = String(res.activity_title ?? "").trim();
+  const storedArticleTitle = res.article_title?.trim();
+  if (storedArticleTitle) {
+    return actT ? `${actT} - ${storedArticleTitle}` : storedArticleTitle;
+  }
+  if (article?.title) {
+    const at = article.title.trim();
+    return actT ? `${actT} - ${at}` : at;
+  }
+  return actT;
+}
 
 export function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -71,6 +90,11 @@ export function ProfilePage() {
     return <Navigate to="/auth" replace />;
   }
 
+  const userEmailNorm = (user.email ?? "").trim().toLowerCase();
+  const myReservations = reservations.filter(
+    (r) => (r.email ?? "").trim().toLowerCase() === userEmailNorm
+  );
+
   return (
     <div className="min-h-screen bg-bg-primary px-4 pb-20 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
       <div className="max-w-5xl mx-auto">
@@ -129,7 +153,7 @@ export function ProfilePage() {
                 activeTab === "reservations" ? "text-brand-gold" : "text-text-primary/40 hover:text-text-primary"
               }`}
             >
-              {t.user.reservations} ({reservations.length})
+              {t.user.reservations} ({myReservations.length})
               {activeTab === "reservations" && (
                 <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-px bg-brand-gold" />
               )}
@@ -350,13 +374,19 @@ export function ProfilePage() {
                 transition={{ duration: 0.4 }}
                 className="space-y-8"
               >
-                {reservations.length > 0 ? (
+                {myReservations.length > 0 ? (
                   <div className="space-y-6">
-                    {reservations.map((res) => {
-                      const article = res.article_id ? articles.find((art: any) => art.id === res.article_id) : null;
+                    {myReservations.map((res) => {
+                      const article = findArticleForReservation(articles, res.article_id);
                       const activity = activities.find((a: any) => a.id === res.activity_id);
                       const image = article?.image || activity?.image;
-                      
+                      const isArticleReservation = !!(
+                        String(res.article_id ?? "").trim() ||
+                        String(res.article_title ?? "").trim()
+                      );
+                      const headingTitle = reservationDisplayHeading(res, article);
+                      const headingAlt = article?.title?.trim() || res.article_title?.trim() || activity?.title;
+
                       return (
                       <div key={res.id} className="flex flex-col p-6 border border-border-primary bg-bg-primary gap-6 rounded-lg hover:border-brand-gold/50 transition-all duration-500">
                         {/* Produit Widget */}
@@ -365,7 +395,7 @@ export function ProfilePage() {
                             <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border border-border-primary/30">
                               <img
                                 src={image}
-                                alt={article?.title || activity?.title}
+                                alt={headingAlt}
                                 className="w-full h-full object-cover"
                               />
                             </div>
@@ -373,10 +403,10 @@ export function ProfilePage() {
                           <div className="flex-grow">
                             <div>
                               <p className="text-[9px] uppercase tracking-widest text-text-primary/40 mb-1">
-                                {article ? "📦 Article Réservé" : "🎭 Expérience"}
+                                {isArticleReservation ? "📦 Article Réservé" : "🎭 Expérience"}
                               </p>
                               <h3 className="text-xl font-serif mb-2">
-                                {res.article_title ? `${res.activity_title} - ${res.article_title}` : res.activity_title}
+                                {headingTitle}
                               </h3>
                             </div>
                             <p className="text-xs tracking-[0.1em] uppercase text-text-primary/40">

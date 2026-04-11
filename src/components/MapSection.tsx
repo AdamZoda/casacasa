@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { MapPin, Filter } from "lucide-react";
 import { getPOIs, POI, POIType, getAllPOITypes } from "../lib/poiDb";
+import { poiToLatLng } from "../lib/geoUtils";
 import { MapView } from "./Map";
 
 export function MapSection() {
@@ -128,6 +129,7 @@ export function MapSection() {
             ) : (
               filteredPois.map((poi) => {
                 const poiType = poiTypes.find((t) => t.id === poi.type_id);
+                const pos = poiToLatLng(poi);
                 return (
                   <motion.button
                     key={poi.id}
@@ -150,7 +152,7 @@ export function MapSection() {
                         <p className="text-xs text-white/60 line-clamp-2 mt-1">{poi.description}</p>
                         <p className="text-[10px] text-white/40 mt-2 flex items-center gap-1">
                           <MapPin size={12} />
-                          {poi.latitude.toFixed(4)}, {poi.longitude.toFixed(4)}
+                          {pos ? `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}` : "—"}
                         </p>
                       </div>
                     </div>
@@ -163,6 +165,7 @@ export function MapSection() {
           {/* Selected POI Details */}
           {selectedPoi && (() => {
             const selectedType = poiTypes.find((t) => t.id === selectedPoi.type_id);
+            const selPos = poiToLatLng(selectedPoi);
             return (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -181,16 +184,21 @@ export function MapSection() {
                   </div>
                 </div>
                 <p className="text-sm text-white/80 mb-3">{selectedPoi.description}</p>
-                <p className="text-xs text-white/50 mb-3">📍 {selectedPoi.latitude.toFixed(6)}, {selectedPoi.longitude.toFixed(6)}</p>
-                <a
-                  href={`https://maps.google.com/?q=${selectedPoi.latitude},${selectedPoi.longitude}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-1 text-xs bg-brand-gold text-black rounded hover:bg-brand-gold/90 transition-colors font-medium"
-                >
-                  <MapPin size={14} />
-                  Ouvrir sur Google Maps
-                </a>
+                <p className="text-xs text-white/50 mb-3">
+                  📍{" "}
+                  {selPos ? `${selPos.lat.toFixed(6)}, ${selPos.lng.toFixed(6)}` : "Coordonnées invalides"}
+                </p>
+                {selPos && (
+                  <a
+                    href={`https://maps.google.com/?q=${selPos.lat},${selPos.lng}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1 text-xs bg-brand-gold text-black rounded hover:bg-brand-gold/90 transition-colors font-medium"
+                  >
+                    <MapPin size={14} />
+                    Ouvrir sur Google Maps
+                  </a>
+                )}
               </motion.div>
             );
           })()}

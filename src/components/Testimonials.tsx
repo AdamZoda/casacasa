@@ -28,16 +28,21 @@ export function Testimonials() {
 
   useEffect(() => {
     const el = railRef.current;
-    if (!el || approvedTestimonials.length <= 1) return;
-    const id = window.setInterval(() => {
-      if (isPaused || isInteracting) return;
-      el.scrollLeft += 0.7;
-      const loopPoint = el.scrollWidth / 2;
-      if (el.scrollLeft >= loopPoint) {
-        el.scrollLeft -= loopPoint;
+    if (!el || approvedTestimonials.length === 0) return;
+
+    let rafId = 0;
+    const step = () => {
+      if (!isPaused && !isInteracting) {
+        el.scrollLeft += 0.55;
+        const loopPoint = el.scrollWidth / 2;
+        if (loopPoint > 0 && el.scrollLeft >= loopPoint) {
+          el.scrollLeft -= loopPoint;
+        }
       }
-    }, 16);
-    return () => window.clearInterval(id);
+      rafId = requestAnimationFrame(step);
+    };
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
   }, [approvedTestimonials.length, isPaused, isInteracting]);
 
   const openCommentModal = () => {
@@ -131,7 +136,7 @@ export function Testimonials() {
           </div>
           <div
             ref={railRef}
-            className="flex min-w-max gap-4 sm:gap-6 overflow-x-auto overscroll-x-contain px-4 sm:px-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex min-w-max gap-4 sm:gap-6 overflow-x-auto overscroll-x-contain px-4 sm:px-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [scroll-behavior:auto] touch-pan-x"
             onPointerDown={() => setIsInteracting(true)}
             onPointerUp={() => setIsInteracting(false)}
             onPointerCancel={() => setIsInteracting(false)}
@@ -140,7 +145,6 @@ export function Testimonials() {
             {loopedTestimonials.map((testimonial, index) => (
               <div
                 key={`${testimonial.id}-${index}`}
-                onClick={() => setIsPaused((p) => !p)}
                 className="w-[250px] sm:w-[320px] md:w-[450px] flex flex-col items-center text-center group relative flex-shrink-0 whitespace-normal rounded-xl border border-white/10 bg-black/20 px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 touch-manipulation"
               >
                 <div className="absolute -top-8 sm:-top-10 left-1/2 -translate-x-1/2 opacity-5 group-hover:opacity-10 transition-opacity duration-700">
