@@ -3,6 +3,7 @@ import { useAppContext, type Activity, type Universe } from "../../context/AppCo
 import { Plus, Trash2, Upload, Loader2, Globe, Pencil } from "lucide-react";
 import { uploadImage } from "../../lib/storage";
 import { AdminPageHeader } from "../../components/admin/adminShared";
+import { ArticlesManager } from "./ArticlesManager";
 
 /** Vignette fixe : évite le décalage du texte quand l’image manque ou est cassée. */
 function MediaThumb({
@@ -55,7 +56,7 @@ export function ContentManager() {
     updateActivity,
     deleteActivity,
   } = useAppContext();
-  const [activeTab, setActiveTab] = useState<"universes" | "activities">("universes");
+  const [activeTab, setActiveTab] = useState<"universes" | "activities" | "articles">("universes");
 
   const [editingUniverse, setEditingUniverse] = useState<Universe | null>(null);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
@@ -77,6 +78,8 @@ export function ContentManager() {
     description: "",
     image: "",
     minAdvanceDays: 0,
+    hasArticles: false,
+    articleDisplayType: "direct" as const,
   });
 
   const handleAddUniverse = async (e: React.FormEvent) => {
@@ -147,6 +150,8 @@ export function ContentManager() {
         image: newActivity.image,
         description: newActivity.description,
         minAdvanceDays: newActivity.minAdvanceDays,
+        hasArticles: newActivity.hasArticles,
+        articleDisplayType: newActivity.articleDisplayType,
       });
       setEditingActivity(null);
     } else {
@@ -159,6 +164,8 @@ export function ContentManager() {
         image: newActivity.image,
         description: newActivity.description,
         minAdvanceDays: newActivity.minAdvanceDays,
+        hasArticles: newActivity.hasArticles,
+        articleDisplayType: newActivity.articleDisplayType,
       });
     }
     setNewActivity({
@@ -169,6 +176,8 @@ export function ContentManager() {
       description: "",
       image: "",
       minAdvanceDays: 0,
+      hasArticles: false,
+      articleDisplayType: "direct",
     });
   };
 
@@ -207,6 +216,17 @@ export function ContentManager() {
           }`}
         >
           Activités
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("articles")}
+          className={`shrink-0 px-5 py-3 text-[11px] uppercase tracking-[0.2em] font-black transition-colors border-b-2 -mb-px ${
+            activeTab === "articles"
+              ? "text-brand-gold border-brand-gold"
+              : "text-text-primary/50 border-transparent hover:text-text-primary"
+          }`}
+        >
+          Articles
         </button>
       </div>
 
@@ -486,6 +506,48 @@ export function ContentManager() {
                 required
               />
 
+              {/* Article Display Mode */}
+              <div className="space-y-3 p-4 border border-brand-gold/20 rounded-lg bg-brand-gold/5">
+                <label className="text-[10px] uppercase tracking-widest text-text-primary/45 font-bold block">
+                  Mode d'affichage
+                </label>
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 p-3 border border-border-primary rounded-lg cursor-pointer hover:bg-text-primary/[0.04] transition-colors">
+                    <input
+                      type="radio"
+                      name="displayType"
+                      value="direct"
+                      checked={newActivity.articleDisplayType === "direct"}
+                      onChange={(e) => setNewActivity({ ...newActivity, articleDisplayType: e.target.value as "direct", hasArticles: false })}
+                      className="w-4 h-4"
+                    />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium">Réservable directement</span>
+                      <p className="text-xs text-text-primary/55">Réservation classique de l'activité</p>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-2 p-3 border border-border-primary rounded-lg cursor-pointer hover:bg-text-primary/[0.04] transition-colors">
+                    <input
+                      type="radio"
+                      name="displayType"
+                      value="articles_only"
+                      checked={newActivity.articleDisplayType === "articles_only"}
+                      onChange={(e) => setNewActivity({ ...newActivity, articleDisplayType: e.target.value as "articles_only", hasArticles: true })}
+                      className="w-4 h-4"
+                    />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium">Contient des articles</span>
+                      <p className="text-xs text-text-primary/55">Affiche une liste d'articles à réserver</p>
+                    </div>
+                  </label>
+                </div>
+                {newActivity.hasArticles && (
+                  <p className="text-xs text-text-primary/60 pt-2 border-t border-border-primary">
+                    💡 Après création, utilisez l'onglet "Articles" pour ajouter les articles de cette activité.
+                  </p>
+                )}
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 {editingActivity ? (
                   <button
@@ -549,6 +611,8 @@ export function ContentManager() {
                           description: a.description,
                           image: a.image,
                           minAdvanceDays: a.minAdvanceDays || 0,
+                          hasArticles: a.hasArticles || false,
+                          articleDisplayType: a.articleDisplayType || "direct",
                         });
                       }}
                       className="p-2.5 rounded-lg text-text-primary/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"
@@ -572,6 +636,10 @@ export function ContentManager() {
             </div>
           </div>
         </div>
+      )}
+
+      {activeTab === "articles" && (
+        <ArticlesManager />
       )}
     </div>
   );

@@ -78,6 +78,9 @@ export function GlobalServiceManager() {
       description: formData.get("description") as string,
       image: (document.getElementById("add-service-image") as HTMLInputElement)?.value || (formData.get("image") as string),
       link: formData.get("link") as string,
+      type: formData.get("type") as string || undefined,
+      latitude: formData.get("latitude") ? parseFloat(formData.get("latitude") as string) : undefined,
+      longitude: formData.get("longitude") ? parseFloat(formData.get("longitude") as string) : undefined,
     };
     await addGlobalService(newService);
     setShowAddForm(false);
@@ -140,6 +143,14 @@ export function GlobalServiceManager() {
                 <Globe size={16} className="text-brand-gold/40 shrink-0" aria-hidden />
               </div>
               <p className="text-sm text-text-primary/60 font-light leading-relaxed min-h-[60px]">{service.description}</p>
+              {(service.type || service.latitude) && (
+                <div className="text-xs text-text-primary/50 space-y-1">
+                  {service.type && <p>📂 {service.type}</p>}
+                  {service.latitude && service.longitude && (
+                    <p>📍 {service.latitude.toFixed(4)}, {service.longitude.toFixed(4)}</p>
+                  )}
+                </div>
+              )}
               <div className="pt-4 border-t border-border-primary/50 flex justify-between items-center gap-3">
                 <span className="text-[9px] uppercase tracking-widest text-brand-gold font-bold truncate" title={service.link}>
                   Cible : {service.link}
@@ -233,6 +244,40 @@ export function GlobalServiceManager() {
                           className="admin-input w-full p-4 text-sm"
                           placeholder="/contact"
                         />
+                      </div>
+                      <div>
+                        <label className="text-[9px] uppercase tracking-widest text-text-primary/40 mb-2 block font-bold">Type/Catégorie</label>
+                        <input
+                          type="text"
+                          value={editForm.type || ""}
+                          onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
+                          className="admin-input w-full p-4 text-sm"
+                          placeholder="ex. restaurant, activité, boutique"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[9px] uppercase tracking-widest text-text-primary/40 mb-2 block font-bold">Latitude</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={editForm.latitude || ""}
+                            onChange={(e) => setEditForm({ ...editForm, latitude: e.target.value ? parseFloat(e.target.value) : undefined })}
+                            className="admin-input w-full p-4 text-sm"
+                            placeholder="33.5731"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] uppercase tracking-widest text-text-primary/40 mb-2 block font-bold">Longitude</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={editForm.longitude || ""}
+                            onChange={(e) => setEditForm({ ...editForm, longitude: e.target.value ? parseFloat(e.target.value) : undefined })}
+                            className="admin-input w-full p-4 text-sm"
+                            placeholder="-7.5898"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -337,6 +382,38 @@ export function GlobalServiceManager() {
                       Lien de redirection
                     </label>
                     <input name="link" required className="admin-input w-full p-5 text-sm" placeholder="/contact" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-widest text-text-primary/40 mb-3 block font-bold">
+                      Type/Catégorie
+                    </label>
+                    <input name="type" className="admin-input w-full p-5 text-sm" placeholder="ex. restaurant, activité, boutique" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest text-text-primary/40 mb-3 block font-bold">
+                        Latitude (optionnel)
+                      </label>
+                      <input
+                        type="number"
+                        name="latitude"
+                        step="any"
+                        className="admin-input w-full p-5 text-sm"
+                        placeholder="33.5731"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest text-text-primary/40 mb-3 block font-bold">
+                        Longitude (optionnel)
+                      </label>
+                      <input
+                        type="number"
+                        name="longitude"
+                        step="any"
+                        className="admin-input w-full p-5 text-sm"
+                        placeholder="-7.5898"
+                      />
+                    </div>
                   </div>
                 </div>
 

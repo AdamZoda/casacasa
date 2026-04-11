@@ -8,6 +8,7 @@ import {
   type SiteSettings,
   type SiteSettingsRow,
 } from '../lib/siteSettingsDb';
+import { fetchExchangeRates, type Currency, type ExchangeRates, DEFAULT_EXCHANGE_RATES } from '../lib/utils';
 import {
   activityToRow,
   dbRowToReservation,
@@ -45,6 +46,9 @@ export interface Reservation {
   status: 'pending' | 'confirmed' | 'cancelled';
   channel: 'web' | 'whatsapp';
   message?: string;
+  article_id?: string;
+  article_title?: string;
+  price_type?: 'fixed' | 'per_duration';
   created_at: string;
 }
 
@@ -58,6 +62,19 @@ export interface Universe {
   gallery: string[];
 }
 
+export interface Article {
+  id: string;
+  activityId: string;
+  title: string;
+  image: string;
+  description: string;
+  priceType: 'fixed' | 'per_duration';
+  price?: number;
+  durationUnit?: 'day' | 'night';
+  pricePerUnit?: number;
+  availabilityCount?: number;
+}
+
 export interface Activity {
   id: string;
   universeId: string;
@@ -67,6 +84,9 @@ export interface Activity {
   image: string;
   description: string;
   minAdvanceDays?: number;
+  hasArticles?: boolean;
+  articleDisplayType?: 'direct' | 'articles_only';
+  articles?: Article[];
 }
 
 export interface Product {
@@ -140,6 +160,9 @@ export interface GlobalService {
   description: string;
   image: string;
   link: string;
+  type?: string; // Categorie: restaurant, shop, activity, etc.
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Order {
@@ -189,6 +212,12 @@ interface AppContextType {
   updateActivity: (a: Activity) => void;
   deleteActivity: (id: string) => void;
 
+  articles: Article[];
+  addArticle: (a: Article) => void;
+  updateArticle: (a: Article) => void;
+  deleteArticle: (id: string) => void;
+  getArticlesByActivityId: (activityId: string) => Article[];
+
   products: Product[];
   addProduct: (p: Product) => void;
   updateProduct: (p: Product) => void;
@@ -223,6 +252,11 @@ interface AppContextType {
 
   favorites: string[];
   toggleFavorite: (id: string) => void;
+
+  currency: Currency;
+  setCurrency: (currency: Currency) => void;
+  exchangeRates: ExchangeRates;
+  refreshExchangeRates: () => Promise<void>;
 
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -278,6 +312,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [ticketMessages, setTicketMessages] = useState<TicketMessage[]>([]);
   const [universes, setUniverses] = useState<Universe[]>(initUniverses);
   const [activities, setActivities] = useState<Activity[]>(initActivities);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [products, setProducts] = useState<Product[]>(initProducts);
   const [journalPosts, setJournalPosts] = useState<JournalPost[]>(initialJournalPosts);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([
@@ -293,7 +328,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     socialLinks: { instagram: [], facebook: [], linkedin: [], youtube: [] },
     maintenanceMode: false,
     heroBackgroundUrl: '',
-    heroTitle: '', heroSubtitle: '', heroCta: '', brandGoldColor: '#E5A93A', whatsappNumbers: [], logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: [],
+    heroTitle: '', heroSubtitle: '', heroCta: '', brandGoldColor: '#E5A93A', whatsappNumbers: [], logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: [], blockWeekends: false,
     bankName: '',
     bankBeneficiary: 'COMANE EXCELLENCE SARL',
     bankRib: '',
@@ -319,8 +354,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
     }
   });
+  const [settingsRowId, setSettingsRowId] = useState<number | null>(null);
   const [cart, setCart] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [currency, setCurrency] = useState<Currency>('MAD');
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRates>(DEFAULT_EXCHANGE_RATES);
   const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState<Theme>('dark');
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -332,8 +370,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   useEffect(() => {
+    const storedCurrency = localStorage.getItem('currency') as Currency | null;
+    if (storedCurrency === 'MAD' || storedCurrency === 'EUR' || storedCurrency === 'USD') {
+      setCurrency(storedCurrency);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('currency', currency);
+  }, [currency]);
+
+  const refreshExchangeRates = useCallback(async () => {
+    const rates = await fetchExchangeRates('MAD');
+    setExchangeRates(rates);
+  }, []);
+
+  useEffect(() => {
+    void refreshExchangeRates();
+  }, [refreshExchangeRates]);
+
+  useEffect(() => {
     const body = document.body;
-    body.classList.remove('font-style-original', 'font-style-playfair', 'font-style-kiona');
+    body.classList.remove('font-style-original', 'font-style-playfair', 'font-style-kiona', 'font-style-riona');
     body.classList.add(`font-style-${settings.fontStyle}`);
     console.log('✅ Font style applied:', `font-style-${settings.fontStyle}`);
   }, [settings.fontStyle]);
@@ -362,9 +420,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      const { data: sData, error: sErr } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
+      const { data: sData, error: sErr } = await supabase
+        .from('site_settings')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       if (sErr) console.warn('[Supabase] site_settings:', sErr.message);
       else if (sData) {
+        setSettingsRowId((sData as SiteSettingsRow).id ?? null);
         setSettings((prev) => dbRowToSiteSettings(sData as SiteSettingsRow, prev));
       }
 
@@ -377,6 +441,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const [
         uRes,
         aRes,
+        artRes,
         pRes,
         jRes,
         rRes,
@@ -387,6 +452,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ] = await Promise.all([
         supabase.from('universes').select('*'),
         supabase.from('activities').select('*'),
+        supabase.from('articles').select('*'),
         supabase.from('products').select('*'),
         supabase.from('journal_posts').select('*'),
         supabase.from('reservations').select('*').order('created_at', { ascending: false }),
@@ -401,6 +467,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (aRes.error) console.warn('[Supabase] activities:', aRes.error.message);
       else if (aRes.data?.length) setActivities(aRes.data.map((row) => rowToActivity(row)));
+
+      if (artRes.error) console.warn('[Supabase] articles:', artRes.error.message);
+      else if (artRes.data?.length) {
+        const mappedArticles = artRes.data.map((row: any) => ({
+          id: row.id,
+          activityId: row.activity_id,
+          title: row.title,
+          image: row.image,
+          description: row.description,
+          priceType: row.price_type,
+          price: row.price,
+          durationUnit: row.duration_unit,
+          pricePerUnit: row.price_per_unit,
+          availabilityCount: row.availability_count,
+        }));
+        setArticles(mappedArticles);
+      } else {
+        setArticles([]);
+      }
 
       if (pRes.error) console.warn('[Supabase] products:', pRes.error.message);
       else if (pRes.data?.length) setProducts(pRes.data.map((row) => rowToProduct(row)));
@@ -556,6 +641,52 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (error) console.error('[Supabase] activities delete:', error.message);
   };
 
+  const addArticle = async (a: Article) => {
+    setArticles((prev) => [...prev, a]);
+    const row = {
+      id: a.id,
+      activity_id: a.activityId,
+      title: a.title,
+      image: a.image,
+      description: a.description,
+      price_type: a.priceType,
+      price: a.price,
+      duration_unit: a.durationUnit,
+      price_per_unit: a.pricePerUnit,
+      availability_count: a.availabilityCount,
+    };
+    const { error } = await supabase.from('articles').insert([row]);
+    if (error) console.error('[Supabase] articles insert:', error.message);
+  };
+
+  const updateArticle = async (a: Article) => {
+    setArticles((prev) => prev.map((i) => (i.id === a.id ? a : i)));
+    const row = {
+      id: a.id,
+      activity_id: a.activityId,
+      title: a.title,
+      image: a.image,
+      description: a.description,
+      price_type: a.priceType,
+      price: a.price,
+      duration_unit: a.durationUnit,
+      price_per_unit: a.pricePerUnit,
+      availability_count: a.availabilityCount,
+    };
+    const { error } = await supabase.from('articles').update(row).eq('id', a.id);
+    if (error) console.error('[Supabase] articles update:', error.message);
+  };
+
+  const deleteArticle = async (id: string) => {
+    setArticles((prev) => prev.filter((x) => x.id !== id));
+    const { error } = await supabase.from('articles').delete().eq('id', id);
+    if (error) console.error('[Supabase] articles delete:', error.message);
+  };
+
+  const getArticlesByActivityId = (activityId: string) => {
+    return articles.filter((a) => a.activityId === activityId);
+  };
+
   const addProduct = async (p: Product) => {
     setProducts((prev) => [...prev, p]);
     const { error } = await supabase.from('products').insert(productToRow(p));
@@ -633,15 +764,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateSettings = async (s: SiteSettings) => {
     console.log('📝 Updating settings with fontStyle:', s.fontStyle);
-    setSettings(s);
-    const row = siteSettingsToDbRow(s);
+    const rowId = settingsRowId ?? 1;
+    const row = siteSettingsToDbRow(s, rowId);
     console.log('📊 Upserting to Supabase:', row);
-    const { error } = await supabase.from('site_settings').upsert(row, { onConflict: 'id' });
+    let { error } = await supabase.from('site_settings').upsert(row, { onConflict: 'id' });
+
+    if (error) {
+      const missingColumn = /Could not find the 'block_weekends' column/i.test(error.message);
+      if (missingColumn) {
+        const retryRow = { ...row };
+        delete (retryRow as any).block_weekends;
+        console.warn('[Supabase] block_weekends column missing, retrying without it.');
+        const retry = await supabase.from('site_settings').upsert(retryRow, { onConflict: 'id' });
+        error = retry.error;
+      }
+    }
+
     if (error) {
       console.error('[Supabase] site_settings:', error.message, error);
-    } else {
-      console.log('✅ Settings saved successfully to Supabase');
+      return;
     }
+
+    setSettings(s);
+    console.log('✅ Settings saved successfully to Supabase');
   };
 
   const addToCart = (p: Product) => setCart(prev => [...prev, p]);
@@ -663,6 +808,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ticketMessages, addTicketMessage, fetchTicketMessages,
       universes, addUniverse, updateUniverse, deleteUniverse,
       activities, addActivity, updateActivity, deleteActivity,
+      articles, addArticle, updateArticle, deleteArticle, getArticlesByActivityId,
       products, addProduct, updateProduct, deleteProduct,
       journalPosts, addJournalPost, updateJournalPost, deleteJournalPost,
       testimonials, addTestimonial, updateTestimonial, deleteTestimonial,
@@ -671,6 +817,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       settings, updateSettings,
       cart, addToCart, removeFromCart,
       favorites, toggleFavorite,
+      currency, setCurrency, exchangeRates, refreshExchangeRates,
       searchQuery, setSearchQuery,
       profiles, deleteProfile,
       theme, toggleTheme,

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 import {
   Save,
@@ -115,9 +116,17 @@ export function SettingsView() {
   const [saved, setSaved] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  const location = useLocation();
+
   useEffect(() => {
     setFormData(settings);
   }, [settings]);
+
+  useEffect(() => {
+    if (location.pathname.endsWith("/about")) {
+      setActiveTab("about");
+    }
+  }, [location.pathname]);
 
   const handleSubmit = () => {
     void updateSettings(formData);
@@ -316,6 +325,39 @@ export function SettingsView() {
                       placeholder="https://..."
                       className="admin-input w-full py-3.5 px-4 text-sm"
                     />
+                    <label className="mt-4 flex min-h-[10rem] cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border-primary bg-text-primary/[0.03] transition-colors hover:border-brand-gold/40 hover:bg-brand-gold/[0.04]">
+                      {isUploading ? (
+                        <Loader2 size={28} className="animate-spin text-brand-gold" aria-hidden />
+                      ) : (
+                        <Upload size={28} className="text-text-primary/25" aria-hidden />
+                      )}
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-text-primary/40">
+                        {isUploading ? "Envoi…" : "Choisir un fichier pour About"}
+                      </span>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setIsUploading(true);
+                          try {
+                            const url = await uploadImage(file);
+                            setFormData({ ...formData, about: { ...formData.about, imageUrl: url } });
+                          } catch {
+                            alert("Erreur d’envoi de l’image.");
+                          } finally {
+                            setIsUploading(false);
+                          }
+                        }}
+                      />
+                    </label>
+                    {formData.about.imageUrl && (
+                      <div className="mt-4 overflow-hidden rounded-xl border border-border-primary bg-black/10">
+                        <img src={formData.about.imageUrl} alt="Aperçu About" className="h-56 w-full object-cover" />
+                      </div>
+                    )}
                   </div>
                   <div className="md:col-span-2">
                     <label className={labelClass}>Notre histoire</label>
@@ -334,6 +376,69 @@ export function SettingsView() {
                       rows={4}
                       className="admin-input w-full py-3.5 px-4 text-sm"
                     />
+                  </div>
+                  <div className="md:col-span-2">
+                    <div className="border-t border-border-primary/30 pt-6">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-text-primary/45 font-bold mb-4">Réseaux officiels</p>
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                          <label className={labelClass}>Instagram</label>
+                          <StringListEditor
+                            items={formData.socialLinks.instagram}
+                            onChange={(instagram) =>
+                              setFormData({
+                                ...formData,
+                                socialLinks: { ...formData.socialLinks, instagram },
+                              })
+                            }
+                            placeholder="https://instagram.com/…"
+                            addLabel="Ajouter un Instagram"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelClass}>Facebook</label>
+                          <StringListEditor
+                            items={formData.socialLinks.facebook}
+                            onChange={(facebook) =>
+                              setFormData({
+                                ...formData,
+                                socialLinks: { ...formData.socialLinks, facebook },
+                              })
+                            }
+                            placeholder="https://facebook.com/…"
+                            addLabel="Ajouter un Facebook"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelClass}>LinkedIn</label>
+                          <StringListEditor
+                            items={formData.socialLinks.linkedin}
+                            onChange={(linkedin) =>
+                              setFormData({
+                                ...formData,
+                                socialLinks: { ...formData.socialLinks, linkedin },
+                              })
+                            }
+                            placeholder="https://linkedin.com/…"
+                            addLabel="Ajouter un LinkedIn"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelClass}>YouTube</label>
+                          <StringListEditor
+                            items={formData.socialLinks.youtube}
+                            onChange={(youtube) =>
+                              setFormData({
+                                ...formData,
+                                socialLinks: { ...formData.socialLinks, youtube },
+                              })
+                            }
+                            placeholder="https://youtube.com/…"
+                            addLabel="Ajouter un YouTube"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -433,7 +538,7 @@ export function SettingsView() {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        fontStyle: e.target.value as "original" | "playfair" | "kiona",
+                        fontStyle: e.target.value as "original" | "playfair" | "kiona" | "riona",
                       })
                     }
                     className="admin-input py-3.5 px-4 text-sm min-h-[2.75rem]"
@@ -441,6 +546,7 @@ export function SettingsView() {
                     <option value="original">Original (Inter)</option>
                     <option value="playfair">Playfair Display (Luxury)</option>
                     <option value="kiona">Kiona Regular</option>
+                    <option value="riona">Riona</option>
                   </select>
                 </div>
               </div>
@@ -893,6 +999,21 @@ export function SettingsView() {
                     <ShieldCheck size={22} strokeWidth={1.25} aria-hidden />
                   </div>
                   <h3 className="text-xl md:text-2xl font-serif">Dates bloquées (calendrier)</h3>
+                </div>
+
+                <div className="flex flex-col gap-3 border-b border-border-primary/20 pb-4">
+                  <label className="inline-flex items-center gap-3 text-sm font-semibold text-text-primary">
+                    <input
+                      type="checkbox"
+                      checked={formData.blockWeekends || false}
+                      onChange={() => setFormData({ ...formData, blockWeekends: !formData.blockWeekends })}
+                      className="h-4 w-4 rounded border-border-primary text-brand-gold focus:ring-brand-gold"
+                    />
+                    Bloquer les week-ends automatiquement
+                  </label>
+                  <p className="text-xs text-text-primary/60">
+                    Lorsque cette option est activée, les samedis et dimanches sont automatiquement marqués comme non réservables.
+                  </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">

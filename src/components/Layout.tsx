@@ -12,7 +12,7 @@ import { isPathHidden, LAYOUT_NAV_LINKS } from "../lib/hiddenPages";
 
 export function Layout() {
   const location = useLocation();
-  const { cart, theme, toggleTheme, language, setLanguage, settings } = useAppContext();
+  const { cart, theme, toggleTheme, language, setLanguage, currency, setCurrency, settings } = useAppContext();
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -118,6 +118,14 @@ export function Layout() {
             </button>
             <button
               type="button"
+              onClick={() => setCurrency(currency === 'MAD' ? 'USD' : currency === 'USD' ? 'EUR' : 'MAD')}
+              className="inline-flex h-10 min-w-10 items-center justify-center rounded-lg px-2 text-[10px] font-semibold tracking-widest transition-colors hover:text-brand-gold active:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold touch-manipulation"
+              aria-label="Changer la devise"
+            >
+              {currency}
+            </button>
+            <button
+              type="button"
               onClick={toggleTheme}
               className="inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:text-brand-gold active:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold touch-manipulation"
               aria-label={theme === "light" ? (language === "fr" ? "Mode sombre" : "Dark mode") : language === "fr" ? "Mode clair" : "Light mode"}
@@ -180,6 +188,15 @@ export function Layout() {
                 EN
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrency(currency === 'MAD' ? 'USD' : currency === 'USD' ? 'EUR' : 'MAD')}
+              className="hidden sm:inline-flex min-h-10 min-w-10 items-center justify-center rounded-md px-3 text-[10px] font-semibold tracking-widest transition-colors hover:text-brand-gold active:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold touch-manipulation text-brand-gold"
+              aria-label="Changer la devise"
+            >
+              {currency}
+            </button>
 
             <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
               <button

@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { useAppContext } from "../context/AppContext";
+import { formatMoney } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
 import { CheckCircle2, MessageCircle, Globe, ChevronLeft, Upload, FileText, ShieldCheck } from "lucide-react";
@@ -36,7 +37,7 @@ const COUNTRIES = [
 
 export function CheckoutFlow() {
   const navigate = useNavigate();
-  const { cart, addOrder, settings } = useAppContext();
+  const { cart, addOrder, settings, currency, exchangeRates } = useAppContext();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [formData, setFormData] = useState({
@@ -142,14 +143,14 @@ export function CheckoutFlow() {
     }
 
     const whatsappNumber = primaryWhatsappDigits(settings) || "212661000000";
-    const itemsList = cart.map(item => `• *${item.title}* - ${item.price} MAD`).join('\n');
+    const itemsList = cart.map(item => `• *${item.title}* - ${formatMoney(item.price, currency, exchangeRates)}`).join('\n');
     
     // ✅ SÉCURITÉ: Utiliser sanitizeName, sanitizeEmail, sanitizePhone
     const safeName = sanitizeName(formData.name);
     const safeEmail = sanitizeEmail(formData.email);
     const safePhone = sanitizePhone(formData.phone);
     
-    let messageText = `Bonjour Casa Privilege,\n\n*Je souhaite régler ma commande*\n\n*Articles:*\n${itemsList}\n\n*Client:*\nNom: ${safeName}\nEmail: ${safeEmail}\nTéléphone: ${formData.phoneCode} ${safePhone}\nPays: ${formData.country}\n\n*Total: ${total.toLocaleString()} MAD*\n\n_Demande générée via Casa Privilege Store_`;
+    let messageText = `Bonjour Casa Privilege,\n\n*Je souhaite régler ma commande*\n\n*Articles:*\n${itemsList}\n\n*Client:*\nNom: ${safeName}\nEmail: ${safeEmail}\nTéléphone: ${formData.phoneCode} ${safePhone}\nPays: ${formData.country}\n\n*Total: ${formatMoney(total, currency, exchangeRates)}*\n\n_Demande générée via Casa Privilege Store_`;
     
     // ✅ SÉCURITÉ: Nettoyer le message avant envoi
     messageText = sanitizeWhatsappMessage(messageText);
@@ -334,13 +335,13 @@ export function CheckoutFlow() {
                         <p className="font-light text-sm">{item.title}</p>
                         <p className="text-[9px] uppercase tracking-widest text-text-primary/40">{item.category}</p>
                       </div>
-                      <p className="font-black text-brand-gold">{item.price} MAD</p>
+                      <p className="font-black text-brand-gold">{formatMoney(item.price, currency, exchangeRates)}</p>
                     </div>
                   ))}
                 </div>
                 <div className="flex justify-between items-center py-4 px-4 bg-brand-gold/10 border border-brand-gold/50 rounded font-black">
                   <span>TOTAL</span>
-                  <span className="text-lg text-brand-gold">{total.toLocaleString()} MAD</span>
+                  <span className="text-lg text-brand-gold">{formatMoney(total, currency, exchangeRates)}</span>
                 </div>
               </div>
 
@@ -389,7 +390,7 @@ export function CheckoutFlow() {
                       <p className="font-light">{item.title}</p>
                       <p className="text-[9px] uppercase tracking-widest text-text-primary/40">{item.category}</p>
                     </div>
-                    <p className="font-black text-brand-gold text-sm">{item.price} MAD</p>
+                    <p className="font-black text-brand-gold text-sm">{formatMoney(item.price, currency, exchangeRates)}</p>
                   </div>
                 ))}
               </div>
@@ -398,12 +399,12 @@ export function CheckoutFlow() {
               <div className="border border-border-primary p-8 space-y-4">
                 <div className="flex justify-between py-3 border-b border-border-primary/50">
                   <span className="text-text-primary/60 text-[11px] uppercase tracking-[0.2em]">Sous-total</span>
-                  <span className="font-black">{total.toLocaleString()} MAD</span>
+                  <span className="font-black">{formatMoney(total, currency, exchangeRates)}</span>
                 </div>
                 
                 <div className="flex justify-between py-4 bg-text-primary/[0.02] px-4">
                   <span className="text-text-primary/80 text-[11px] uppercase tracking-[0.2em] font-black">Total</span>
-                  <span className="text-2xl font-black">{total.toLocaleString()} MAD</span>
+                  <span className="text-2xl font-black">{formatMoney(total, currency, exchangeRates)}</span>
                 </div>
               </div>
             </div>
@@ -470,7 +471,7 @@ export function CheckoutFlow() {
               )}
               <div className="flex justify-between items-center pt-4 border-t border-border-primary/50">
                 <span className="text-[10px] uppercase tracking-[0.2em] font-black text-text-primary/60">Montant</span>
-                <span className="text-2xl font-black text-brand-gold">{total.toLocaleString()} MAD</span>
+                <span className="text-2xl font-black text-brand-gold">{formatMoney(total, currency, exchangeRates)}</span>
               </div>
             </div>
 
@@ -481,13 +482,13 @@ export function CheckoutFlow() {
                 {cart.map((item, idx) => (
                   <div key={`${item.id}-${idx}`} className="flex justify-between text-sm">
                     <span className="font-light">{item.title}</span>
-                    <span className="text-brand-gold font-black">{item.price} MAD</span>
+                    <span className="text-brand-gold font-black">{formatMoney(item.price, currency, exchangeRates)}</span>
                   </div>
                 ))}
               </div>
               <div className="pt-4 border-t border-border-primary/50 flex justify-between font-black">
                 <span>TOTAL</span>
-                <span className="text-lg text-brand-gold">{total.toLocaleString()} MAD</span>
+                <span className="text-lg text-brand-gold">{formatMoney(total, currency, exchangeRates)}</span>
               </div>
             </div>
 
@@ -550,7 +551,7 @@ export function CheckoutFlow() {
             <div className="space-y-3 py-8 px-6 bg-text-primary/[0.02] border border-border-primary rounded-lg">
               <div className="flex justify-between items-center">
                 <span className="text-text-primary/60 text-[11px] uppercase tracking-[0.2em] font-black">Montant Payé</span>
-                <span className="text-2xl font-black text-brand-gold">{total.toLocaleString()} MAD</span>
+                <span className="text-2xl font-black text-brand-gold">{formatMoney(total, currency, exchangeRates)}</span>
               </div>
               <div className="flex justify-between items-center pt-4 border-t border-border-primary/50">
                 <span className="text-text-primary/60 text-[11px] uppercase tracking-[0.2em] font-black">Email</span>

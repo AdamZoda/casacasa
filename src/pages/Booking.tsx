@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { format, addDays, getDaysInMonth, startOfMonth, getDay, isBefore, isAfter, startOfDay, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useAppContext } from "../context/AppContext";
+import { formatMoney } from "../lib/utils";
 import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
 import { supabase } from "../lib/supabase";
 import { CheckCircle2, MessageCircle, Globe, ChevronLeft, ChevronRight, Users as UsersIcon, MapPin, Copy, Upload, FileText, ShieldCheck } from "lucide-react";
@@ -26,12 +27,13 @@ const COUNTRIES = [
 ];
 
 export function Booking() {
-  const { universeId, activityId } = useParams<{ universeId: string, activityId: string }>();
+  const { universeId, activityId, articleId } = useParams<{ universeId: string, activityId: string, articleId?: string }>();
   const navigate = useNavigate();
-  const { addReservation, universes, activities, settings } = useAppContext();
+  const { addReservation, universes, activities, articles, settings, currency, exchangeRates, getArticlesByActivityId } = useAppContext();
   
   const universe = universes.find(u => u.id === universeId);
   const activity = activities.find(a => a.id === activityId);
+  const article = articleId ? articles.find(ar => ar.id === articleId) : null;
 
   const minDays = activity?.minAdvanceDays || 0;
   const minDate = addDays(startOfDay(new Date()), minDays);
@@ -52,6 +54,42 @@ export function Booking() {
     peopleCount: 1,
     receipt_base64: null as string | null,
   });
+  const [dateTimeError, setDateTimeError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+
+  const isSelectedDateTimeInPast = () => {
+    if (!formData.startDate || !formData.time) return false;
+    const [hour = 0, minute = 0] = formData.time.split(':').map(Number);
+    const selectedDateTime = new Date(
+      formData.startDate.getFullYear(),
+      formData.startDate.getMonth(),
+      formData.startDate.getDate(),
+      hour,
+      minute,
+      0,
+      0,
+    );
+    return isBefore(selectedDateTime, new Date());
+  };
+
+  const isSequentialPhonePattern = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length < 5) return false;
+
+    const isSequential = (segment: string) => {
+      const numbers = segment.split('').map(Number);
+      const ascending = numbers.every((digit, index) => index === 0 || digit === numbers[index - 1] + 1);
+      const descending = numbers.every((digit, index) => index === 0 || digit === numbers[index - 1] - 1);
+      const allSame = numbers.every((digit) => digit === numbers[0]);
+      return ascending || descending || allSame;
+    };
+
+    for (let i = 0; i <= digits.length - 5; i += 1) {
+      if (isSequential(digits.slice(i, i + 5))) return true;
+    }
+
+    return false;
+  };
 
   // Charger les infos du profil utilisateur loggé
   useEffect(() => {
@@ -88,11 +126,36 @@ export function Booking() {
     return parseInt(match.join(''), 10);
   };
 
-  const dailyPrice = getNumericPrice(activity?.price);
+  // Calculate price based on article or activity
+  let dailyPrice = 0;
+  let priceType: 'fixed' | 'per_duration' = 'per_duration';
+  let durationUnit = 'day';
+
+  if (article) {
+    priceType = article.priceType;
+    durationUnit = article.durationUnit || 'day';
+    if (priceType === 'fixed') {
+      dailyPrice = article.price || 0;
+    } else {
+      dailyPrice = article.pricePerUnit || 0;
+    }
+  } else {
+    dailyPrice = getNumericPrice(activity?.price);
+  }
+
   const durationInDays = formData.startDate && formData.endDate 
     ? Math.max(1, Math.floor((formData.endDate.getTime() - formData.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
     : 0;
-  const totalPrice = dailyPrice * durationInDays * formData.peopleCount;
+  
+  // Calculate total price based on price type
+  let totalPrice = 0;
+  if (article && priceType === 'fixed') {
+    // Fixed price: price × people (no duration multiplier)
+    totalPrice = dailyPrice * formData.peopleCount;
+  } else {
+    // Per duration: price × days × people
+    totalPrice = dailyPrice * durationInDays * formData.peopleCount;
+  }
 
   if (!universe || !activity) {
     return <Navigate to="/" replace />;
@@ -100,6 +163,17 @@ export function Booking() {
 
   const handleNext = (e: FormEvent) => {
     e.preventDefault();
+
+    if (step === 1 && isSelectedDateTimeInPast()) {
+      setDateTimeError("L'heure sélectionnée est déjà passée pour cette date. Choisissez une heure ultérieure ou un autre jour.");
+      return;
+    }
+
+    if (step === 2 && phoneError) {
+      return;
+    }
+
+    setDateTimeError(null);
     setStep(prev => (prev + 1) as any);
   };
 
@@ -121,16 +195,30 @@ export function Booking() {
         total_price: totalPrice,
         contact: `${formData.phoneCode} ${formData.phone}`,
         message: formData.message,
-        channel
+        channel,
+        article_id: article?.id,
+        article_title: article?.title,
+        price_type: priceType,
       });
 
       const whatsappNumber = primaryWhatsappDigits(settings) || "212661000000";
-      const activityPrice = dailyPrice ? `\n*Tarif :* ${totalPrice.toLocaleString()} ${activity.price?.includes('DH') ? 'DH' : '€'} (${dailyPrice.toLocaleString()} x ${durationInDays} jours)` : '';
-      const activityImage = activity.image ? `\n*Aperçu :* ${activity.image}` : '';
+      
+      // Format price message based on article or activity
+      let activityPrice = '';
+      if (dailyPrice) {
+        if (article && priceType === 'fixed') {
+          activityPrice = `\n*Tarif :* ${formatMoney(totalPrice, currency, exchangeRates)} (${formatMoney(dailyPrice, currency, exchangeRates)} x ${formData.peopleCount} pers)`;
+        } else {
+          activityPrice = `\n*Tarif :* ${formatMoney(totalPrice, currency, exchangeRates)} (${formatMoney(dailyPrice, currency, exchangeRates)} x ${durationInDays} ${durationInDays > 1 ? durationUnit === 'night' ? 'nuits' : 'jours' : durationUnit === 'night' ? 'nuit' : 'jour'})`;
+        }
+      }
+      
+      const activityImage = (article?.image || activity.image) ? `\n*Aperçu :* ${article?.image || activity.image}` : '';
+      const articleDisplay = article ? `\n📦 *Article :* ${article.title}` : '';
       
       const messageText = `✨ *DÉTAILS DE LA RÉSERVATION* ✨
 ---------------------------------------
-🏛️ *Activité :* ${activity.title}
+🏛️ *Activité :* ${activity.title}${articleDisplay}
 🌍 *Monde :* ${universe.name}${activityPrice}${activityImage}
 
 🕒 *Séjour :* Du ${format(formData.startDate!, 'dd/MM/yyyy')} au ${format(formData.endDate!, 'dd/MM/yyyy')}
@@ -175,7 +263,10 @@ _Demande générée via le Concierge Casa Privilege_`;
       contact: `${formData.phoneCode} ${formData.phone}`,
       message: formData.message,
       receipt_base64: formData.receipt_base64 || undefined,
-      channel: 'web'
+      channel: 'web',
+      article_id: article?.id,
+      article_title: article?.title,
+      price_type: priceType,
     });
 
     setStep(5);
@@ -201,6 +292,7 @@ _Demande générée via le Concierge Casa Privilege_`;
     // Case 0: Nothing selected yet
     if (!formData.startDate || !formData.endDate) {
       setFormData({ ...formData, startDate: clickedDay, endDate: clickedDay });
+      setDateTimeError(null);
       return;
     }
 
@@ -219,6 +311,8 @@ _Demande générée via le Concierge Casa Privilege_`;
     else {
       setFormData({ ...formData, startDate: clickedDay, endDate: clickedDay });
     }
+
+    setDateTimeError(null);
   };
 
   const isInRange = (day: Date) => {
@@ -254,6 +348,51 @@ _Demande générée via le Concierge Casa Privilege_`;
           {activity.title}
         </motion.p>
       </div>
+
+      {/* Produit réservé - Widget */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="mb-8 p-4 border border-border-primary/50 rounded-lg bg-text-primary/[0.02] flex gap-4"
+      >
+        {/* Image */}
+        {(article?.image || activity?.image) && (
+          <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-lg overflow-hidden border border-border-primary/30">
+            <img
+              src={article?.image || activity?.image || ''}
+              alt={article?.title || activity?.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+        
+        {/* Infos */}
+        <div className="flex-grow flex flex-col justify-center">
+          <p className="text-[10px] uppercase tracking-widest text-text-primary/40 mb-1">
+            {article ? "Article Réservé" : "Expérience"}
+          </p>
+          <h3 className="text-sm md:text-base font-medium mb-1">
+            {article ? `${activity.title} - ${article.title}` : activity.title}
+          </h3>
+          <div className="flex items-center gap-3 text-[11px] text-text-primary/60">
+            <span>
+              {article
+                ? article.priceType === 'fixed'
+                  ? `${article.price} DH`
+                  : `${article.pricePerUnit} DH/${article.durationUnit === 'night' ? 'nuit' : 'jour'}`
+                : activity.price
+              }
+            </span>
+            {article?.availabilityCount && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-text-primary/20" />
+                <span className="text-brand-gold">✓ {article.availabilityCount} dispo</span>
+              </>
+            )}
+          </div>
+        </div>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -304,7 +443,8 @@ _Demande générée via le Concierge Casa Privilege_`;
                     {blanks.map(b => <div key={`blank-${b}`} className="aspect-square"></div>)}
                     {days.map(day => {
                       const dayStr = format(day, 'yyyy-MM-dd');
-                      const isBlocked = settings.blockedDates?.includes(dayStr);
+                      const isWeekend = [0, 6].includes(getDay(day));
+                      const isBlocked = settings.blockedDates?.includes(dayStr) || (settings.blockWeekends && isWeekend);
                       const isPast = isBefore(day, minDate);
                       const isDisabled = isPast || isBlocked;
                       const isSelected = (formData.startDate && isSameDay(day, formData.startDate)) || (formData.endDate && isSameDay(day, formData.endDate));
@@ -334,7 +474,7 @@ _Demande générée via le Concierge Casa Privilege_`;
                           *Cette activité requiert {minDays} {minDays > 1 ? 'jours' : 'jour'} de préparation minimum.
                         </p>
                       )}
-                      {settings.blockedDates?.length > 0 && (
+                      {(settings.blockedDates?.length > 0 || settings.blockWeekends) && (
                         <p className="text-[10px] text-red-500/60 text-center tracking-widest uppercase">
                           Certaines dates sont indisponibles.
                         </p>
@@ -364,9 +504,12 @@ _Demande générée via le Concierge Casa Privilege_`;
                           <div className="text-right">
                              <span className="text-[10px] uppercase tracking-widest text-text-primary/40 block mb-1">Total Estimé</span>
                              <div className="flex flex-col items-end">
-                             <span className="text-brand-gold font-bold text-base md:text-lg leading-none">{totalPrice.toLocaleString()} {activity.price?.includes('DH') ? 'DH' : '€'}</span>
+                             <span className="text-brand-gold font-bold text-base md:text-lg leading-none">{formatMoney(totalPrice, currency, exchangeRates)}</span>
                                <span className="text-[8px] uppercase tracking-tighter text-text-primary/30 mt-1 italic">
-                                 ({dailyPrice.toLocaleString()} {activity.price?.includes('DH') ? 'DH' : '€'} x {formData.peopleCount} pers x {durationInDays}j)
+                                 {article && priceType === 'fixed'
+                                   ? `(${formatMoney(dailyPrice, currency, exchangeRates)} x ${formData.peopleCount} pers)`
+                                   : `(${formatMoney(dailyPrice, currency, exchangeRates)} x ${formData.peopleCount} pers x ${durationInDays}j)`
+                                 }
                                </span>
                              </div>
                           </div>
@@ -380,12 +523,18 @@ _Demande générée via le Concierge Casa Privilege_`;
                       type="time" 
                       required
                       value={formData.time}
-                      onChange={e => setFormData({...formData, time: e.target.value})}
+                      onChange={e => {
+                        setFormData({...formData, time: e.target.value});
+                        setDateTimeError(null);
+                      }}
                       className="w-full bg-transparent border-b border-border-primary py-3 md:py-4 text-text-primary focus:outline-none focus:border-brand-gold transition-colors font-light text-base md:text-lg text-center"
                     />
                   </div>
+                  {dateTimeError && (
+                    <p className="text-xs text-red-500 mt-2">{dateTimeError}</p>
+                  )}
                   
-                  <button type="submit" className="mt-4 md:mt-8 w-full min-h-12 py-3 md:py-5 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-colors duration-500 uppercase tracking-[0.2em] md:tracking-widest text-xs md:text-sm font-medium">
+                  <button type="submit" disabled={!formData.startDate || !formData.endDate || isSelectedDateTimeInPast()} className="mt-4 md:mt-8 w-full min-h-12 py-3 md:py-5 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-colors duration-500 uppercase tracking-[0.2em] md:tracking-widest text-xs md:text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed">
                     Continuer
                   </button>
                 </div>
@@ -474,22 +623,29 @@ _Demande générée via le Concierge Casa Privilege_`;
                   </div>
 
                   {/* Smart Phone Input */}
-                  <div className="flex items-end gap-2 border-b border-border-primary focus-within:border-brand-gold transition-colors">
-                    <span className="pb-3 md:pb-4 text-brand-gold font-medium">{formData.phoneCode}</span>
-                    <input 
-                      type="tel" 
-                      placeholder="Numéro de téléphone" 
-                      required
-                      value={formData.phone}
-                      onChange={e => {
-                        const country = COUNTRIES.find(c => c.name === formData.country);
-                        const val = e.target.value.replace(/\D/g, '');
-                        if (country && val.length <= country.length) {
-                          setFormData({...formData, phone: val});
-                        }
-                      }}
-                      className="flex-grow bg-transparent py-3 md:py-4 text-text-primary focus:outline-none font-light text-base md:text-lg"
-                    />
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-end gap-2 border-b border-border-primary focus-within:border-brand-gold transition-colors">
+                      <span className="pb-3 md:pb-4 text-brand-gold font-medium">{formData.phoneCode}</span>
+                      <input 
+                        type="tel" 
+                        placeholder="Numéro de téléphone" 
+                        required
+                        value={formData.phone}
+                        onChange={e => {
+                          const country = COUNTRIES.find(c => c.name === formData.country);
+                          const val = e.target.value.replace(/\D/g, '');
+                          if (country && val.length <= country.length) {
+                            const invalid = isSequentialPhonePattern(val);
+                            setFormData({...formData, phone: val});
+                            setPhoneError(invalid ? "Vérifiez votre numéro : motif suspect détecté." : null);
+                          }
+                        }}
+                        className="flex-grow bg-transparent py-3 md:py-4 text-text-primary focus:outline-none font-light text-base md:text-lg"
+                      />
+                    </div>
+                    {phoneError && (
+                      <p className="text-xs text-red-500">{phoneError}</p>
+                    )}
                   </div>
                 </div>
 
@@ -508,7 +664,7 @@ _Demande générée via le Concierge Casa Privilege_`;
                 </button>
                 <button 
                   type="submit" 
-                  disabled={!formData.startDate || !formData.endDate}
+                  disabled={!formData.startDate || !formData.endDate || !!phoneError}
                   className="w-full min-h-12 py-3 md:py-6 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-700 uppercase tracking-[0.2em] md:tracking-[0.4em] text-[11px] md:text-xs font-bold shadow-2xl disabled:opacity-20 disabled:cursor-not-allowed"
                 >
                   Continuer
@@ -570,7 +726,7 @@ _Demande générée via le Concierge Casa Privilege_`;
             >
               <h3 className="text-xl md:text-2xl font-serif mb-1 md:mb-2 text-center">Confirmation de Virement</h3>
               <p className="text-text-primary/60 font-light text-sm mb-6 text-center italic">
-                Pour confirmer votre réservation, veuillez effectuer un virement de <span className="text-brand-gold font-bold">{totalPrice.toLocaleString()} {activity.price?.includes('DH') ? 'DH' : '€'}</span> et nous joindre le reçu ci-dessous.
+                Pour confirmer votre réservation, veuillez effectuer un virement de <span className="text-brand-gold font-bold">{formatMoney(totalPrice, currency, exchangeRates)}</span> et nous joindre le reçu ci-dessous.
               </p>
 
               <div className="bg-text-primary/[0.03] border border-brand-gold/30 p-4 sm:p-6 md:p-8 rounded-lg relative overflow-hidden group">

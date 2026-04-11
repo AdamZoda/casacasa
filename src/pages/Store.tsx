@@ -1,10 +1,11 @@
 import { motion } from "motion/react";
 import { useAppContext } from "../context/AppContext";
+import { formatMoney } from "../lib/utils";
 import { translations } from "../i18n/translations";
 import { Heart, ShoppingBag } from "lucide-react";
 
 export function Store() {
-  const { products, addToCart, favorites, toggleFavorite, language } = useAppContext();
+  const { products, addToCart, favorites, toggleFavorite, language, currency, exchangeRates } = useAppContext();
   const t = translations[language];
 
   return (
@@ -80,9 +81,9 @@ export function Store() {
               <div className="flex justify-between items-start mb-2 gap-4">
                 <h3 className="font-serif text-xl md:text-2xl text-text-primary group-hover:text-brand-gold transition-colors duration-300">{product.title}</h3>
                 <div className="flex flex-col items-end text-right">
-                  <span className="text-base font-serif tracking-wide">{product.price} €</span>
+                  <span className="text-base font-serif tracking-wide">{formatMoney(product.price, currency, exchangeRates)}</span>
                   {product.oldPrice && (
-                    <span className="text-xs text-text-primary/40 line-through mt-0.5">{product.oldPrice} €</span>
+                    <span className="text-xs text-text-primary/40 line-through mt-0.5">{formatMoney(product.oldPrice, currency, exchangeRates)}</span>
                   )}
                 </div>
               </div>

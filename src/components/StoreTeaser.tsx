@@ -1,10 +1,11 @@
 import { motion } from "motion/react";
 import { ArrowRight, ShoppingBag } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { formatMoney } from "../lib/utils";
 import { Link } from "react-router-dom";
 
 export function StoreTeaser() {
-  const { products } = useAppContext();
+  const { products, currency, exchangeRates } = useAppContext();
   const featuredProducts = products.filter(p => p.isExclusive).slice(0, 3);
   
   const displayProducts = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 3);
@@ -57,7 +58,7 @@ export function StoreTeaser() {
               </div>
               <h3 className="text-2xl sm:text-3xl font-serif mb-2 sm:mb-3 tracking-tight italic">{product.title}</h3>
               <p className="text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.4em] text-text-primary/30 uppercase mb-4 sm:mb-6">{product.category}</p>
-              <p className="text-xl sm:text-2xl font-light tracking-tighter text-brand-gold">{product.price.toLocaleString()}€</p>
+              <p className="text-xl sm:text-2xl font-light tracking-tighter text-brand-gold">{formatMoney(product.price, currency, exchangeRates)}</p>
               
               <Link to={`/store`} className="mt-5 sm:mt-8">
                 <div className="flex items-center gap-3 text-[10px] tracking-[0.18em] sm:tracking-[0.3em] font-bold uppercase opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-700">

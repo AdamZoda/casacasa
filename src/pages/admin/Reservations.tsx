@@ -34,8 +34,16 @@ function clientInitials(name: string | null | undefined): string {
   return parts.map((n) => n[0]!.toUpperCase()).join("").slice(0, 3);
 }
 
-function displayTitle(res: { activity_title?: string | null }): string {
-  return (res.activity_title && String(res.activity_title).trim()) || "Activité";
+function displayTitle(res: { activity_title?: string | null; article_title?: string | null }): string {
+  const activity = (res.activity_title && String(res.activity_title).trim()) || "Activité";
+  const article = res.article_title && String(res.article_title).trim();
+  
+  // Si c'est un article, afficher juste le nom de l'article
+  if (article) {
+    return article;
+  }
+  
+  return activity;
 }
 
 function isDhActivity(res: { activity_title?: string | null }): boolean {
@@ -43,7 +51,7 @@ function isDhActivity(res: { activity_title?: string | null }): boolean {
 }
 
 export function Reservations() {
-  const { reservations, updateReservationStatus, deleteReservation, activities } = useAppContext();
+  const { reservations, updateReservationStatus, deleteReservation, activities, articles } = useAppContext();
   const [selectedRes, setSelectedRes] = useState<any | null>(null);
 
   return (
@@ -75,14 +83,28 @@ export function Reservations() {
             {reservations.map(res => {
               const country = COUNTRIES.find(c => c.name === res.country);
               const activity = activities.find(a => a.id === res.activity_id);
+              const article = res.article_id ? articles.find((a: any) => a.id === res.article_id) : null;
+              
+              // Créer un objet avec le titre de l'article si disponible
+              const resWithArticleTitle = {
+                ...res,
+                article_title: res.article_title || article?.title,
+              };
               
               let displayPrice = Number(res.total_price || 0);
               if (displayPrice === 0 && activity?.price) {
                 const base = getNumericPrice(activity.price);
                 const start = new Date(res.date);
                 const end = new Date(res.end_date || res.date);
-                const days = Math.max(1, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
-                displayPrice = base * days * (res.people_count || 1);
+                
+                // If it's a fixed price article, don't multiply by days
+                if (res.price_type === 'fixed') {
+                  displayPrice = base * (res.people_count || 1);
+                } else {
+                  // For per_duration pricing
+                  const days = Math.max(1, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+                  displayPrice = base * days * (res.people_count || 1);
+                }
               }
 
               return (
@@ -107,7 +129,12 @@ export function Reservations() {
                   </td>
                   <td className="p-6">
                     <div className="flex flex-col">
-                      <p className="text-sm font-medium tracking-tight mb-1">{displayTitle(res)}</p>
+                      <p className="text-sm font-medium tracking-tight mb-1">
+                        {displayTitle(resWithArticleTitle)}
+                        {resWithArticleTitle.article_title && res.activity_title && (
+                          <span className="block text-xs text-text-primary/50 font-normal mt-1">via {res.activity_title}</span>
+                        )}
+                      </p>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5 opacity-60">
                            <div className={`w-1.5 h-1.5 rounded-full ${res.channel === 'whatsapp' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-brand-gold shadow-[0_0_8px_rgba(229,169,58,0.5)]'}`} />
@@ -117,6 +144,15 @@ export function Reservations() {
                           <div className="flex items-center gap-1 bg-brand-gold/10 px-2 py-0.5 rounded border border-brand-gold/20 animate-pulse-slow">
                             <FileText size={10} className="text-brand-gold" />
                             <span className="text-[8px] uppercase font-black text-brand-gold tracking-widest">Reçu Inclus</span>
+                          </div>
+                        )}
+                        {res.price_type && (
+                          <div className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[8px] uppercase font-black tracking-widest ${
+                            res.price_type === 'fixed' 
+                              ? 'bg-purple-500/10 border-purple-500/20 text-purple-500' 
+                              : 'bg-blue-500/10 border-blue-500/20 text-blue-500'
+                          }`}>
+                            {res.price_type === 'fixed' ? '💰 Prix Fixe' : '📅 Variable'}
                           </div>
                         )}
                       </div>
@@ -130,7 +166,7 @@ export function Reservations() {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-brand-gold font-bold text-base">
-                          {displayPrice.toLocaleString()} {isDhActivity(res) ? "DH" : "€"}
+                          {displayPrice.toLocaleString()} {isDhActivity(resWithArticleTitle) ? "DH" : "€"}
                         </div>
                         {res.people_count && (
                           <div className="flex items-center gap-1 text-[9px] font-bold text-text-primary/40 bg-text-primary/5 px-2 py-1 rounded">
@@ -221,6 +257,50 @@ export function Reservations() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">
+                  {/* WIDGET PRODUIT */}
+                  {(() => {
+                    const article = selectedRes.article_id ? articles.find((a: any) => a.id === selectedRes.article_id) : null;
+                    const activity = activities.find((a: any) => a.id === selectedRes.activity_id);
+                    const image = article?.image || activity?.image;
+                    const title = article ? `${activity?.title} - ${article.title}` : activity?.title;
+                    
+                    if (image || title) {
+                      return (
+                        <div className="p-6 border border-brand-gold/30 rounded-lg bg-brand-gold/5 flex gap-4">
+                          {image && (
+                            <div className="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden border border-brand-gold/40">
+                              <img
+                                src={image}
+                                alt={title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-grow flex flex-col justify-center">
+                            <p className="text-[10px] uppercase tracking-widest text-brand-gold/70 mb-2 font-bold">
+                              {article ? "📦 Article Réservé" : "🎭 Expérience"}
+                            </p>
+                            <h3 className="text-lg font-serif mb-2 text-brand-gold">{title}</h3>
+                            <div className="flex flex-col gap-2 text-[11px] text-text-primary/60">
+                              <span>
+                                {article
+                                  ? article.priceType === 'fixed'
+                                    ? `Prix fixe: ${article.price} DH`
+                                    : `Tarif: ${article.pricePerUnit} DH/${article.durationUnit === 'night' ? 'nuit' : 'jour'}`
+                                  : `Tarif de base: ${activity?.price}`
+                                }
+                              </span>
+                              {article?.availabilityCount && (
+                                <span className="text-brand-gold/80 font-medium">✓ {article.availabilityCount} disponibles</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {/* EXPÉRIENCE & DATES */}
                   <div className="p-6 border border-border-primary bg-text-primary/[0.01]">
                     <div className="flex items-center gap-3 mb-6">
@@ -228,6 +308,57 @@ export function Reservations() {
                       <span className="text-[10px] uppercase font-bold tracking-widest text-text-primary/60">Détails de l'Expérience</span>
                     </div>
                     <p className="text-2xl font-serif mb-6 text-brand-gold">{displayTitle(selectedRes)}</p>
+                    
+                    {/* Images de l'activité et/ou article */}
+                    {(() => {
+                      const article = selectedRes.article_id ? articles.find((a: any) => a.id === selectedRes.article_id) : null;
+                      const activity = activities.find((a: any) => a.id === selectedRes.activity_id);
+                      
+                      // Si c'est un article, afficher l'activité et l'article
+                      if (article && activity) {
+                        return (
+                          <div className="mb-6 grid grid-cols-2 gap-4">
+                            {/* Image activité */}
+                            <div>
+                              <p className="text-[9px] uppercase tracking-widest text-text-primary/40 mb-2">Activité</p>
+                              <div className="rounded-lg overflow-hidden border border-border-primary/30 h-40">
+                                <img 
+                                  src={activity.image} 
+                                  alt={activity.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                            {/* Image article */}
+                            <div>
+                              <p className="text-[9px] uppercase tracking-widest text-text-primary/40 mb-2">Article Réservé</p>
+                              <div className="rounded-lg overflow-hidden border border-border-primary/30 h-40">
+                                <img 
+                                  src={article.image} 
+                                  alt={article.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                      
+                      // Si c'est juste une activité, afficher son image
+                      if (activity?.image) {
+                        return (
+                          <div className="mb-6 rounded-lg overflow-hidden border border-border-primary/30 h-48">
+                            <img 
+                              src={activity.image} 
+                              alt={activity.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        );
+                      }
+                      
+                      return null;
+                    })()}
                     
                     <div className="space-y-6">
                       <div className="flex justify-between items-start border-b border-border-primary/10 pb-4">
