@@ -156,7 +156,11 @@ export function CheckoutFlow() {
     messageText = sanitizeWhatsappMessage(messageText);
 
     const encodedText = encodeURIComponent(messageText);
-    window.open(`https://wa.me/${whatsappNumber.replace(/\+/g, '')}?text=${encodedText}`, '_blank');
+    window.open(
+      `https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodedText}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
     
     // Créer la commande avec données sécurisées + reçu + contact
     addOrder({

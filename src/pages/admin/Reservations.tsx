@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAppContext } from "../../context/AppContext";
+import { digitsOnlyForWaMe } from "../../lib/security";
 import { Check, X, MessageCircle, Trash2, Calendar, User, Users, Phone, Mail, ArrowRight, ShieldCheck, Clock, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -32,6 +33,65 @@ function clientInitials(name: string | null | undefined): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
   return parts.map((n) => n[0]!.toUpperCase()).join("").slice(0, 3);
+}
+
+/** Prévisualisation reçu : DOM sûr (pas de document.write) — uniquement data:image ou data:application/pdf */
+function openReceiptPreviewWindow(receiptBase64: string, clientName: string) {
+  const safeReceipt =
+    receiptBase64.startsWith("data:image/") || receiptBase64.startsWith("data:application/pdf")
+      ? receiptBase64
+      : null;
+  if (!safeReceipt) return;
+
+  const win = window.open("", "_blank", "noopener,noreferrer");
+  if (!win) return;
+
+  const title = clientName.trim().slice(0, 120) || "Client";
+  win.document.title = title;
+
+  const body = win.document.body;
+  body.style.margin = "0";
+  body.style.minHeight = "100vh";
+  body.style.background = "#0a0a0a";
+  body.style.display = "flex";
+  body.style.alignItems = "center";
+  body.style.justifyContent = "center";
+  body.style.color = "#fff";
+  body.style.fontFamily = "sans-serif";
+
+  const wrap = win.document.createElement("div");
+  wrap.style.textAlign = "center";
+  wrap.style.maxWidth = "90%";
+
+  const header = win.document.createElement("div");
+  header.textContent = "Casa Privilege • Preuve de Paiement VIP";
+  header.style.fontSize = "10px";
+  header.style.textTransform = "uppercase";
+  header.style.letterSpacing = "5px";
+  header.style.color = "#E5A93A";
+  wrap.appendChild(header);
+
+  if (safeReceipt.startsWith("data:application/pdf")) {
+    const iframe = win.document.createElement("iframe");
+    iframe.src = safeReceipt;
+    iframe.style.width = "100%";
+    iframe.style.height = "90vh";
+    iframe.style.border = "none";
+    iframe.style.marginTop = "20px";
+    wrap.appendChild(iframe);
+  } else {
+    const img = win.document.createElement("img");
+    img.src = safeReceipt;
+    img.alt = "Preuve de paiement";
+    img.style.maxWidth = "100%";
+    img.style.maxHeight = "85vh";
+    img.style.border = "1px solid #E5A93A";
+    img.style.boxShadow = "0 0 50px rgba(229,169,58,0.2)";
+    img.style.marginTop = "20px";
+    wrap.appendChild(img);
+  }
+
+  body.appendChild(wrap);
 }
 
 function displayTitle(res: { activity_title?: string | null; article_title?: string | null }): string {
@@ -467,38 +527,22 @@ export function Reservations() {
                         
                         {selectedRes.receipt_base64.startsWith('data:image') && (
                           <div className="mb-6 rounded overflow-hidden shadow-2xl border border-white/10 mx-auto max-w-[200px]">
-                            <img src={selectedRes.receipt_base64} alt="Preuve" className="w-full h-auto cursor-zoom-in hover:scale-110 transition-transform duration-700" onClick={() => window.open(selectedRes.receipt_base64)} />
+                            <img
+                              src={selectedRes.receipt_base64}
+                              alt="Preuve"
+                              className="w-full h-auto cursor-zoom-in hover:scale-110 transition-transform duration-700"
+                              onClick={() =>
+                                openReceiptPreviewWindow(selectedRes.receipt_base64!, selectedRes.name ?? "Client")
+                              }
+                            />
                           </div>
                         )}
 
                         <button 
+                          type="button"
                           onClick={() => {
-                            const win = window.open();
-                            if (win) {
-                              win.document.write(`
-                                <html>
-                                  <head>
-                                    <title>Reçu de virement - ${selectedRes.name ?? "Client"}</title>
-                                    <style>
-                                      body { margin: 0; background: #0a0a0a; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; color: white; }
-                                      .container { text-align: center; max-width: 90%; }
-                                      img { max-width: 100%; max-height: 85vh; border: 1px solid #E5A93A; box-shadow: 0 0 50px rgba(229,169,58,0.2); margin-top: 20px; }
-                                      iframe { width: 100%; height: 90vh; border: none; }
-                                      .header { font-size: 10px; text-transform: uppercase; letter-spacing: 5px; color: #E5A93A; }
-                                    </style>
-                                  </head>
-                                  <body>
-                                    <div class="container">
-                                      <div class="header">Casa Privilege • Preuve de Paiement VIP</div>
-                                      ${selectedRes.receipt_base64.startsWith('data:application/pdf') 
-                                        ? `<iframe src="${selectedRes.receipt_base64}"></iframe>`
-                                        : `<img src="${selectedRes.receipt_base64}" />`
-                                      }
-                                    </div>
-                                  </body>
-                                </html>
-                              `);
-                            }
+                            if (!selectedRes.receipt_base64) return;
+                            openReceiptPreviewWindow(selectedRes.receipt_base64, selectedRes.name ?? "Client");
                           }}
                           className="w-full py-4 bg-brand-gold text-brand-black text-[10px] uppercase font-black tracking-[0.2em] hover:bg-white transition-all duration-500 shadow-xl"
                         >
@@ -522,7 +566,11 @@ export function Reservations() {
                   onClick={() => {
                     const activityPrice = selectedRes.total_price ? `\n*Budget :* ${selectedRes.total_price.toLocaleString()} DH` : '';
                     const msg = `✨ *Bonjour ${selectedRes.name ?? "Client"},* \n\nC'est la Conciergerie Casa Privilege.\nSuite à votre réservation pour *${displayTitle(selectedRes)}* prévue du ${selectedRes.date ?? "—"} au ${selectedRes.end_date || selectedRes.date || "—"}...\n${activityPrice}\n\nComment pouvons-nous vous assister ?`;
-                    window.open(`https://wa.me/${(selectedRes.phone_code || '') + (selectedRes.phone || selectedRes.contact)}?text=${encodeURIComponent(msg)}`, '_blank');
+                    window.open(
+                      `https://wa.me/${digitsOnlyForWaMe(selectedRes.phone_code, selectedRes.phone, selectedRes.contact)}?text=${encodeURIComponent(msg)}`,
+                      "_blank",
+                      "noopener,noreferrer"
+                    );
                   }}
                   className="w-16 h-16 flex items-center justify-center border border-border-primary hover:border-brand-gold text-text-primary/40 hover:text-brand-gold transition-all"
                 >

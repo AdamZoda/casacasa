@@ -3,6 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { POI, POIType } from "../lib/poiDb";
 import { poiToLatLng, type LatLng } from "../lib/geoUtils";
+import { escapeHtml, isSafeHttpUrl } from "../lib/security";
 
 interface MapProps {
   pois: POI[];
@@ -82,9 +83,12 @@ export function MapView({ pois, poiTypes = [], selectedPoi = null, center = [20,
       let customIcon: L.DivIcon;
 
       // If we have a logo URL, create an image-based icon
-      if (poiType?.logo_url) {
+      if (poiType?.logo_url && isSafeHttpUrl(poiType.logo_url)) {
+        const safeLogo = new URL(poiType.logo_url.trim()).href;
+        const safeName = escapeHtml(poiType.name || "");
+        const safeEmoji = escapeHtml(poiType?.emoji || "📍");
         customIcon = L.divIcon({
-          html: `<img src="${poiType.logo_url}" alt="${poiType.name}" class="w-10 h-10 object-cover filter drop-shadow-lg" style="border-radius: 50%;" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '${poiType.emoji || "📍"}')" />`,
+          html: `<img src="${safeLogo.replace(/"/g, "%22")}" alt="${safeName}" class="w-10 h-10 object-cover filter drop-shadow-lg" style="border-radius: 50%;" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '${safeEmoji}')" />`,
           iconSize: [40, 40],
           iconAnchor: [20, 40],
           popupAnchor: [0, -40],
@@ -92,8 +96,9 @@ export function MapView({ pois, poiTypes = [], selectedPoi = null, center = [20,
         });
       } else {
         // Fall back to emoji marker
+        const em = escapeHtml(poiType?.emoji || "📍");
         customIcon = L.divIcon({
-          html: `<div class="flex items-center justify-center w-9 h-9 bg-brand-gold rounded-full shadow-lg text-2xl border-2 border-white">${poiType?.emoji || "📍"}</div>`,
+          html: `<div class="flex items-center justify-center w-9 h-9 bg-brand-gold rounded-full shadow-lg text-2xl border-2 border-white">${em}</div>`,
           iconSize: [36, 36],
           iconAnchor: [18, 36],
           popupAnchor: [0, -36],
@@ -103,7 +108,10 @@ export function MapView({ pois, poiTypes = [], selectedPoi = null, center = [20,
 
       try {
         const marker = L.marker([ll.lat, ll.lng], { icon: customIcon })
-          .bindPopup(`<strong>${poi.name}</strong><br/>${poi.description || "No description"}`, { offset: [0, -10] })
+          .bindPopup(
+            `<strong>${escapeHtml(poi.name)}</strong><br/>${escapeHtml(poi.description || "No description")}`,
+            { offset: [0, -10] }
+          )
           .addTo(map.current!);
 
         validCoords.push(ll);

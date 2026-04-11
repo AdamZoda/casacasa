@@ -31,6 +31,32 @@ export const CheckoutFormSchema = z.object({
 
 export type CheckoutFormData = z.infer<typeof CheckoutFormSchema>;
 
+// ✅ Échappement pour insertion dans du HTML (popups Leaflet, etc.) — évite XSS
+export function escapeHtml(text: string): string {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/** Autorise uniquement http(s) pour les URLs externes (images marqueurs, logos). */
+export function isSafeHttpUrl(url: string): boolean {
+  try {
+    const u = new URL(url.trim());
+    return u.protocol === "https:" || u.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+/** Chiffres uniquement pour wa.me (évite les schémas d’URL malveillants). */
+export function digitsOnlyForWaMe(phoneCode: string | undefined, phone: string | undefined, contact?: string): string {
+  const combined = `${phoneCode ?? ""}${phone ?? ""}${contact ?? ""}`.replace(/\D/g, "");
+  return combined.replace(/^0+/, "").slice(0, 15) || "0";
+}
+
 // ✅ SANITIZATION FUNCTIONS
 
 export const sanitizeInput = (input: string): string => {
@@ -255,17 +281,17 @@ export const generateSecureToken = (length: number = 32): string => {
     .join('');
 };
 
-// ✅ SECURE LOCAL STORAGE (Encrypted keys)
+// ⚠️ Stockage encodé en base64 — ce n’est pas du chiffrement ; ne pas y mettre de secrets.
 
 export const secureStorage = {
   set: (key: string, value: string) => {
-    const encrypted = btoa(value); // Minimal - idéalement ChaCha20
-    localStorage.setItem(`secure_${key}`, encrypted);
+    const encoded = btoa(value);
+    localStorage.setItem(`secure_${key}`, encoded);
   },
-  
+
   get: (key: string): string | null => {
-    const encrypted = localStorage.getItem(`secure_${key}`);
-    return encrypted ? atob(encrypted) : null;
+    const encoded = localStorage.getItem(`secure_${key}`);
+    return encoded ? atob(encoded) : null;
   },
   
   remove: (key: string) => {

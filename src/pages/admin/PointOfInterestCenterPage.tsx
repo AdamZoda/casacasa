@@ -13,6 +13,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { POI, POIType, getAllPOIs, getAllPOITypes, createPOI, updatePOI, deletePOI, togglePOIVisibility, createPOIType, updatePOIType, deletePOIType, uploadPOITypeLogo } from "../../lib/poiDb";
+import { escapeHtml } from "../../lib/security";
 import { useAppContext } from "../../context/AppContext";
 import { useRef, useEffect as useEffectMap } from "react";
 import L from "leaflet";
@@ -101,7 +102,9 @@ function MapViewWithClick({ pois, poiTypes, onMapClick }: MapWithClickProps) {
       }
       
       L.marker([poi.latitude, poi.longitude], { icon: markerIcon })
-        .bindPopup(`<strong>🗺️ ${poi.name}</strong><br/>${poi.latitude.toFixed(4)}, ${poi.longitude.toFixed(4)}<br/><small>${typeDisplay}</small>`)
+        .bindPopup(
+          `<strong>🗺️ ${escapeHtml(poi.name)}</strong><br/>${poi.latitude.toFixed(4)}, ${poi.longitude.toFixed(4)}<br/><small>${escapeHtml(typeDisplay)}</small>`
+        )
         .addTo(map.current!);
     });
 
@@ -114,7 +117,9 @@ function MapViewWithClick({ pois, poiTypes, onMapClick }: MapWithClickProps) {
           popupAnchor: [0, -28],
         });
         L.marker([service.latitude, service.longitude], { icon: blueIcon })
-          .bindPopup(`<strong>🎯 ${service.title}</strong><br/><small>${service.type || 'Service'}</small><br/>${service.latitude.toFixed(4)}, ${service.longitude.toFixed(4)}`)
+          .bindPopup(
+            `<strong>🎯 ${escapeHtml(service.title)}</strong><br/><small>${escapeHtml(service.type || "Service")}</small><br/>${service.latitude!.toFixed(4)}, ${service.longitude!.toFixed(4)}`
+          )
           .addTo(map.current!);
       }
     });

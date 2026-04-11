@@ -237,7 +237,11 @@ ${formData.message || "_Aucune_"}
 _Demande générée via le Concierge Casa Privilege_`;
 
       const encodedText = encodeURIComponent(messageText);
-      window.open(`https://wa.me/${whatsappNumber.replace(/\+/g, '')}?text=${encodedText}`, '_blank');
+      window.open(
+        `https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodedText}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
       setStep(5);
     } else {
       // Pour le Web, on passe à l'étape du virement (Step 4)

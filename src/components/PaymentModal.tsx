@@ -50,7 +50,11 @@ export function PaymentModal({ isOpen, onClose, items, total }: PaymentModalProp
 
   const handleWhatsApp = () => {
     const text = encodeURIComponent(`Bonjour Casa Privilege, je souhaite régler ma commande de ${formatMoney(total ?? 0, currency, exchangeRates)}.`);
-    window.open(`https://wa.me/${primaryWhatsappDigits(settings) || "212600000000"}?text=${text}`, "_blank");
+    window.open(
+      `https://wa.me/${primaryWhatsappDigits(settings) || "212600000000"}?text=${text}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
     onClose();
   };
 
