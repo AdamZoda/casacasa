@@ -328,6 +328,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
     }
   });
+  const [settingsRowId, setSettingsRowId] = useState<number | null>(null);
   const [cart, setCart] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [currency, setCurrency] = useState<Currency>('MAD');
@@ -393,9 +394,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      const { data: sData, error: sErr } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
+      const { data: sData, error: sErr } = await supabase
+        .from('site_settings')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       if (sErr) console.warn('[Supabase] site_settings:', sErr.message);
       else if (sData) {
+        setSettingsRowId((sData as SiteSettingsRow).id ?? null);
         setSettings((prev) => dbRowToSiteSettings(sData as SiteSettingsRow, prev));
       }
 
@@ -664,15 +671,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateSettings = async (s: SiteSettings) => {
     console.log('📝 Updating settings with fontStyle:', s.fontStyle);
-    setSettings(s);
-    const row = siteSettingsToDbRow(s);
+    const rowId = settingsRowId ?? 1;
+    const row = siteSettingsToDbRow(s, rowId);
     console.log('📊 Upserting to Supabase:', row);
-    const { error } = await supabase.from('site_settings').upsert(row, { onConflict: 'id' });
+    let { error } = await supabase.from('site_settings').upsert(row, { onConflict: 'id' });
+
+    if (error) {
+      const missingColumn = /Could not find the 'block_weekends' column/i.test(error.message);
+      if (missingColumn) {
+        const retryRow = { ...row };
+        delete (retryRow as any).block_weekends;
+        console.warn('[Supabase] block_weekends column missing, retrying without it.');
+        const retry = await supabase.from('site_settings').upsert(retryRow, { onConflict: 'id' });
+        error = retry.error;
+      }
+    }
+
     if (error) {
       console.error('[Supabase] site_settings:', error.message, error);
-    } else {
-      console.log('✅ Settings saved successfully to Supabase');
+      return;
     }
+
+    setSettings(s);
+    console.log('✅ Settings saved successfully to Supabase');
   };
 
   const addToCart = (p: Product) => setCart(prev => [...prev, p]);

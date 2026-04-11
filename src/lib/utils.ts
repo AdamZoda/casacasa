@@ -42,7 +42,19 @@ export function formatMoney(amountMad: number, currency: Currency, rates: Exchan
 
 export async function fetchExchangeRates(base: string = 'MAD'): Promise<ExchangeRates> {
   try {
-    const response = await fetch(`https://api.exchangerate.host/latest?base=${encodeURIComponent(base)}&symbols=EUR,USD`);
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      console.warn('[ExchangeRates] offline, using default rates');
+      return DEFAULT_EXCHANGE_RATES;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const response = await fetch(`https://api.exchangerate.host/latest?base=${encodeURIComponent(base)}&symbols=EUR,USD`, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
     if (!response.ok) throw new Error(`Exchange rates fetch failed: ${response.status}`);
     const data = await response.json();
     return {

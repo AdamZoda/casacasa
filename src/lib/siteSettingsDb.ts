@@ -155,7 +155,7 @@ export function primaryWhatsappDigits(settings: SiteSettings): string {
   return settings.whatsappNumbers.map((n) => n.replace(/\D/g, "")).filter(Boolean)[0] || "";
 }
 
-export function siteSettingsToDbRow(s: SiteSettings): SiteSettingsRow {
+export function siteSettingsToDbRow(s: SiteSettings, id = 1): SiteSettingsRow {
   const cleanPhones = s.phones.map((p) => p.trim()).filter(Boolean);
   const cleanWa = s.whatsappNumbers.map((n) => n.replace(/\D/g, "")).filter(Boolean);
   const social = {
@@ -167,7 +167,7 @@ export function siteSettingsToDbRow(s: SiteSettings): SiteSettingsRow {
   };
 
   return {
-    id: 1,
+    id,
     site_name: s.siteName,
     contact_email: s.contactEmail,
     phone: cleanPhones[0] ?? "",
