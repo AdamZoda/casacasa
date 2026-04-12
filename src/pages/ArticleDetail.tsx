@@ -2,6 +2,7 @@ import { useParams, Navigate, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "motion/react";
 import { useAppContext } from "../context/AppContext";
+import { ChildArticlesCarousel } from "../components/ChildArticlesCarousel";
 import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 
 export function ArticleDetail() {
@@ -16,6 +17,11 @@ export function ArticleDetail() {
   const universe = universes.find((u) => u.id === universeId);
   const activity = activities.find((a) => a.id === activityId);
   const article = articles.find((ar) => ar.id === articleId);
+
+  // 🆕 Get child articles if this is a parent article
+  const childArticles = article?.articleType === 'parent'
+    ? articles.filter(a => a.parentArticleId === article.id && a.articleType === 'child')
+    : [];
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -66,7 +72,7 @@ export function ArticleDetail() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-12 md:py-20">
+      <div className="max-w-7xl mx-auto px-6 py-60 md:py-70">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Image Section */}
           <motion.div
@@ -237,6 +243,23 @@ export function ArticleDetail() {
             </div>
           </motion.div>
         </div>
+
+        {/* 🆕 Child Articles Carousel (show if this is a parent article) */}
+        {childArticles.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mt-20 pt-20 border-t border-border-primary"
+          >
+            <ChildArticlesCarousel
+              parentArticleId={article.id}
+              childArticles={childArticles}
+              isReservable={article.isReservable}
+            />
+          </motion.div>
+        )}
       </div>
 
       {/* Related Products Section */}

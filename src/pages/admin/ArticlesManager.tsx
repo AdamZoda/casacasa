@@ -22,6 +22,10 @@ export function ArticlesManager() {
     pricePerUnit: "",
     availabilityCount: "",
     isFeatured: false,
+    // 🆕 Article Hierarchy
+    isReservable: false,
+    articleType: "standalone" as 'standalone' | 'parent' | 'child',
+    parentArticleId: "",
   });
 
   const activeActivityId = editingArticle?.activityId || selectedActivityId;
@@ -55,6 +59,10 @@ export function ArticlesManager() {
         pricePerUnit: newArticle.priceType === "per_duration" ? parseFloat(newArticle.pricePerUnit) : undefined,
         availabilityCount: newArticle.availabilityCount ? parseInt(newArticle.availabilityCount, 10) : undefined,
         isFeatured: newArticle.isFeatured,
+        // 🆕 Article Hierarchy
+        isReservable: newArticle.isReservable,
+        articleType: newArticle.articleType,
+        parentArticleId: newArticle.parentArticleId || undefined,
       };
 
       if (editingArticle) {
@@ -75,6 +83,9 @@ export function ArticlesManager() {
         pricePerUnit: "",
         availabilityCount: "",
         isFeatured: false,
+        isReservable: false,
+        articleType: "standalone",
+        parentArticleId: "",
       });
     } catch (error) {
       console.error("Error saving article:", error);
@@ -111,6 +122,9 @@ export function ArticlesManager() {
                   pricePerUnit: "",
                   availabilityCount: "",
                   isFeatured: false,
+                  isReservable: false,
+                  articleType: "standalone",
+                  parentArticleId: "",
                 });
               }}
               className="admin-input w-full text-sm cursor-pointer"
@@ -243,6 +257,63 @@ export function ArticlesManager() {
                   required
                 />
 
+                {/* 🆕 Article Hierarchy Section */}
+                <div className="border-t border-border-primary pt-4 mt-4">
+                  <label className="text-[10px] uppercase tracking-widest text-text-primary/45 font-bold block mb-3">
+                    Type d'article
+                  </label>
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    {(['standalone', 'parent', 'child'] as const).map((type) => (
+                      <label key={type} className="flex items-center gap-2 p-3 border border-border-primary rounded-lg cursor-pointer hover:bg-text-primary/[0.04] transition-colors">
+                        <input
+                          type="radio"
+                          value={type}
+                          checked={newArticle.articleType === type}
+                          onChange={(e) => setNewArticle({ ...newArticle, articleType: e.target.value as 'standalone' | 'parent' | 'child' })}
+                          className="w-4 h-4"
+                        />
+                        <span className="text-xs capitalize font-medium">{type === 'standalone' ? 'Simple' : type === 'parent' ? 'Parent' : 'Enfant'}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* Parent Article Selector (for child/parent types) */}
+                  {(newArticle.articleType === 'child' || newArticle.articleType === 'parent') && (
+                    <div className="mb-4">
+                      <label className="text-[10px] uppercase tracking-widest text-text-primary/45 font-bold block mb-2">
+                        Article parent
+                      </label>
+                      <select
+                        value={newArticle.parentArticleId}
+                        onChange={(e) => setNewArticle({ ...newArticle, parentArticleId: e.target.value })}
+                        className="admin-input w-full text-sm cursor-pointer"
+                      >
+                        <option value="">Aucun parent</option>
+                        {articles
+                          .filter(a => a.activityId === activeActivityId && a.articleType !== 'child')
+                          .map((article) => (
+                            <option key={article.id} value={article.id}>
+                              {article.title}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Reservable Checkbox */}
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newArticle.isReservable}
+                      onChange={(e) => setNewArticle({ ...newArticle, isReservable: e.target.checked })}
+                      className="w-4 h-4 rounded border-border-primary"
+                    />
+                    <span className="text-sm font-medium text-text-primary">
+                      ✓ Cet article est réservable (bookable)
+                    </span>
+                  </label>
+                </div>
+
                 {/* Featured Section */}
                 <div className="border-t border-border-primary pt-4 mt-4">
                   <label className="flex items-center gap-3 cursor-pointer mb-4">
@@ -276,6 +347,9 @@ export function ArticlesManager() {
                           pricePerUnit: "",
                           availabilityCount: "",
                           isFeatured: false,
+                          isReservable: false,
+                          articleType: "standalone",
+                          parentArticleId: "",
                         });
                       }}
                       className="px-4 py-2 text-xs bg-text-primary/10 hover:bg-text-primary/15 text-text-primary rounded-lg transition-colors"
@@ -317,57 +391,154 @@ export function ArticlesManager() {
               {activeActivityId ? "Aucun article pour cette activité" : "Sélectionnez une activité pour voir ses articles"}
             </p>
           ) : (
-            <div className="space-y-3">
-              {activityArticles.map((article) => (
-                <div key={article.id} className="flex gap-3 p-4 border border-border-primary rounded-lg hover:border-brand-gold/50 transition-colors">
-                  {article.image && (
-                    <img src={article.image} alt="" className="w-12 h-12 object-cover rounded-md shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium truncate">{article.title}</h4>
-                    <p className="text-xs text-text-primary/55 truncate">
-                      {article.priceType === "fixed"
-                        ? `${article.price} DH`
-                        : `${article.pricePerUnit} DH/${article.durationUnit}`}
-                    </p>
-                    {article.availabilityCount && (
-                      <p className="text-xs text-text-primary/55">Stock: {article.availabilityCount}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingArticle(article);
-                        setNewArticle({
-                          activityId: article.activityId,
-                          title: article.title,
-                          image: article.image,
-                          description: article.description,
-                          priceType: article.priceType,
-                          price: article.price?.toString() || "",
-                          durationUnit: article.durationUnit || "day",
-                          pricePerUnit: article.pricePerUnit?.toString() || "",
-                          availabilityCount: article.availabilityCount?.toString() || "",
-                          isFeatured: article.isFeatured || false,
-                        });
-                      }}
-                      className="p-2 rounded-lg text-text-primary/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"
-                      title="Modifier"
-                    >
-                      <Pencil size={16} aria-hidden />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deleteArticle(article.id)}
-                      className="p-2 rounded-lg text-text-primary/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                      title="Supprimer"
-                    >
-                      <Trash2 size={16} aria-hidden />
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-2">
+              {activityArticles
+                .filter(a => !a.parentArticleId) // Show only parent and standalone articles
+                .map((article) => {
+                  const childArticles = activityArticles.filter(a => a.parentArticleId === article.id);
+                  const articleTypeLabel = article.articleType === 'parent' ? 'Parent' : article.articleType === 'child' ? 'Enfant' : 'Simple';
+                  const articleTypeBgColor = article.articleType === 'parent' ? 'bg-brand-gold/10 border-brand-gold/30' : article.articleType === 'child' ? 'bg-blue-500/10 border-blue-500/30' : '';
+
+                  return (
+                    <div key={article.id}>
+                      {/* Main Article */}
+                      <div className={`flex gap-3 p-4 border border-border-primary rounded-lg hover:border-brand-gold/50 transition-colors ${articleTypeBgColor}`}>
+                        {article.image && (
+                          <img src={article.image} alt="" className="w-12 h-12 object-cover rounded-md shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium truncate">{article.title}</h4>
+                            <span className="text-xs px-2 py-0.5 bg-text-primary/10 rounded-full font-medium whitespace-nowrap">
+                              {articleTypeLabel}
+                            </span>
+                            {article.isFeatured && (
+                              <span className="text-xs px-2 py-0.5 bg-brand-gold/20 text-brand-gold rounded-full font-medium whitespace-nowrap">
+                                ⭐ Principal
+                              </span>
+                            )}
+                            {article.isReservable && (
+                              <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full font-medium whitespace-nowrap">
+                                📅 Réservable
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-text-primary/55 truncate">
+                            {article.priceType === "fixed"
+                              ? `${article.price} DH`
+                              : `${article.pricePerUnit} DH/${article.durationUnit}`}
+                          </p>
+                          {article.availabilityCount && (
+                            <p className="text-xs text-text-primary/55">Stock: {article.availabilityCount}</p>
+                          )}
+                          {childArticles.length > 0 && (
+                            <p className="text-xs text-brand-gold mt-1">
+                              {childArticles.length} sous-article{childArticles.length > 1 ? 's' : ''}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingArticle(article);
+                              setNewArticle({
+                                activityId: article.activityId,
+                                title: article.title,
+                                image: article.image,
+                                description: article.description,
+                                priceType: article.priceType,
+                                price: article.price?.toString() || "",
+                                durationUnit: article.durationUnit || "day",
+                                pricePerUnit: article.pricePerUnit?.toString() || "",
+                                availabilityCount: article.availabilityCount?.toString() || "",
+                                isFeatured: article.isFeatured || false,
+                                isReservable: article.isReservable || false,
+                                articleType: article.articleType || "standalone",
+                                parentArticleId: article.parentArticleId || "",
+                              });
+                            }}
+                            className="p-2 rounded-lg text-text-primary/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"
+                            title="Modifier"
+                          >
+                            <Pencil size={16} aria-hidden />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteArticle(article.id)}
+                            className="p-2 rounded-lg text-text-primary/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={16} aria-hidden />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Child Articles (if parent) */}
+                      {childArticles.length > 0 && (
+                        <div className="ml-4 mt-2 space-y-2 border-l-2 border-brand-gold/30 pl-4">
+                          {childArticles.map((child) => (
+                            <div key={child.id} className="flex gap-3 p-3 border border-border-primary/50 rounded-lg hover:border-brand-gold/50 transition-colors bg-text-primary/[0.02]">
+                              {child.image && (
+                                <img src={child.image} alt="" className="w-10 h-10 object-cover rounded-md shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-medium truncate text-sm">↳ {child.title}</h4>
+                                  {child.isReservable && (
+                                    <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full font-medium whitespace-nowrap">
+                                      📅 Réservable
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-text-primary/55 truncate">
+                                  {child.priceType === "fixed"
+                                    ? `${child.price} DH`
+                                    : `${child.pricePerUnit} DH/${child.durationUnit}`}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingArticle(child);
+                                    setNewArticle({
+                                      activityId: child.activityId,
+                                      title: child.title,
+                                      image: child.image,
+                                      description: child.description,
+                                      priceType: child.priceType,
+                                      price: child.price?.toString() || "",
+                                      durationUnit: child.durationUnit || "day",
+                                      pricePerUnit: child.pricePerUnit?.toString() || "",
+                                      availabilityCount: child.availabilityCount?.toString() || "",
+                                      isFeatured: child.isFeatured || false,
+                                      isReservable: child.isReservable || false,
+                                      articleType: child.articleType || "child",
+                                      parentArticleId: child.parentArticleId || "",
+                                    });
+                                  }}
+                                  className="p-2 rounded-lg text-text-primary/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"
+                                  title="Modifier"
+                                >
+                                  <Pencil size={16} aria-hidden />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteArticle(child.id)}
+                                  className="p-2 rounded-lg text-text-primary/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                  title="Supprimer"
+                                >
+                                  <Trash2 size={16} aria-hidden />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           )}
         </div>

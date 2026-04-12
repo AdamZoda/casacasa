@@ -4,6 +4,7 @@ import { Plus, Trash2, Upload, Loader2, Globe, Pencil } from "lucide-react";
 import { uploadImage } from "../../lib/storage";
 import { AdminPageHeader } from "../../components/admin/adminShared";
 import { ArticlesManager } from "./ArticlesManager";
+import { SubArticlesManager } from "./SubArticlesManager";
 
 /** Vignette fixe : évite le décalage du texte quand l’image manque ou est cassée. */
 function MediaThumb({
@@ -56,7 +57,7 @@ export function ContentManager() {
     updateActivity,
     deleteActivity,
   } = useAppContext();
-  const [activeTab, setActiveTab] = useState<"universes" | "activities" | "articles">("universes");
+  const [activeTab, setActiveTab] = useState<"universes" | "activities" | "articles" | "sub-articles">("universes");
 
   const [editingUniverse, setEditingUniverse] = useState<Universe | null>(null);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
@@ -234,6 +235,17 @@ export function ContentManager() {
           }`}
         >
           Articles
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("sub-articles")}
+          className={`shrink-0 px-5 py-3 text-[11px] uppercase tracking-[0.2em] font-black transition-colors border-b-2 -mb-px ${
+            activeTab === "sub-articles"
+              ? "text-brand-gold border-brand-gold"
+              : "text-text-primary/50 border-transparent hover:text-text-primary"
+          }`}
+        >
+          Sous-Articles
         </button>
       </div>
 
@@ -672,6 +684,12 @@ export function ContentManager() {
 
       {activeTab === "articles" && (
         <ArticlesManager />
+      )}
+
+      {activeTab === "sub-articles" && (
+        <div className="space-y-6">
+          <SubArticlesManager />
+        </div>
       )}
     </div>
   );

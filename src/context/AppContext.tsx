@@ -75,6 +75,12 @@ export interface Article {
   availabilityCount?: number;
   isFeatured?: boolean;
   featuredDisplayType?: 'card' | 'hero' | 'grid' | 'carousel';
+  // 🆕 Article Hierarchy
+  content?: string;
+  isReservable?: boolean;
+  articleType?: 'standalone' | 'parent' | 'child';
+  parentArticleId?: string;
+  childArticles?: Article[];
 }
 
 export interface Activity {
@@ -490,6 +496,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             availabilityCount: row.availability_count,
             isFeatured: Boolean(row.is_featured),
             featuredDisplayType: (isValidDisplayType ? displayType : 'card') as 'card' | 'hero' | 'grid' | 'carousel',
+            // 🆕 Article Hierarchy
+            isReservable: Boolean(row.is_reservable),
+            articleType: (row.article_type ?? 'standalone') as 'standalone' | 'parent' | 'child',
+            parentArticleId: row.parent_article_id ?? undefined,
           };
         });
         setArticles(mappedArticles);
@@ -666,6 +676,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       availability_count: a.availabilityCount,
       is_featured: a.isFeatured ?? false,
       featured_display_type: a.featuredDisplayType ?? 'card',
+      // 🆕 Article Hierarchy
+      is_reservable: a.isReservable ?? false,
+      article_type: a.articleType ?? 'standalone',
+      parent_article_id: a.parentArticleId ?? null,
     };
     const { error } = await supabase.from('articles').insert([row]);
     if (error) console.error('[Supabase] articles insert:', error.message);
@@ -686,6 +700,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       availability_count: a.availabilityCount,
       is_featured: a.isFeatured ?? false,
       featured_display_type: a.featuredDisplayType ?? 'card',
+      // 🆕 Article Hierarchy
+      is_reservable: a.isReservable ?? false,
+      article_type: a.articleType ?? 'standalone',
+      parent_article_id: a.parentArticleId ?? null,
     };
     const { error } = await supabase.from('articles').update(row).eq('id', a.id);
     if (error) console.error('[Supabase] articles update:', error.message);
