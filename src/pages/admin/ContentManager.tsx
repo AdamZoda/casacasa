@@ -80,6 +80,10 @@ export function ContentManager() {
     minAdvanceDays: 0,
     hasArticles: false,
     articleDisplayType: "direct" as const,
+    isFeatured: false,
+    featuredOrder: "",
+    featuredDisplayType: "card" as const,
+    featuredImageUrl: "",
   });
 
   const handleAddUniverse = async (e: React.FormEvent) => {
@@ -152,6 +156,7 @@ export function ContentManager() {
         minAdvanceDays: newActivity.minAdvanceDays,
         hasArticles: newActivity.hasArticles,
         articleDisplayType: newActivity.articleDisplayType,
+        isFeatured: newActivity.isFeatured,
       });
       setEditingActivity(null);
     } else {
@@ -166,6 +171,7 @@ export function ContentManager() {
         minAdvanceDays: newActivity.minAdvanceDays,
         hasArticles: newActivity.hasArticles,
         articleDisplayType: newActivity.articleDisplayType,
+        isFeatured: newActivity.isFeatured,
       });
     }
     setNewActivity({
@@ -178,6 +184,7 @@ export function ContentManager() {
       minAdvanceDays: 0,
       hasArticles: false,
       articleDisplayType: "direct",
+      isFeatured: false,
     });
   };
 
@@ -548,6 +555,21 @@ export function ContentManager() {
                 )}
               </div>
 
+              {/* Featured Section */}
+              <div className="border-t border-border-primary pt-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newActivity.isFeatured}
+                    onChange={(e) => setNewActivity({ ...newActivity, isFeatured: e.target.checked })}
+                    className="w-4 h-4 rounded border-border-primary"
+                  />
+                  <span className="text-sm font-semibold text-text-primary">
+                    ⭐ Afficher en première page (principal)
+                  </span>
+                </label>
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 {editingActivity ? (
                   <button
@@ -562,6 +584,12 @@ export function ContentManager() {
                         description: "",
                         image: "",
                         minAdvanceDays: 0,
+                        hasArticles: false,
+                        articleDisplayType: "direct",
+                        isFeatured: false,
+                        featuredOrder: "",
+                        featuredDisplayType: "card",
+                        featuredImageUrl: "",
                       });
                     }}
                     className="flex-1 rounded-lg border border-border-primary py-3 text-sm font-semibold hover:bg-text-primary/[0.04] transition-colors"
@@ -613,6 +641,10 @@ export function ContentManager() {
                           minAdvanceDays: a.minAdvanceDays || 0,
                           hasArticles: a.hasArticles || false,
                           articleDisplayType: a.articleDisplayType || "direct",
+                          isFeatured: a.isFeatured || false,
+                          featuredOrder: a.featuredOrder?.toString() || "",
+                          featuredDisplayType: a.featuredDisplayType || "card",
+                          featuredImageUrl: a.featuredImageUrl || "",
                         });
                       }}
                       className="p-2.5 rounded-lg text-text-primary/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"

@@ -56,6 +56,8 @@ export function activityToRow(a: Activity): Record<string, unknown> {
     min_advance_days: a.minAdvanceDays ?? 0,
     has_articles: a.hasArticles ?? false,
     article_display_type: a.articleDisplayType ?? 'direct',
+    is_featured: a.isFeatured ?? false,
+    featured_display_type: a.featuredDisplayType ?? 'card',
   };
 }
 
@@ -73,6 +75,8 @@ export function rowToActivity(row: ActivityRow): Activity {
     minAdvanceDays: n,
     hasArticles: Boolean(row.has_articles ?? (row as { hasArticles?: boolean }).hasArticles ?? false),
     articleDisplayType: (row.article_display_type ?? (row as { articleDisplayType?: string }).articleDisplayType ?? 'direct') as 'direct' | 'articles_only',
+    isFeatured: Boolean(row.is_featured ?? (row as { isFeatured?: boolean }).isFeatured ?? false),
+    featuredDisplayType: (row.featured_display_type ?? (row as { featuredDisplayType?: string }).featuredDisplayType ?? 'card') as 'card' | 'hero' | 'grid' | 'carousel',
   };
 }
 

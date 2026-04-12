@@ -21,6 +21,7 @@ export function ArticlesManager() {
     durationUnit: "day" as const,
     pricePerUnit: "",
     availabilityCount: "",
+    isFeatured: false,
   });
 
   const activeActivityId = editingArticle?.activityId || selectedActivityId;
@@ -53,6 +54,7 @@ export function ArticlesManager() {
         durationUnit: newArticle.priceType === "per_duration" ? newArticle.durationUnit : undefined,
         pricePerUnit: newArticle.priceType === "per_duration" ? parseFloat(newArticle.pricePerUnit) : undefined,
         availabilityCount: newArticle.availabilityCount ? parseInt(newArticle.availabilityCount, 10) : undefined,
+        isFeatured: newArticle.isFeatured,
       };
 
       if (editingArticle) {
@@ -72,6 +74,7 @@ export function ArticlesManager() {
         durationUnit: "day",
         pricePerUnit: "",
         availabilityCount: "",
+        isFeatured: false,
       });
     } catch (error) {
       console.error("Error saving article:", error);
@@ -107,6 +110,7 @@ export function ArticlesManager() {
                   durationUnit: "day",
                   pricePerUnit: "",
                   availabilityCount: "",
+                  isFeatured: false,
                 });
               }}
               className="admin-input w-full text-sm cursor-pointer"
@@ -239,6 +243,21 @@ export function ArticlesManager() {
                   required
                 />
 
+                {/* Featured Section */}
+                <div className="border-t border-border-primary pt-4 mt-4">
+                  <label className="flex items-center gap-3 cursor-pointer mb-4">
+                    <input
+                      type="checkbox"
+                      checked={newArticle.isFeatured}
+                      onChange={(e) => setNewArticle({ ...newArticle, isFeatured: e.target.checked })}
+                      className="w-4 h-4 rounded border-border-primary"
+                    />
+                    <span className="text-sm font-semibold text-text-primary">
+                      ⭐ Afficher en première page (principal)
+                    </span>
+                  </label>
+                </div>
+
                 {/* Submit */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   {editingArticle && (
@@ -256,6 +275,7 @@ export function ArticlesManager() {
                           durationUnit: "day",
                           pricePerUnit: "",
                           availabilityCount: "",
+                          isFeatured: false,
                         });
                       }}
                       className="px-4 py-2 text-xs bg-text-primary/10 hover:bg-text-primary/15 text-text-primary rounded-lg transition-colors"
@@ -329,6 +349,7 @@ export function ArticlesManager() {
                           durationUnit: article.durationUnit || "day",
                           pricePerUnit: article.pricePerUnit?.toString() || "",
                           availabilityCount: article.availabilityCount?.toString() || "",
+                          isFeatured: article.isFeatured || false,
                         });
                       }}
                       className="p-2 rounded-lg text-text-primary/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"

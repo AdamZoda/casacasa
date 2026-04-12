@@ -73,6 +73,8 @@ export interface Article {
   durationUnit?: 'day' | 'night';
   pricePerUnit?: number;
   availabilityCount?: number;
+  isFeatured?: boolean;
+  featuredDisplayType?: 'card' | 'hero' | 'grid' | 'carousel';
 }
 
 export interface Activity {
@@ -87,6 +89,8 @@ export interface Activity {
   hasArticles?: boolean;
   articleDisplayType?: 'direct' | 'articles_only';
   articles?: Article[];
+  isFeatured?: boolean;
+  featuredDisplayType?: 'card' | 'hero' | 'grid' | 'carousel';
 }
 
 export interface Product {
@@ -470,18 +474,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (artRes.error) console.warn('[Supabase] articles:', artRes.error.message);
       else if (artRes.data?.length) {
-        const mappedArticles = artRes.data.map((row: any) => ({
-          id: row.id,
-          activityId: row.activity_id,
-          title: row.title,
-          image: row.image,
-          description: row.description,
-          priceType: row.price_type,
-          price: row.price,
-          durationUnit: row.duration_unit,
-          pricePerUnit: row.price_per_unit,
-          availabilityCount: row.availability_count,
-        }));
+        const mappedArticles = artRes.data.map((row: any) => {
+          const displayType = row.featured_display_type ?? 'card';
+          const isValidDisplayType = ['card', 'hero', 'grid', 'carousel'].includes(displayType);
+          return {
+            id: row.id,
+            activityId: row.activity_id,
+            title: row.title,
+            image: row.image,
+            description: row.description,
+            priceType: row.price_type,
+            price: row.price,
+            durationUnit: row.duration_unit,
+            pricePerUnit: row.price_per_unit,
+            availabilityCount: row.availability_count,
+            isFeatured: Boolean(row.is_featured),
+            featuredDisplayType: (isValidDisplayType ? displayType : 'card') as 'card' | 'hero' | 'grid' | 'carousel',
+          };
+        });
         setArticles(mappedArticles);
       } else {
         setArticles([]);
@@ -654,6 +664,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       duration_unit: a.durationUnit,
       price_per_unit: a.pricePerUnit,
       availability_count: a.availabilityCount,
+      is_featured: a.isFeatured ?? false,
+      featured_display_type: a.featuredDisplayType ?? 'card',
     };
     const { error } = await supabase.from('articles').insert([row]);
     if (error) console.error('[Supabase] articles insert:', error.message);
@@ -672,6 +684,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       duration_unit: a.durationUnit,
       price_per_unit: a.pricePerUnit,
       availability_count: a.availabilityCount,
+      is_featured: a.isFeatured ?? false,
+      featured_display_type: a.featuredDisplayType ?? 'card',
     };
     const { error } = await supabase.from('articles').update(row).eq('id', a.id);
     if (error) console.error('[Supabase] articles update:', error.message);
@@ -757,7 +771,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .order('subscribed_at', { ascending: false });
     if (error) {
       console.error('[Supabase] newsletter_subscribers refresh:', error.message);
-      throw error;
+      return;
     }
     setSubscribers((data ?? []).map((row) => rowToSubscriber(row)));
   }, []);
