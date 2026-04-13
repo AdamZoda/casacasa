@@ -46,6 +46,38 @@ function parseGalleryUrls(galleryUrls: string): string[] {
     .filter(Boolean);
 }
 
+type ActivityFormState = {
+  universeId: string;
+  title: string;
+  category: string;
+  price: string;
+  description: string;
+  image: string;
+  minAdvanceDays: number;
+  hasArticles: boolean;
+  articleDisplayType: "direct" | "articles_only";
+  isFeatured: boolean;
+  featuredOrder: string;
+  featuredDisplayType: "card" | "hero" | "grid" | "carousel";
+  featuredImageUrl: string;
+};
+
+const emptyActivityForm = (universeId = ""): ActivityFormState => ({
+  universeId,
+  title: "",
+  category: "",
+  price: "",
+  description: "",
+  image: "",
+  minAdvanceDays: 0,
+  hasArticles: false,
+  articleDisplayType: "direct",
+  isFeatured: false,
+  featuredOrder: "",
+  featuredDisplayType: "card",
+  featuredImageUrl: "",
+});
+
 export function ContentManager() {
   const {
     universes,
@@ -71,21 +103,7 @@ export function ContentManager() {
     flag: "",
     galleryUrls: "",
   });
-  const [newActivity, setNewActivity] = useState({
-    universeId: "",
-    title: "",
-    category: "",
-    price: "",
-    description: "",
-    image: "",
-    minAdvanceDays: 0,
-    hasArticles: false,
-    articleDisplayType: "direct" as const,
-    isFeatured: false,
-    featuredOrder: "",
-    featuredDisplayType: "card" as const,
-    featuredImageUrl: "",
-  });
+  const [newActivity, setNewActivity] = useState<ActivityFormState>(emptyActivityForm());
 
   const handleAddUniverse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,18 +193,7 @@ export function ContentManager() {
         isFeatured: newActivity.isFeatured,
       });
     }
-    setNewActivity({
-      universeId: newActivity.universeId,
-      title: "",
-      category: "",
-      price: "",
-      description: "",
-      image: "",
-      minAdvanceDays: 0,
-      hasArticles: false,
-      articleDisplayType: "direct",
-      isFeatured: false,
-    });
+    setNewActivity(emptyActivityForm(newActivity.universeId));
   };
 
   const resetUniverseForm = () => {
@@ -588,21 +595,7 @@ export function ContentManager() {
                     type="button"
                     onClick={() => {
                       setEditingActivity(null);
-                      setNewActivity({
-                        universeId: newActivity.universeId,
-                        title: "",
-                        category: "",
-                        price: "",
-                        description: "",
-                        image: "",
-                        minAdvanceDays: 0,
-                        hasArticles: false,
-                        articleDisplayType: "direct",
-                        isFeatured: false,
-                        featuredOrder: "",
-                        featuredDisplayType: "card",
-                        featuredImageUrl: "",
-                      });
+                      setNewActivity(emptyActivityForm(newActivity.universeId));
                     }}
                     className="flex-1 rounded-lg border border-border-primary py-3 text-sm font-semibold hover:bg-text-primary/[0.04] transition-colors"
                   >

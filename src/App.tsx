@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
+import { ShoppingProvider } from "./context/ShoppingContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Layout } from "./components/Layout";
 import { PublicPageGuard } from "./components/PublicPageGuard";
@@ -67,8 +68,9 @@ function PageFallback() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <AppProvider>
+          <ShoppingProvider>
           <Suspense fallback={<PageFallback />}>
             <Routes>
               <Route path="/" element={<Layout />}>
@@ -139,8 +141,9 @@ export default function App() {
               </Route>
             </Routes>
           </Suspense>
-        </BrowserRouter>
-      </AppProvider>
+          </ShoppingProvider>
+        </AppProvider>
+      </BrowserRouter>
     </AuthProvider>
   );
 }

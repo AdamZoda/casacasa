@@ -3,6 +3,30 @@ import { useAppContext, type Article } from "../../context/AppContext";
 import { Trash2, Pencil, ChevronDown, ChevronUp, Plus, Upload, Loader2 } from "lucide-react";
 import { uploadImage } from "../../lib/storage";
 
+type SubArticleDraft = {
+  parentArticleId: string;
+  title: string;
+  image: string;
+  description: string;
+  priceType: "fixed" | "per_duration";
+  price: string;
+  durationUnit: "day" | "night";
+  pricePerUnit: string;
+  isReservable: boolean;
+};
+
+const emptySubArticleDraft = (): SubArticleDraft => ({
+  parentArticleId: "",
+  title: "",
+  image: "",
+  description: "",
+  priceType: "fixed",
+  price: "",
+  durationUnit: "day",
+  pricePerUnit: "",
+  isReservable: false,
+});
+
 export function SubArticlesManager() {
   const { activities, articles, updateArticle, deleteArticle, universes, addArticle } = useAppContext();
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
@@ -10,17 +34,7 @@ export function SubArticlesManager() {
   const [isUploading, setIsUploading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const [newSubArticle, setNewSubArticle] = useState({
-    parentArticleId: "",
-    title: "",
-    image: "",
-    description: "",
-    priceType: "fixed" as const,
-    price: "",
-    durationUnit: "day" as const,
-    pricePerUnit: "",
-    isReservable: false,
-  });
+  const [newSubArticle, setNewSubArticle] = useState<SubArticleDraft>(emptySubArticleDraft);
 
   const toggleParent = (parentId: string) => {
     setExpandedParents((prev) => {
@@ -76,7 +90,6 @@ export function SubArticlesManager() {
       const subArticle: Article = {
         id: `art-${crypto.randomUUID?.() || Date.now()}`,
         activityId: parentArticle.activityId,
-        universeId: parentArticle.universeId,
         title: newSubArticle.title,
         image: newSubArticle.image,
         description: newSubArticle.description,
@@ -93,17 +106,7 @@ export function SubArticlesManager() {
 
       await addArticle(subArticle);
 
-      setNewSubArticle({
-        parentArticleId: "",
-        title: "",
-        image: "",
-        description: "",
-        priceType: "fixed",
-        price: "",
-        durationUnit: "day",
-        pricePerUnit: "",
-        isReservable: false,
-      });
+      setNewSubArticle(emptySubArticleDraft());
       setShowCreateForm(false);
     } catch (error) {
       console.error("Error creating sub-article:", error);
@@ -303,6 +306,10 @@ export function SubArticlesManager() {
           {parentArticles.map((parent) => {
             const children = childArticlesByParent[parent.id] || [];
             const isExpanded = expandedParents.has(parent.id);
+            const parentActivity = activities.find((act) => act.id === parent.activityId);
+            const parentUniverseName = parentActivity
+              ? getUniverseName(parentActivity.universeId)
+              : "—";
 
             return (
               <div key={parent.id} className="admin-card overflow-hidden">
@@ -338,7 +345,7 @@ export function SubArticlesManager() {
                           )}
                         </div>
                         <p className="text-xs text-text-primary/60">
-                          {getUniverseName(parent.universeId)} • {getActivityName(parent.activityId)}
+                          {parentUniverseName} • {getActivityName(parent.activityId)}
                         </p>
                         <p className="text-xs text-brand-gold mt-1">
                           {children.length} sous-article{children.length !== 1 ? "s" : ""}

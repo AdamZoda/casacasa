@@ -254,9 +254,9 @@ export function ArticleDetail() {
             className="mt-20 pt-20 border-t border-border-primary"
           >
             <ChildArticlesCarousel
-              parentArticleId={article.id}
               childArticles={childArticles}
-              isReservable={article.isReservable}
+              universeId={universeId!}
+              activityId={activityId!}
             />
           </motion.div>
         )}

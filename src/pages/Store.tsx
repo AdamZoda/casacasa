@@ -1,11 +1,14 @@
 import { motion } from "motion/react";
 import { useAppContext } from "../context/AppContext";
+import { useShopping } from "../context/ShoppingContext";
 import { formatMoney } from "../lib/utils";
 import { translations } from "../i18n/translations";
+import { LazyImg } from "../components/LazyImg";
 import { Heart, ShoppingBag } from "lucide-react";
 
 export function Store() {
-  const { products, addToCart, favorites, toggleFavorite, language, currency, exchangeRates } = useAppContext();
+  const { products, language, currency, exchangeRates } = useAppContext();
+  const { addToCart, favorites, toggleFavorite } = useShopping();
   const t = translations[language];
 
   return (
@@ -54,7 +57,7 @@ export function Store() {
                 <Heart size={18} fill={favorites.includes(product.id) ? "currentColor" : "none"} strokeWidth={1.5} />
               </button>
 
-              <img 
+              <LazyImg 
                 src={product.image} 
                 alt={product.title} 
                 className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal"

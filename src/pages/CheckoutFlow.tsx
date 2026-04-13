@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { useAppContext } from "../context/AppContext";
+import { useShopping } from "../context/ShoppingContext";
 import { formatMoney } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
@@ -37,7 +38,8 @@ const COUNTRIES = [
 
 export function CheckoutFlow() {
   const navigate = useNavigate();
-  const { cart, addOrder, settings, currency, exchangeRates } = useAppContext();
+  const { cart } = useShopping();
+  const { addOrder, settings, currency, exchangeRates } = useAppContext();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [formData, setFormData] = useState({

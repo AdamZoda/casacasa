@@ -137,6 +137,37 @@
     font-family: inherit !important;
     letter-spacing: inherit !important;
     line-height: inherit !important;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: clip;
+  }
+
+  body {
+    overflow-x: clip;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    .animate-marquee {
+      animation: none !important;
+    }
+  }
+
+  /* Évite le zoom iOS au focus sur les champs (police sous 16px) */
+  @media (max-width: 640px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+    textarea,
+    select {
+      font-size: 1rem !important;
+    }
   }
 
   /* Force all elements to inherit font-family, override Tailwind utilities */
@@ -150,11 +181,6 @@
     font-family: inherit !important;
     letter-spacing: inherit !important;
     @apply font-serif font-normal tracking-wide;
-  }
-  
-  /* Smooth scroll behavior */
-  html {
-    scroll-behavior: smooth;
   }
   
   /* Button base styles */

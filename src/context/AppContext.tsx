@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { universes as initialUniverses, journalPosts as initialJournalPosts } from '../data/content';
 import { Language } from '../i18n/translations';
 import { supabase } from '../lib/supabase';
@@ -75,6 +76,8 @@ export interface Article {
   availabilityCount?: number;
   isFeatured?: boolean;
   featuredDisplayType?: 'card' | 'hero' | 'grid' | 'carousel';
+  /** Présent quand l’article est chargé depuis la base (tri, admin). */
+  created_at?: string;
   // 🆕 Article Hierarchy
   content?: string;
   isReservable?: boolean;
@@ -97,6 +100,10 @@ export interface Activity {
   articles?: Article[];
   isFeatured?: boolean;
   featuredDisplayType?: 'card' | 'hero' | 'grid' | 'carousel';
+  featuredOrder?: number;
+  featuredImageUrl?: string;
+  /** Présent quand l’activité est chargée depuis la base (tri, admin). */
+  created_at?: string;
 }
 
 export interface Product {
@@ -256,13 +263,6 @@ interface AppContextType {
   settings: SiteSettings;
   updateSettings: (s: SiteSettings) => void;
 
-  cart: Product[];
-  addToCart: (p: Product) => void;
-  removeFromCart: (id: string) => void;
-
-  favorites: string[];
-  toggleFavorite: (id: string) => void;
-
   currency: Currency;
   setCurrency: (currency: Currency) => void;
   exchangeRates: ExchangeRates;
@@ -316,6 +316,9 @@ const initProducts: Product[] = [
 import { globalServices as initGlobalServices } from '../data/content';
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const adminDataLoadedRef = useRef(false);
+
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -365,8 +368,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   });
   const [settingsRowId, setSettingsRowId] = useState<number | null>(null);
-  const [cart, setCart] = useState<Product[]>([]);
-  const [favorites, setFavorites] = useState<string[]>([]);
   const [currency, setCurrency] = useState<Currency>('MAD');
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates>(DEFAULT_EXCHANGE_RATES);
   const [searchQuery, setSearchQuery] = useState('');
@@ -403,33 +404,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const body = document.body;
     body.classList.remove('font-style-original', 'font-style-playfair', 'font-style-kiona', 'font-style-riona');
     body.classList.add(`font-style-${settings.fontStyle}`);
-    console.log('✅ Font style applied:', `font-style-${settings.fontStyle}`);
   }, [settings.fontStyle]);
 
+  /** Données publiques + réglages : chargées une fois au montage (parcours visiteur plus léger). */
   useEffect(() => {
-    const fetchProfilesSettings = async () => {
-      const ordered = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-      if (!ordered.error && ordered.data) {
-        setProfiles(ordered.data);
-      } else {
-        const sortErr = ordered.error?.message ?? '';
-        const maybeMissingSortCol =
-          /created_at|column|42703|does not exist/i.test(sortErr) || ordered.error?.code === '42703';
-        if (maybeMissingSortCol) {
-          const plain = await supabase.from('profiles').select('*');
-          if (!plain.error && plain.data) setProfiles(plain.data);
-          else if (ordered.error) {
-            console.warn('[Supabase] profiles indisponible:', ordered.error.message);
-          }
-        } else if (ordered.error) {
-          console.warn(
-            '[Supabase] profiles indisponible:',
-            ordered.error.message,
-            '— exécutez fix_profiles_rls.sql dans Supabase si la table ou les politiques RLS sont en cause.'
-          );
-        }
-      }
-
+    const loadSiteSettingsAndGlobal = async () => {
       const { data: sData, error: sErr } = await supabase
         .from('site_settings')
         .select('*')
@@ -447,29 +426,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       else if (gsData && gsData.length > 0) setGlobalServices(gsData);
     };
 
-    const loadCatalogAndOps = async () => {
-      const [
-        uRes,
-        aRes,
-        artRes,
-        pRes,
-        jRes,
-        rRes,
-        oRes,
-        tRes,
-        tmRes,
-        nsRes,
-      ] = await Promise.all([
+    const loadPublicCatalog = async () => {
+      const [uRes, aRes, artRes, pRes, jRes, tmRes] = await Promise.all([
         supabase.from('universes').select('*'),
         supabase.from('activities').select('*'),
         supabase.from('articles').select('*'),
         supabase.from('products').select('*'),
         supabase.from('journal_posts').select('*'),
-        supabase.from('reservations').select('*').order('created_at', { ascending: false }),
-        supabase.from('orders').select('*').order('created_at', { ascending: false }),
-        supabase.from('tickets').select('*').order('created_at', { ascending: false }),
         supabase.from('testimonials').select('*').order('created_at', { ascending: false }),
-        supabase.from('newsletter_subscribers').select('*').order('subscribed_at', { ascending: false }),
       ]);
 
       if (uRes.error) console.warn('[Supabase] universes:', uRes.error.message);
@@ -496,7 +460,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
             availabilityCount: row.availability_count,
             isFeatured: Boolean(row.is_featured),
             featuredDisplayType: (isValidDisplayType ? displayType : 'card') as 'card' | 'hero' | 'grid' | 'carousel',
-            // 🆕 Article Hierarchy
             isReservable: Boolean(row.is_reservable),
             articleType: (row.article_type ?? 'standalone') as 'standalone' | 'parent' | 'child',
             parentArticleId: row.parent_article_id ?? undefined,
@@ -513,6 +476,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (jRes.error) console.warn('[Supabase] journal_posts:', jRes.error.message);
       else if (jRes.data?.length) setJournalPosts(jRes.data.map((row) => rowToJournalPost(row)));
 
+      if (tmRes.error) console.warn('[Supabase] testimonials:', tmRes.error.message);
+      else if (tmRes.data?.length) setTestimonials(tmRes.data.map((row) => rowToTestimonial(row)));
+    };
+
+    void Promise.all([loadSiteSettingsAndGlobal(), loadPublicCatalog()]);
+  }, []);
+
+  /** Données admin : réservations, commandes, tickets, newsletter, profils — uniquement si zone /admin utilisée. */
+  useEffect(() => {
+    if (!location.pathname.startsWith('/admin')) return;
+    if (adminDataLoadedRef.current) return;
+    adminDataLoadedRef.current = true;
+
+    const loadAdminData = async () => {
+      const ordered = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      if (!ordered.error && ordered.data) {
+        setProfiles(ordered.data);
+      } else {
+        const sortErr = ordered.error?.message ?? '';
+        const maybeMissingSortCol =
+          /created_at|column|42703|does not exist/i.test(sortErr) || ordered.error?.code === '42703';
+        if (maybeMissingSortCol) {
+          const plain = await supabase.from('profiles').select('*');
+          if (!plain.error && plain.data) setProfiles(plain.data);
+          else if (ordered.error) {
+            console.warn('[Supabase] profiles indisponible:', ordered.error.message);
+          }
+        } else if (ordered.error) {
+          console.warn(
+            '[Supabase] profiles indisponible:',
+            ordered.error.message,
+            '— exécutez fix_profiles_rls.sql dans Supabase si la table ou les politiques RLS sont en cause.'
+          );
+        }
+      }
+
+      const [rRes, oRes, tRes, nsRes] = await Promise.all([
+        supabase.from('reservations').select('*').order('created_at', { ascending: false }),
+        supabase.from('orders').select('*').order('created_at', { ascending: false }),
+        supabase.from('tickets').select('*').order('created_at', { ascending: false }),
+        supabase.from('newsletter_subscribers').select('*').order('subscribed_at', { ascending: false }),
+      ]);
+
       if (rRes.error) console.warn('[Supabase] reservations:', rRes.error.message);
       else if (rRes.data) setReservations(rRes.data.map((row) => dbRowToReservation(row as ReservationRow)));
 
@@ -522,17 +528,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (tRes.error) console.warn('[Supabase] tickets:', tRes.error.message);
       else if (tRes.data) setTickets(tRes.data as Ticket[]);
 
-      if (tmRes.error) console.warn('[Supabase] testimonials:', tmRes.error.message);
-      else if (tmRes.data?.length) setTestimonials(tmRes.data.map((row) => rowToTestimonial(row)));
-
       if (nsRes.error) console.warn('[Supabase] newsletter_subscribers:', nsRes.error.message);
       else setSubscribers((nsRes.data ?? []).map((row) => rowToSubscriber(row)));
     };
 
-    void Promise.all([fetchProfilesSettings(), loadCatalogAndOps()]);
-  }, []);
+    void loadAdminData();
+  }, [location.pathname]);
 
-  const addReservation = async (data: Omit<Reservation, 'id' | 'created_at' | 'status'>) => {
+  const addReservation = useCallback(async (data: Omit<Reservation, 'id' | 'created_at' | 'status'>) => {
     const id =
       typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
         ? `res-${crypto.randomUUID()}`
@@ -548,17 +551,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (insertedData) {
       setReservations((prev) => [dbRowToReservation(insertedData as ReservationRow), ...prev]);
     }
-  };
-  const updateReservationStatus = async (id: string, status: Reservation['status']) => {
+  }, []);
+  const updateReservationStatus = useCallback(async (id: string, status: Reservation['status']) => {
     setReservations(prev => prev.map(res => res.id === id ? { ...res, status } : res));
     await supabase.from('reservations').update({ status }).eq('id', id);
-  };
-  const deleteReservation = async (id: string) => {
+  }, []);
+  const deleteReservation = useCallback(async (id: string) => {
     setReservations(prev => prev.filter(res => res.id !== id));
     await supabase.from('reservations').delete().eq('id', id);
-  };
+  }, []);
 
-  const addOrder = async (data: Omit<Order, 'id' | 'created_at' | 'status'>) => {
+  const addOrder = useCallback(async (data: Omit<Order, 'id' | 'created_at' | 'status'>) => {
     const { data: inserted, error } = await supabase
       .from('orders')
       .insert({
@@ -583,31 +586,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const o = rowToOrder(inserted);
       setOrders((prev) => [o, ...prev]);
     }
-  };
-  const updateOrderStatus = async (id: string, status: Order['status']) => {
+  }, []);
+  const updateOrderStatus = useCallback(async (id: string, status: Order['status']) => {
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
     await supabase.from('orders').update({ status }).eq('id', id);
-  };
-  const deleteOrder = async (id: string) => {
+  }, []);
+  const deleteOrder = useCallback(async (id: string) => {
     setOrders(prev => prev.filter(o => o.id !== id));
     await supabase.from('orders').delete().eq('id', id);
-  };
+  }, []);
 
-  const addTicket = async (data: Omit<Ticket, 'id' | 'created_at' | 'status'>): Promise<string> => {
+  const addTicket = useCallback(async (data: Omit<Ticket, 'id' | 'created_at' | 'status'>): Promise<string> => {
     const id = `tic-${Date.now()}`;
     const newT: Ticket = { ...data, id, status: 'open', created_at: new Date().toISOString() };
     setTickets(prev => [newT, ...prev]);
     await supabase.from('tickets').insert(newT);
     return id;
-  };
-  const updateTicketStatus = async (id: string, status: Ticket['status']) => {
+  }, []);
+  const updateTicketStatus = useCallback(async (id: string, status: Ticket['status']) => {
     setTickets(prev => prev.map(t => t.id === id ? { ...t, status } : t));
     await supabase.from('tickets').update({ status }).eq('id', id);
-  };
-  const deleteTicket = async (id: string) => {
+  }, []);
+  const deleteTicket = useCallback(async (id: string) => {
     setTickets(prev => prev.filter(t => t.id !== id));
     await supabase.from('tickets').delete().eq('id', id);
-  };
+  }, []);
 
   const refreshTickets = useCallback(async () => {
     const { data, error } = await supabase.from('tickets').select('*').order('created_at', { ascending: false });
@@ -615,11 +618,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     else if (data) setTickets(data as Ticket[]);
   }, []);
 
-  const addTicketMessage = async (data: Omit<TicketMessage, 'id' | 'created_at'>) => {
+  const addTicketMessage = useCallback(async (data: Omit<TicketMessage, 'id' | 'created_at'>) => {
     const newMsg: TicketMessage = { ...data, id: `msg-${Date.now()}`, created_at: new Date().toISOString() };
     setTicketMessages(prev => [...prev, newMsg]);
     await supabase.from('ticket_messages').insert(newMsg);
-  };
+  }, []);
   const fetchTicketMessages = useCallback(async (ticketId: string): Promise<TicketMessage[]> => {
     const { data } = await supabase
       .from('ticket_messages')
@@ -629,39 +632,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return data || [];
   }, []);
 
-  const addUniverse = async (u: Universe) => {
+  const addUniverse = useCallback(async (u: Universe) => {
     setUniverses((prev) => [...prev, u]);
     const { error } = await supabase.from('universes').insert(universeToRow(u));
     if (error) console.error('[Supabase] universes insert:', error.message);
-  };
-  const updateUniverse = async (u: Universe) => {
+  }, []);
+  const updateUniverse = useCallback(async (u: Universe) => {
     setUniverses((prev) => prev.map((i) => (i.id === u.id ? u : i)));
     const { error } = await supabase.from('universes').update(universeToRow(u)).eq('id', u.id);
     if (error) console.error('[Supabase] universes update:', error.message);
-  };
-  const deleteUniverse = async (id: string) => {
+  }, []);
+  const deleteUniverse = useCallback(async (id: string) => {
     setUniverses((prev) => prev.filter((x) => x.id !== id));
     const { error } = await supabase.from('universes').delete().eq('id', id);
     if (error) console.error('[Supabase] universes delete:', error.message);
-  };
+  }, []);
 
-  const addActivity = async (a: Activity) => {
+  const addActivity = useCallback(async (a: Activity) => {
     setActivities((prev) => [...prev, a]);
     const { error } = await supabase.from('activities').insert(activityToRow(a));
     if (error) console.error('[Supabase] activities insert:', error.message);
-  };
-  const updateActivity = async (a: Activity) => {
+  }, []);
+  const updateActivity = useCallback(async (a: Activity) => {
     setActivities((prev) => prev.map((i) => (i.id === a.id ? a : i)));
     const { error } = await supabase.from('activities').update(activityToRow(a)).eq('id', a.id);
     if (error) console.error('[Supabase] activities update:', error.message);
-  };
-  const deleteActivity = async (id: string) => {
+  }, []);
+  const deleteActivity = useCallback(async (id: string) => {
     setActivities((prev) => prev.filter((x) => x.id !== id));
     const { error } = await supabase.from('activities').delete().eq('id', id);
     if (error) console.error('[Supabase] activities delete:', error.message);
-  };
+  }, []);
 
-  const addArticle = async (a: Article) => {
+  const addArticle = useCallback(async (a: Article) => {
     setArticles((prev) => [...prev, a]);
     const row = {
       id: a.id,
@@ -683,9 +686,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     const { error } = await supabase.from('articles').insert([row]);
     if (error) console.error('[Supabase] articles insert:', error.message);
-  };
+  }, []);
 
-  const updateArticle = async (a: Article) => {
+  const updateArticle = useCallback(async (a: Article) => {
     setArticles((prev) => prev.map((i) => (i.id === a.id ? a : i)));
     const row = {
       id: a.id,
@@ -707,63 +710,81 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     const { error } = await supabase.from('articles').update(row).eq('id', a.id);
     if (error) console.error('[Supabase] articles update:', error.message);
-  };
+  }, []);
 
-  const deleteArticle = async (id: string) => {
+  const deleteArticle = useCallback(async (id: string) => {
     setArticles((prev) => prev.filter((x) => x.id !== id));
     const { error } = await supabase.from('articles').delete().eq('id', id);
     if (error) console.error('[Supabase] articles delete:', error.message);
-  };
+  }, []);
 
-  const getArticlesByActivityId = (activityId: string) => {
-    return articles.filter((a) => a.activityId === activityId);
-  };
+  const getArticlesByActivityId = useCallback(
+    (activityId: string) => articles.filter((a) => a.activityId === activityId),
+    [articles],
+  );
 
-  const addProduct = async (p: Product) => {
+  const addProduct = useCallback(async (p: Product) => {
     setProducts((prev) => [...prev, p]);
     const { error } = await supabase.from('products').insert(productToRow(p));
     if (error) console.error('[Supabase] products insert:', error.message);
-  };
-  const updateProduct = async (p: Product) => {
+  }, []);
+  const updateProduct = useCallback(async (p: Product) => {
     setProducts((prev) => prev.map((i) => (i.id === p.id ? p : i)));
     const { error } = await supabase.from('products').update(productToRow(p)).eq('id', p.id);
     if (error) console.error('[Supabase] products update:', error.message);
-  };
-  const deleteProduct = async (id: string) => {
+  }, []);
+  const deleteProduct = useCallback(async (id: string) => {
     setProducts((prev) => prev.filter((x) => x.id !== id));
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) console.error('[Supabase] products delete:', error.message);
-  };
+  }, []);
 
-  const addJournalPost = async (p: JournalPost) => { setJournalPosts(prev => [...prev,p]); await supabase.from('journal_posts').insert(p); };
-  const updateJournalPost = async (p: JournalPost) => { setJournalPosts(prev => prev.map(i => i.id === p.id ? p : i)); await supabase.from('journal_posts').update(p).eq('id', p.id); };
-  const deleteJournalPost = async (id: string) => { setJournalPosts(prev => prev.filter(p => p.id !== id)); await supabase.from('journal_posts').delete().eq('id', id); };
+  const addJournalPost = useCallback(async (p: JournalPost) => {
+    setJournalPosts((prev) => [...prev, p]);
+    await supabase.from('journal_posts').insert(p);
+  }, []);
+  const updateJournalPost = useCallback(async (p: JournalPost) => {
+    setJournalPosts((prev) => prev.map((i) => (i.id === p.id ? p : i)));
+    await supabase.from('journal_posts').update(p).eq('id', p.id);
+  }, []);
+  const deleteJournalPost = useCallback(async (id: string) => {
+    setJournalPosts((prev) => prev.filter((p) => p.id !== id));
+    await supabase.from('journal_posts').delete().eq('id', id);
+  }, []);
 
-  const addGlobalService = async (s: GlobalService) => { setGlobalServices(prev => [...prev, s]); await supabase.from('global_services').insert(s); };
-  const updateGlobalService = async (s: GlobalService) => { 
-    setGlobalServices(prev => prev.map(item => item.id === s.id ? s : item)); 
+  const addGlobalService = useCallback(async (s: GlobalService) => {
+    setGlobalServices((prev) => [...prev, s]);
+    await supabase.from('global_services').insert(s);
+  }, []);
+  const updateGlobalService = useCallback(async (s: GlobalService) => {
+    setGlobalServices((prev) => prev.map((item) => (item.id === s.id ? s : item)));
     const { error } = await supabase.from('global_services').upsert(s, { onConflict: 'id' });
     if (error) console.error('Error saving service:', error);
-  };
-  const deleteGlobalService = async (id: string) => { setGlobalServices(prev => prev.filter(s => s.id !== id)); await supabase.from('global_services').delete().eq('id', id); };
+  }, []);
+  const deleteGlobalService = useCallback(async (id: string) => {
+    setGlobalServices((prev) => prev.filter((s) => s.id !== id));
+    await supabase.from('global_services').delete().eq('id', id);
+  }, []);
 
-  const addTestimonial = async (t: Omit<Testimonial, 'id' | 'isApproved'>) => {
+  const addTestimonial = useCallback(async (t: Omit<Testimonial, 'id' | 'isApproved'>) => {
     const newT: Testimonial = { ...t, id: `t-${Date.now()}`, isApproved: false };
     setTestimonials((prev) => [newT, ...prev]);
     const { error } = await supabase.from('testimonials').insert(testimonialToRow(newT));
     if (error) console.error('[Supabase] testimonials insert:', error.message);
-  };
-  const updateTestimonial = async (t: Testimonial) => {
+  }, []);
+  const updateTestimonial = useCallback(async (t: Testimonial) => {
     setTestimonials((prev) => prev.map((i) => (i.id === t.id ? t : i)));
     const { error } = await supabase.from('testimonials').update(testimonialToRow(t)).eq('id', t.id);
     if (error) console.error('[Supabase] testimonials update:', error.message);
-  };
-  const deleteTestimonial = async (id: string) => { setTestimonials(prev => prev.filter(t => t.id !== id)); await supabase.from('testimonials').delete().eq('id', id); };
+  }, []);
+  const deleteTestimonial = useCallback(async (id: string) => {
+    setTestimonials((prev) => prev.filter((t) => t.id !== id));
+    await supabase.from('testimonials').delete().eq('id', id);
+  }, []);
 
-  const subscribeNewsletter = async (email: string): Promise<boolean> => {
+  const subscribeNewsletter = useCallback(async (email: string): Promise<boolean> => {
     const trimmed = email.trim().toLowerCase();
     if (!trimmed) return false;
-    if (subscribers.some((s) => s.email.toLowerCase() === trimmed)) return true;
 
     const { data, error } = await supabase.from('newsletter_subscribers').insert({ email: trimmed }).select().single();
 
@@ -774,13 +795,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     if (data) setSubscribers((prev) => [rowToSubscriber(data), ...prev]);
     return true;
-  };
+  }, []);
 
-  const unsubscribeNewsletter = async (id: string) => {
+  const unsubscribeNewsletter = useCallback(async (id: string) => {
     const { error } = await supabase.from('newsletter_subscribers').delete().eq('id', id);
     if (error) console.error('[Supabase] newsletter_subscribers delete:', error.message);
     setSubscribers((prev) => prev.filter((s) => s.id !== id));
-  };
+  }, []);
 
   const refreshNewsletterSubscribers = useCallback(async () => {
     const { data, error } = await supabase
@@ -794,11 +815,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSubscribers((data ?? []).map((row) => rowToSubscriber(row)));
   }, []);
 
-  const updateSettings = async (s: SiteSettings) => {
-    console.log('📝 Updating settings with fontStyle:', s.fontStyle);
+  const updateSettings = useCallback(async (s: SiteSettings) => {
     const rowId = settingsRowId ?? 1;
     const row = siteSettingsToDbRow(s, rowId);
-    console.log('📊 Upserting to Supabase:', row);
     let { error } = await supabase.from('site_settings').upsert(row, { onConflict: 'id' });
 
     if (error) {
@@ -818,46 +837,145 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     setSettings(s);
-    console.log('✅ Settings saved successfully to Supabase');
-  };
+  }, [settingsRowId]);
 
-  const addToCart = (p: Product) => setCart(prev => [...prev, p]);
-  const removeFromCart = (id: string) => setCart(prev => prev.filter(p => p.id !== id));
-  const toggleFavorite = (id: string) => setFavorites(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
-
-  const deleteProfile = async (id: string) => {
+  const deleteProfile = useCallback(async (id: string) => {
     await supabase.from('profiles').delete().eq('id', id);
-    setProfiles(profiles.filter(p => p.id !== id));
-  };
+    setProfiles((prev) => prev.filter((p) => p.id !== id));
+  }, []);
 
-  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  const toggleTheme = useCallback(() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light')), []);
 
-  return (
-    <AppContext.Provider value={{ 
-      reservations, addReservation, updateReservationStatus, deleteReservation,
-      orders, addOrder, updateOrderStatus, deleteOrder,
-      tickets, refreshTickets, addTicket, updateTicketStatus, deleteTicket,
-      ticketMessages, addTicketMessage, fetchTicketMessages,
-      universes, addUniverse, updateUniverse, deleteUniverse,
-      activities, addActivity, updateActivity, deleteActivity,
-      articles, addArticle, updateArticle, deleteArticle, getArticlesByActivityId,
-      products, addProduct, updateProduct, deleteProduct,
-      journalPosts, addJournalPost, updateJournalPost, deleteJournalPost,
-      testimonials, addTestimonial, updateTestimonial, deleteTestimonial,
-      globalServices, addGlobalService, updateGlobalService, deleteGlobalService,
-      subscribers, subscribeNewsletter, unsubscribeNewsletter, refreshNewsletterSubscribers,
-      settings, updateSettings,
-      cart, addToCart, removeFromCart,
-      favorites, toggleFavorite,
-      currency, setCurrency, exchangeRates, refreshExchangeRates,
-      searchQuery, setSearchQuery,
-      profiles, deleteProfile,
-      theme, toggleTheme,
-      language, setLanguage
-    }}>
-      {children}
-    </AppContext.Provider>
+  const contextValue = useMemo<AppContextType>(
+    () => ({
+      reservations,
+      addReservation,
+      updateReservationStatus,
+      deleteReservation,
+      orders,
+      addOrder,
+      updateOrderStatus,
+      deleteOrder,
+      tickets,
+      refreshTickets,
+      addTicket,
+      updateTicketStatus,
+      deleteTicket,
+      ticketMessages,
+      addTicketMessage,
+      fetchTicketMessages,
+      universes,
+      addUniverse,
+      updateUniverse,
+      deleteUniverse,
+      activities,
+      addActivity,
+      updateActivity,
+      deleteActivity,
+      articles,
+      addArticle,
+      updateArticle,
+      deleteArticle,
+      getArticlesByActivityId,
+      products,
+      addProduct,
+      updateProduct,
+      deleteProduct,
+      journalPosts,
+      addJournalPost,
+      updateJournalPost,
+      deleteJournalPost,
+      testimonials,
+      addTestimonial,
+      updateTestimonial,
+      deleteTestimonial,
+      globalServices,
+      addGlobalService,
+      updateGlobalService,
+      deleteGlobalService,
+      subscribers,
+      subscribeNewsletter,
+      unsubscribeNewsletter,
+      refreshNewsletterSubscribers,
+      settings,
+      updateSettings,
+      currency,
+      setCurrency,
+      exchangeRates,
+      refreshExchangeRates,
+      searchQuery,
+      setSearchQuery,
+      profiles,
+      deleteProfile,
+      theme,
+      toggleTheme,
+      language,
+      setLanguage,
+    }),
+    [
+      reservations,
+      addReservation,
+      updateReservationStatus,
+      deleteReservation,
+      orders,
+      addOrder,
+      updateOrderStatus,
+      deleteOrder,
+      tickets,
+      refreshTickets,
+      addTicket,
+      updateTicketStatus,
+      deleteTicket,
+      ticketMessages,
+      addTicketMessage,
+      fetchTicketMessages,
+      universes,
+      addUniverse,
+      updateUniverse,
+      deleteUniverse,
+      activities,
+      addActivity,
+      updateActivity,
+      deleteActivity,
+      articles,
+      addArticle,
+      updateArticle,
+      deleteArticle,
+      getArticlesByActivityId,
+      products,
+      addProduct,
+      updateProduct,
+      deleteProduct,
+      journalPosts,
+      addJournalPost,
+      updateJournalPost,
+      deleteJournalPost,
+      testimonials,
+      addTestimonial,
+      updateTestimonial,
+      deleteTestimonial,
+      globalServices,
+      addGlobalService,
+      updateGlobalService,
+      deleteGlobalService,
+      subscribers,
+      subscribeNewsletter,
+      unsubscribeNewsletter,
+      refreshNewsletterSubscribers,
+      settings,
+      updateSettings,
+      currency,
+      exchangeRates,
+      refreshExchangeRates,
+      searchQuery,
+      profiles,
+      deleteProfile,
+      theme,
+      language,
+    ],
   );
+
+  return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
 }
 
 export function useAppContext() {

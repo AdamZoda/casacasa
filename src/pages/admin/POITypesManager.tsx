@@ -116,8 +116,6 @@ export function POITypesManager() {
           logo_url: formData.logo_url,
           is_active: formData.is_active,
           sort_order: formData.sort_order,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
         });
 
         if (result) {

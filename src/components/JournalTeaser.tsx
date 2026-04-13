@@ -52,6 +52,8 @@ export function JournalTeaser() {
                   <motion.img 
                     src={post.image} 
                     alt={post.title}
+                    loading="lazy"
+                    decoding="async"
                     whileHover={{ scale: 1.1 }}
                     transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
                     className="w-full h-full object-cover"

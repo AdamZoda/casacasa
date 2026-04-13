@@ -30,7 +30,7 @@ export function Footer() {
   const socialLinks = settings.socialLinks;
 
   return (
-    <footer className="pt-40 pb-16 px-6 bg-[#050505] text-white border-t border-white/5">
+    <footer className="border-t border-white/5 bg-[#050505] px-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] pt-40 text-white">
       <div className="max-w-[1400px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 mb-32">
           {/* Brand & Philosophy */}

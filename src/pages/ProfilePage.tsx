@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useAppContext, type Article, type Reservation } from "../context/AppContext";
+import { useShopping } from "../context/ShoppingContext";
 import { useAuth } from "../context/AuthContext";
 import { translations } from "../i18n/translations";
 import { formatMoney } from "../lib/utils";
@@ -28,7 +29,8 @@ function reservationDisplayHeading(res: Reservation, article: Article | null): s
 
 export function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
-  const { language, setLanguage, favorites, toggleFavorite, activities, articles, products, reservations, currency, exchangeRates } = useAppContext();
+  const { language, setLanguage, activities, articles, products, reservations, currency, exchangeRates } = useAppContext();
+  const { favorites, toggleFavorite } = useShopping();
   const t = translations[language];
   
   const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'reservations'>('profile');

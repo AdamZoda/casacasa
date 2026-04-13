@@ -1,11 +1,14 @@
 import { useParams, Navigate, Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAppContext } from "../context/AppContext";
+import { useShopping } from "../context/ShoppingContext";
 import { Heart } from "lucide-react";
+import { LazyImg } from "../components/LazyImg";
 
 export function Universe() {
   const { id } = useParams<{ id: string }>();
-  const { universes, activities, favorites, toggleFavorite } = useAppContext();
+  const { universes, activities } = useAppContext();
+  const { favorites, toggleFavorite } = useShopping();
   
   const universe = universes.find(u => u.id === id);
   const universeActivities = activities.filter(a => a.universeId === id);
@@ -24,7 +27,8 @@ export function Universe() {
           transition={{ duration: 10, ease: "easeOut" }}
           className="absolute inset-0 z-0"
         >
-          <img
+          <LazyImg
+            priority
             src={universe.heroImage}
             alt={universe.name}
             className="w-full h-full object-cover opacity-60"
@@ -115,7 +119,7 @@ export function Universe() {
             >
               <div className="w-full lg:w-1/2 h-[50vh] lg:h-[70vh] overflow-hidden relative group">
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10" />
-                <img 
+                <LazyImg 
                   src={activity.image} 
                   alt={activity.title}
                   className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
@@ -184,7 +188,7 @@ export function Universe() {
               className={`relative overflow-hidden group ${index === 0 ? 'md:col-span-2 h-[60vh] md:h-[80vh]' : 'h-[50vh]'}`}
             >
               <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10" />
-              <img 
+              <LazyImg 
                 src={img} 
                 alt={`${universe.name} Gallery ${index + 1}`}
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"

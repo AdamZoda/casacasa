@@ -4,6 +4,38 @@ import { Plus, Trash2, Upload, Loader2, Pencil } from "lucide-react";
 import { uploadImage } from "../../lib/storage";
 import { AdminPageHeader } from "../../components/admin/adminShared";
 
+type ArticleDraft = {
+  activityId: string;
+  title: string;
+  image: string;
+  description: string;
+  priceType: "fixed" | "per_duration";
+  price: string;
+  durationUnit: "day" | "night";
+  pricePerUnit: string;
+  availabilityCount: string;
+  isFeatured: boolean;
+  isReservable: boolean;
+  articleType: "standalone" | "parent" | "child";
+  parentArticleId: string;
+};
+
+const emptyArticleDraft = (): ArticleDraft => ({
+  activityId: "",
+  title: "",
+  image: "",
+  description: "",
+  priceType: "fixed",
+  price: "",
+  durationUnit: "day",
+  pricePerUnit: "",
+  availabilityCount: "",
+  isFeatured: false,
+  isReservable: false,
+  articleType: "standalone",
+  parentArticleId: "",
+});
+
 export function ArticlesManager() {
   const { activities, articles, addArticle, updateArticle, deleteArticle, getArticlesByActivityId } = useAppContext();
   
@@ -11,22 +43,7 @@ export function ArticlesManager() {
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const [newArticle, setNewArticle] = useState({
-    activityId: "",
-    title: "",
-    image: "",
-    description: "",
-    priceType: "fixed" as const,
-    price: "",
-    durationUnit: "day" as const,
-    pricePerUnit: "",
-    availabilityCount: "",
-    isFeatured: false,
-    // 🆕 Article Hierarchy
-    isReservable: false,
-    articleType: "standalone" as 'standalone' | 'parent' | 'child',
-    parentArticleId: "",
-  });
+  const [newArticle, setNewArticle] = useState<ArticleDraft>(emptyArticleDraft);
 
   const activeActivityId = editingArticle?.activityId || selectedActivityId;
   const activeActivity = activities.find((a) => a.id === activeActivityId);
@@ -72,21 +89,7 @@ export function ArticlesManager() {
       }
 
       setEditingArticle(null);
-      setNewArticle({
-        activityId: "",
-        title: "",
-        image: "",
-        description: "",
-        priceType: "fixed",
-        price: "",
-        durationUnit: "day",
-        pricePerUnit: "",
-        availabilityCount: "",
-        isFeatured: false,
-        isReservable: false,
-        articleType: "standalone",
-        parentArticleId: "",
-      });
+      setNewArticle(emptyArticleDraft());
     } catch (error) {
       console.error("Error saving article:", error);
     }
@@ -111,21 +114,7 @@ export function ArticlesManager() {
               onChange={(e) => {
                 setSelectedActivityId(e.target.value);
                 setEditingArticle(null);
-                setNewArticle({
-                  activityId: "",
-                  title: "",
-                  image: "",
-                  description: "",
-                  priceType: "fixed",
-                  price: "",
-                  durationUnit: "day",
-                  pricePerUnit: "",
-                  availabilityCount: "",
-                  isFeatured: false,
-                  isReservable: false,
-                  articleType: "standalone",
-                  parentArticleId: "",
-                });
+                setNewArticle(emptyArticleDraft());
               }}
               className="admin-input w-full text-sm cursor-pointer"
               required

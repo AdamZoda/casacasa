@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useFeaturedItems } from '../hooks/useFeaturedItems';
+import { LazyImg } from './LazyImg';
 
 interface FeaturedItemsProps {
   pageSize?: number;
@@ -89,15 +90,17 @@ export function FeaturedItemsSection({ pageSize = 12, autoLoad = true }: Feature
   );
 }
 
+type FeaturedItem = ReturnType<typeof useFeaturedItems>['allItems'][number];
+
 interface CardProps {
-  item: ReturnType<ReturnType<typeof useFeaturedItems>['items']>[number];
+  item: FeaturedItem;
 }
 
 function HeroCard({ item }: CardProps) {
   return (
     <div className="group cursor-pointer rounded-xl overflow-hidden bg-bg-secondary border border-border-primary hover:border-brand-gold/50 transition-all duration-300">
       <div className="aspect-video relative overflow-hidden">
-        <img
+        <LazyImg
           src={item.image}
           alt={item.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -117,7 +120,7 @@ function StandardCard({ item }: CardProps) {
   return (
     <div className="group cursor-pointer rounded-lg overflow-hidden bg-bg-secondary border border-border-primary hover:border-brand-gold/50 transition-all duration-300 flex flex-col">
       <div className="aspect-square relative overflow-hidden bg-text-primary/5">
-        <img
+        <LazyImg
           src={item.image}
           alt={item.title}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
@@ -138,7 +141,7 @@ function GridCard({ item }: CardProps) {
   return (
     <div className="group cursor-pointer rounded-lg overflow-hidden bg-bg-secondary border border-border-primary hover:border-brand-gold/50 transition-all duration-300">
       <div className="aspect-square relative overflow-hidden">
-        <img
+        <LazyImg
           src={item.image}
           alt={item.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

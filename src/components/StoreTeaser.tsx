@@ -48,6 +48,8 @@ export function StoreTeaser() {
                 <motion.img 
                   src={product.image} 
                   alt={product.title}
+                  loading="lazy"
+                  decoding="async"
                   whileHover={{ scale: 1.12, rotate: 2 }}
                   transition={{ duration: 3, ease: [0.16, 1, 0.3, 1] }}
                   className="w-full h-full object-cover"

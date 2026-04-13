@@ -89,6 +89,8 @@ export function FeaturedCarousel() {
                       key={currentItem.id}
                       src={currentItem.image}
                       alt={currentItem.title}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover"
                       initial={{ scale: 1.1, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}

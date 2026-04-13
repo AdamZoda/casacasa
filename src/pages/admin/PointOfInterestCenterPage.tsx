@@ -224,8 +224,6 @@ export function PointOfInterestCenterPage() {
           logo_url: typesFormData.logo_url,
           is_active: typesFormData.is_active,
           sort_order: typesFormData.sort_order,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
         });
 
         if (result) {

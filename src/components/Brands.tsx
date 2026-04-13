@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
+import { LazyImg } from "./LazyImg";
 
 export function Brands() {
   const { universes, language } = useAppContext();
@@ -64,7 +65,7 @@ export function Brands() {
               >
                 {/* Background Image */}
                 <div className="absolute inset-0">
-                  <img 
+                  <LazyImg 
                     src={brand.heroImage} 
                     alt={brand.name} 
                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"

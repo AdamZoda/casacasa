@@ -5,6 +5,7 @@ import { SearchOverlay } from "./SearchOverlay";
 import { useEffect, useState } from "react";
 import { Moon, Sun, User, ShoppingBag, LogIn, LogOut, Menu, X, Heart, Settings, Shield, Search, Globe } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { useShopping } from "../context/ShoppingContext";
 import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
 import { useAuth } from "../context/AuthContext";
 import { useAdminAccess } from "../hooks/useAdminAccess";
@@ -13,7 +14,8 @@ import { isPathHidden, LAYOUT_NAV_LINKS } from "../lib/hiddenPages";
 
 export function Layout() {
   const location = useLocation();
-  const { cart, theme, toggleTheme, language, setLanguage, currency, setCurrency, settings } = useAppContext();
+  const { cart } = useShopping();
+  const { theme, toggleTheme, language, setLanguage, currency, setCurrency, settings } = useAppContext();
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin } = useAdminAccess();
   const navigate = useNavigate();
@@ -91,10 +93,12 @@ export function Layout() {
   const mobileHeaderClasses = `md:hidden bg-transparent py-3 sm:py-4 ${isDarkHeroPage ? 'text-white' : 'text-text-primary'}`;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Mobile Top Bar */}
-      <div className={`md:hidden fixed top-0 left-0 right-0 z-40 px-3 sm:px-6 h-[3.75rem] sm:h-[3.5rem] transition-all duration-300 ease-in-out ${mobileHeaderClasses}`}>
-        <div className="max-w-[1400px] mx-auto flex justify-between items-center h-full gap-2">
+    <div className="flex min-h-screen min-h-[100dvh] flex-col">
+      {/* Mobile Top Bar — pt safe-area pour encoche / Dynamic Island */}
+      <div
+        className={`md:hidden fixed left-0 right-0 top-0 z-40 px-3 pt-[env(safe-area-inset-top,0px)] sm:px-6 transition-all duration-300 ease-in-out ${mobileHeaderClasses}`}
+      >
+        <div className="mx-auto flex h-[3.75rem] max-w-[1400px] items-center justify-between gap-2 sm:h-[3.5rem]">
           <button
             type="button"
             className="inline-flex h-12 w-12 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg text-current transition-colors hover:text-brand-gold active:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold touch-manipulation"
@@ -339,7 +343,7 @@ export function Layout() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -300 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden fixed inset-y-0 left-0 z-30 w-[88vw] max-w-80 overflow-y-auto overscroll-contain bg-bg-primary pt-[3.75rem] sm:pt-[3.5rem] border-r border-border-primary shadow-xl"
+            className="md:hidden fixed inset-y-0 left-0 z-30 w-[88vw] max-w-80 overflow-y-auto overscroll-contain border-r border-border-primary bg-bg-primary pt-[calc(3.75rem+env(safe-area-inset-top,0px))] shadow-xl sm:pt-[calc(3.5rem+env(safe-area-inset-top,0px))]"
           >
             <nav className="flex flex-col h-full">
               {/* Navigation Links */}
@@ -538,20 +542,11 @@ export function Layout() {
         )}
       </AnimatePresence>
 
-      {/* Main Content with Page Transitions */}
-      <main className="flex-grow flex flex-col pt-[3.75rem] sm:pt-[3.5rem] md:pt-0">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            className="flex-grow flex flex-col"
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
+      {/* Contenu : pas d’AnimatePresence ici — évite l’effet « 2 fois » (sortie puis entrée à chaque route) */}
+      <main className="flex flex-grow flex-col pt-[calc(3.75rem+env(safe-area-inset-top,0px))] sm:pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-0">
+        <div className="flex flex-grow flex-col">
+          <Outlet />
+        </div>
       </main>
 
       <Footer />
@@ -563,7 +558,7 @@ export function Layout() {
         href={`https://wa.me/${primaryWhatsappDigits(settings) || "1234567890"}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl transition-transform hover:scale-105 active:scale-95 sm:bottom-8 sm:right-8 sm:h-[4.25rem] sm:w-[4.25rem] touch-manipulation"
+        className="fixed bottom-[max(1rem,env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] z-50 flex h-14 w-14 touch-manipulation items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl transition-transform hover:scale-105 active:scale-95 sm:bottom-[max(2rem,env(safe-area-inset-bottom,0px))] sm:right-[max(2rem,env(safe-area-inset-right,0px))] sm:h-[4.25rem] sm:w-[4.25rem]"
         aria-label="WhatsApp"
       >
         <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>

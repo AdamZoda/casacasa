@@ -48,9 +48,9 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
-          className="fixed inset-0 z-[100] bg-bg-primary/95 backdrop-blur-xl flex flex-col"
+          className="fixed inset-0 z-[100] flex flex-col bg-bg-primary/95 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl"
         >
-          <div className="flex justify-end p-8 md:p-12">
+          <div className="flex justify-end p-6 pr-[max(1.5rem,env(safe-area-inset-right,0px))] md:p-12">
             <button 
               onClick={onClose}
               className="p-4 text-text-primary/60 hover:text-brand-gold transition-colors duration-500"
@@ -69,7 +69,9 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                   placeholder={t.common.search}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent border-b border-border-primary/30 py-8 pl-12 text-4xl md:text-6xl font-serif text-text-primary focus:outline-none focus:border-brand-gold transition-colors duration-500 placeholder:text-text-primary/10"
+                  autoComplete="off"
+                  enterKeyHint="search"
+                  className="w-full border-b border-border-primary/30 bg-transparent py-6 pl-10 font-serif text-text-primary transition-colors duration-500 placeholder:text-text-primary/10 focus:border-brand-gold focus:outline-none sm:py-8 sm:pl-12 text-2xl sm:text-4xl md:text-6xl"
                 />
               </div>
 
@@ -91,7 +93,9 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                           <img 
                             src={res.item.heroImage || res.item.image} 
                             alt={res.item.name || res.item.title} 
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                             referrerPolicy="no-referrer"
                           />
                         </div>

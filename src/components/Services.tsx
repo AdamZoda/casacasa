@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { Plane, Trophy, Home as HomeIcon, ConciergeBell, Globe } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { LazyImg } from "./LazyImg";
 import { translations } from "../i18n/translations";
 
 export function Services() {
@@ -53,7 +54,7 @@ export function Services() {
             >
               <div className={`relative w-full overflow-hidden mb-6 sm:mb-8 ${index % 2 === 0 ? 'h-[46vh] sm:h-[56vh] md:h-[60vh]' : 'h-[52vh] sm:h-[62vh] md:h-[70vh]'}`}>
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10" />
-                <img 
+                <LazyImg 
                   src={service.image} 
                   alt={service.title}
                   className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"

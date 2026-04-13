@@ -32,12 +32,11 @@ export function useFeaturedItems(pageSize: number = 12) {
       }));
 
     // Merge and sort by creation date (newest first)
-    return [...featuredActivities, ...featuredArticles]
-      .sort((a, b) => {
-        const dateA = new Date(a.data.created_at || 0).getTime();
-        const dateB = new Date(b.data.created_at || 0).getTime();
-        return dateB - dateA; // Newest first
-      });
+    return [...featuredActivities, ...featuredArticles].sort((a, b) => {
+      const ts = (x: { created_at?: string }) =>
+        x.created_at ? new Date(x.created_at).getTime() : 0;
+      return ts(b.data) - ts(a.data);
+    });
   }, [activities, articles]);
 
   const paginatedItems = useMemo(() => {

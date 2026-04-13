@@ -1,13 +1,16 @@
 import { motion } from "motion/react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
+import { useShopping } from "../context/ShoppingContext";
 import { formatMoney } from "../lib/utils";
 import { Trash2, ArrowRight, ShoppingBag } from "lucide-react";
 import { translations } from "../i18n/translations";
+import { LazyImg } from "../components/LazyImg";
 
 export function Cart() {
   const navigate = useNavigate();
-  const { cart, removeFromCart, language, currency, exchangeRates } = useAppContext();
+  const { language, currency, exchangeRates } = useAppContext();
+  const { cart, removeFromCart } = useShopping();
   const t = translations[language];
 
   const total = cart.reduce((sum, item) => sum + parseInt(item.price.toString().replace(/\s/g, ''), 10), 0);
@@ -61,7 +64,7 @@ export function Cart() {
                 className="flex flex-col md:flex-row items-center gap-8 p-6 border border-border-primary bg-bg-primary group hover:border-brand-gold/50 transition-colors duration-500"
               >
                 <div className="w-full md:w-32 h-32 overflow-hidden">
-                  <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <LazyImg src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 </div>
                 <div className="flex-grow text-center md:text-left">
                   <h3 className="font-serif text-2xl mb-2">{item.title}</h3>

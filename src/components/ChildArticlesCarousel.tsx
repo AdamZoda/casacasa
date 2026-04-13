@@ -3,19 +3,21 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import type { Article } from '../context/AppContext';
+import { LazyImg } from './LazyImg';
 
 interface ChildArticlesCarouselProps {
-  parentArticleId: string;
   childArticles: Article[];
-  isReservable?: boolean;
+  /** Requis pour construire l’URL fiche article (voir `App.tsx`). */
+  universeId: string;
+  activityId: string;
 }
 
 export function ChildArticlesCarousel({
-  parentArticleId,
   childArticles,
-  isReservable = false,
+  universeId,
+  activityId,
 }: ChildArticlesCarouselProps) {
-  const [scrollContainer, setScrollContainer] = React.useRef<HTMLDivElement>(null);
+  const scrollContainer = React.useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
@@ -110,13 +112,13 @@ export function ChildArticlesCarousel({
               className="flex-shrink-0 w-[280px] md:w-[320px] snap-center"
             >
               <Link
-                to={`/journal/${article.id}`}
+                to={`/article/${universeId}/${activityId}/${article.id}/detail`}
                 className="group h-full flex flex-col gap-3 p-4 rounded-lg border border-border-primary hover:border-brand-gold/50 bg-bg-secondary/40 transition-all duration-300 hover:shadow-lg"
               >
                 {/* Image */}
                 <div className="relative w-full aspect-video overflow-hidden rounded-md bg-text-primary/5">
                   {article.image ? (
-                    <img
+                    <LazyImg
                       src={article.image}
                       alt={article.title}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -158,10 +160,10 @@ export function ChildArticlesCarousel({
                   )}
                 </div>
 
-                {/* CTA Button */}
-                <button className="w-full py-2 px-3 mt-2 bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold text-xs font-semibold uppercase rounded transition-colors">
+                {/* CTA (span : évite bouton dans lien) */}
+                <span className="block w-full py-2 px-3 mt-2 bg-brand-gold/10 group-hover:bg-brand-gold/20 text-brand-gold text-xs font-semibold uppercase rounded transition-colors text-center">
                   Voir Plus
-                </button>
+                </span>
               </Link>
             </motion.div>
           ))}
