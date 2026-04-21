@@ -13,6 +13,7 @@ type SubArticleDraft = {
   durationUnit: "day" | "night";
   pricePerUnit: string;
   isReservable: boolean;
+  isFeatured: boolean;
 };
 
 const emptySubArticleDraft = (): SubArticleDraft => ({
@@ -25,6 +26,7 @@ const emptySubArticleDraft = (): SubArticleDraft => ({
   durationUnit: "day",
   pricePerUnit: "",
   isReservable: false,
+  isFeatured: false,
 });
 
 export function SubArticlesManager() {
@@ -33,6 +35,7 @@ export function SubArticlesManager() {
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showSubArticleForm, setShowSubArticleForm] = useState(false);
 
   const [newSubArticle, setNewSubArticle] = useState<SubArticleDraft>(emptySubArticleDraft);
 
@@ -88,7 +91,7 @@ export function SubArticlesManager() {
 
     try {
       const subArticle: Article = {
-        id: `art-${crypto.randomUUID?.() || Date.now()}`,
+        id: editingArticle ? editingArticle.id : `art-${crypto.randomUUID?.() || Date.now()}`,
         activityId: parentArticle.activityId,
         title: newSubArticle.title,
         image: newSubArticle.image,
@@ -97,19 +100,24 @@ export function SubArticlesManager() {
         price: newSubArticle.priceType === "fixed" ? parseFloat(newSubArticle.price) : undefined,
         durationUnit: newSubArticle.priceType === "per_duration" ? newSubArticle.durationUnit : undefined,
         pricePerUnit: newSubArticle.priceType === "per_duration" ? parseFloat(newSubArticle.pricePerUnit) : undefined,
-        availabilityCount: undefined,
-        isFeatured: false,
+        availabilityCount: editingArticle ? editingArticle.availabilityCount : undefined,
+        isFeatured: newSubArticle.isFeatured,
         isReservable: newSubArticle.isReservable,
         articleType: "child",
         parentArticleId: newSubArticle.parentArticleId,
       };
 
-      await addArticle(subArticle);
+      if (editingArticle) {
+        await updateArticle(subArticle);
+      } else {
+        await addArticle(subArticle);
+      }
 
       setNewSubArticle(emptySubArticleDraft());
-      setShowCreateForm(false);
+      setShowSubArticleForm(false);
+      setEditingArticle(null);
     } catch (error) {
-      console.error("Error creating sub-article:", error);
+      console.error("Error saving sub-article:", error);
     }
   };
 
@@ -122,20 +130,28 @@ export function SubArticlesManager() {
         </p>
       </div>
 
-      {/* Create Sub-Article Form */}
-      {parentArticles.length > 0 && (
-        <div className="admin-card p-6 md:p-8">
-          <button
-            type="button"
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            className="flex items-center gap-2 text-brand-gold hover:text-brand-gold/80 transition-colors mb-4 font-medium"
-          >
-            <Plus size={18} />
-            {showCreateForm ? "Annuler" : "Créer un sous-article"}
-          </button>
+      {/* Bouton Ajouter et Formulaire */}
+      {articles.length > 0 && (
+        <div>
+          {!showSubArticleForm && !editingArticle && (
+            <button
+              type="button"
+              onClick={() => setShowSubArticleForm(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-black font-semibold rounded-lg transition-all shadow-lg hover:shadow-xl"
+            >
+              <Plus size={18} />
+              Ajouter un sous-article
+            </button>
+          )}
+          
+          {(showSubArticleForm || editingArticle) && (
+            <div className="admin-card p-6 md:p-8">
+              <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
+                <Plus size={18} className="text-brand-gold" />
+                {editingArticle ? "Modifier le sous-article" : "Nouveau sous-article"}
+              </h3>
 
-          {showCreateForm && (
-            <form onSubmit={handleCreateSubArticle} className="space-y-4 pt-4 border-t border-border-primary">
+              <form onSubmit={handleCreateSubArticle} className="space-y-4 pt-4 border-t border-border-primary">
               {/* Parent Selection */}
               <div>
                 <label className="text-[10px] uppercase tracking-widest text-text-primary/45 font-bold block mb-2">
@@ -148,7 +164,9 @@ export function SubArticlesManager() {
                   required
                 >
                   <option value="">Sélectionnez un article parent…</option>
-                  {parentArticles.map((article) => (
+                  {articles
+                    .filter(a => a.articleType !== 'child') // Exclure les sous-articles existants
+                    .map((article) => (
                     <option key={article.id} value={article.id}>
                       {article.title} ({getActivityName(article.activityId)})
                     </option>
@@ -259,37 +277,67 @@ export function SubArticlesManager() {
                 required
               />
 
-              {/* Reservable */}
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={newSubArticle.isReservable}
-                  onChange={(e) => setNewSubArticle({ ...newSubArticle, isReservable: e.target.checked })}
-                  className="w-4 h-4 rounded border-border-primary"
-                />
-                <span className="text-sm font-medium text-text-primary">
-                  ✓ Ce sous-article est réservable
-                </span>
-              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Reservable */}
+                <label className="flex items-center gap-3 cursor-pointer p-3 border border-border-primary rounded-lg hover:bg-text-primary/[0.02]">
+                  <input
+                    type="checkbox"
+                    checked={newSubArticle.isReservable}
+                    onChange={(e) => setNewSubArticle({ ...newSubArticle, isReservable: e.target.checked })}
+                    className="w-4 h-4 rounded border-border-primary"
+                  />
+                  <span className="text-sm font-medium text-text-primary">
+                    📅 Réservable
+                  </span>
+                </label>
+
+                {/* Featured */}
+                <label className="flex items-center gap-3 cursor-pointer p-3 border border-border-primary rounded-lg hover:bg-text-primary/[0.02]">
+                  <input
+                    type="checkbox"
+                    checked={newSubArticle.isFeatured}
+                    onChange={(e) => setNewSubArticle({ ...newSubArticle, isFeatured: e.target.checked })}
+                    className="w-4 h-4 rounded border-border-primary"
+                  />
+                  <span className="text-sm font-medium text-text-primary">
+                    ⭐ À la une (Principal)
+                  </span>
+                </label>
+              </div>
 
               {/* Submit */}
-              <button
-                type="submit"
-                disabled={isUploading || !newSubArticle.parentArticleId || !newSubArticle.title}
-                className="w-full px-4 py-2 font-bold text-xs bg-brand-gold hover:bg-brand-gold/90 disabled:opacity-50 disabled:cursor-not-allowed text-bg-primary rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" aria-hidden />
-                    Chargement…
-                  </>
-                ) : (
-                  "Créer le sous-article"
-                )}
-              </button>
+                <div className="flex gap-3">
+                  {editingArticle && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingArticle(null);
+                        setNewSubArticle(emptySubArticleDraft());
+                      }}
+                      className="flex-1 px-4 py-2 font-bold text-xs bg-text-primary/10 hover:bg-text-primary/20 text-text-primary rounded-lg transition-colors"
+                    >
+                      Annuler
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isUploading || !newSubArticle.parentArticleId || !newSubArticle.title}
+                    className="flex-[2] px-4 py-2 font-bold text-xs bg-brand-gold hover:bg-brand-gold/90 disabled:opacity-50 disabled:cursor-not-allowed text-bg-primary rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" aria-hidden />
+                        Chargement…
+                      </>
+                    ) : (
+                      editingArticle ? "Enregistrer les modifications" : "Créer le sous-article"
+                    )}
+                  </button>
+                </div>
             </form>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
       )}
 
       {parentArticles.length === 0 ? (
@@ -390,6 +438,11 @@ export function SubArticlesManager() {
                                       📅 Réservable
                                     </span>
                                   )}
+                                  {child.isFeatured && (
+                                    <span className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full whitespace-nowrap">
+                                      ⭐ Principal
+                                    </span>
+                                  )}
                                 </div>
                                 <p className="text-xs text-text-primary/60 truncate">
                                   {child.priceType === "fixed"
@@ -401,7 +454,22 @@ export function SubArticlesManager() {
                             <div className="flex items-center gap-2 shrink-0">
                               <button
                                 type="button"
-                                onClick={() => setEditingArticle(child)}
+                                  onClick={() => {
+                                    setEditingArticle(child);
+                                    setNewSubArticle({
+                                      parentArticleId: child.parentArticleId || "",
+                                      title: child.title,
+                                      image: child.image,
+                                      description: child.description,
+                                      priceType: child.priceType,
+                                      price: child.price?.toString() || "",
+                                      durationUnit: child.durationUnit || "day",
+                                      pricePerUnit: child.pricePerUnit?.toString() || "",
+                                      isReservable: child.isReservable || false,
+                                      isFeatured: child.isFeatured || false,
+                                    });
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                  }}
                                 className="p-2 rounded-lg text-text-primary/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"
                                 title="Modifier"
                               >

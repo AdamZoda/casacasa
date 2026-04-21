@@ -94,6 +94,8 @@ export function ContentManager() {
   const [editingUniverse, setEditingUniverse] = useState<Universe | null>(null);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showUniverseForm, setShowUniverseForm] = useState(false);
+  const [showActivityForm, setShowActivityForm] = useState(false);
 
   const [newUniverse, setNewUniverse] = useState({
     name: "",
@@ -142,6 +144,7 @@ export function ContentManager() {
         });
       }
       setNewUniverse({ name: "", location: "", description: "", heroImage: "", flag: "", galleryUrls: "" });
+      setShowUniverseForm(false);
     } catch (err) {
       alert("Erreur : " + (err as Error).message);
     } finally {
@@ -198,6 +201,7 @@ export function ContentManager() {
 
   const resetUniverseForm = () => {
     setEditingUniverse(null);
+    setShowUniverseForm(false);
     setNewUniverse({ name: "", location: "", description: "", heroImage: "", flag: "", galleryUrls: "" });
   };
 
@@ -257,13 +261,27 @@ export function ContentManager() {
       </div>
 
       {activeTab === "universes" && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 xl:gap-10">
-          <div className="admin-card p-6 md:p-8">
-            <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
-              <Plus size={20} strokeWidth={1.5} className="text-brand-gold" aria-hidden />
-              {editingUniverse ? "Modifier le monde" : "Nouveau monde"}
-            </h3>
-            <form onSubmit={(e) => void handleAddUniverse(e)} className="flex flex-col gap-4">
+        <div className="space-y-8">
+          {/* Bouton Ajouter et Formulaire */}
+          <div>
+            {!showUniverseForm && !editingUniverse && (
+              <button
+                type="button"
+                onClick={() => setShowUniverseForm(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-black font-semibold rounded-lg transition-all shadow-lg hover:shadow-xl"
+              >
+                <Plus size={20} strokeWidth={1.5} aria-hidden />
+                Ajouter un monde
+              </button>
+            )}
+            
+            {(showUniverseForm || editingUniverse) && (
+              <div className="admin-card p-6 md:p-8">
+                <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
+                  <Plus size={20} strokeWidth={1.5} className="text-brand-gold" aria-hidden />
+                  {editingUniverse ? "Modifier le monde" : "Nouveau monde"}
+                </h3>
+                <form onSubmit={(e) => void handleAddUniverse(e)} className="flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
@@ -371,7 +389,18 @@ export function ContentManager() {
                   >
                     Annuler
                   </button>
-                ) : null}
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowUniverseForm(false);
+                      resetUniverseForm();
+                    }}
+                    className="flex-1 rounded-lg border border-border-primary py-3 text-sm font-semibold hover:bg-text-primary/[0.04] transition-colors"
+                  >
+                    Annuler
+                  </button>
+                )}
                 <button
                   type="submit"
                   disabled={isUploading}
@@ -382,11 +411,14 @@ export function ContentManager() {
                 </button>
               </div>
             </form>
+              </div>
+            )}
           </div>
 
+          {/* Mondes existants - Grid 3 par ligne */}
           <div>
             <h3 className="text-xl font-serif mb-6">Mondes existants</h3>
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {universes.map((u) => (
                 <div
                   key={u.id}
@@ -437,13 +469,27 @@ export function ContentManager() {
       )}
 
       {activeTab === "activities" && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 xl:gap-10">
-          <div className="admin-card p-6 md:p-8">
-            <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
-              <Plus size={20} strokeWidth={1.5} className="text-brand-gold" aria-hidden />
-              {editingActivity ? "Modifier l’activité" : "Nouvelle activité"}
-            </h3>
-            <form onSubmit={handleAddActivity} className="flex flex-col gap-4">
+        <div className="space-y-8">
+          {/* Bouton Ajouter et Formulaire */}
+          <div>
+            {!showActivityForm && !editingActivity && (
+              <button
+                type="button"
+                onClick={() => setShowActivityForm(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-black font-semibold rounded-lg transition-all shadow-lg hover:shadow-xl"
+              >
+                <Plus size={20} strokeWidth={1.5} aria-hidden />
+                Ajouter une activité
+              </button>
+            )}
+            
+            {(showActivityForm || editingActivity) && (
+              <div className="admin-card p-6 md:p-8">
+                <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
+                  <Plus size={20} strokeWidth={1.5} className="text-brand-gold" aria-hidden />
+                  {editingActivity ? "Modifier l'activité" : "Nouvelle activité"}
+                </h3>
+                <form onSubmit={handleAddActivity} className="flex flex-col gap-4">
               <select
                 value={newActivity.universeId}
                 onChange={(e) => setNewActivity({ ...newActivity, universeId: e.target.value })}
@@ -601,22 +647,37 @@ export function ContentManager() {
                   >
                     Annuler
                   </button>
-                ) : null}
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowActivityForm(false);
+                      setEditingActivity(null);
+                      setNewActivity(emptyActivityForm(newActivity.universeId));
+                    }}
+                    className="flex-1 rounded-lg border border-border-primary py-3 text-sm font-semibold hover:bg-text-primary/[0.04] transition-colors"
+                  >
+                    Annuler
+                  </button>
+                )}
                 <button
                   type="submit"
                   disabled={isUploading}
                   className="flex-1 rounded-lg bg-brand-gold text-brand-black font-bold py-3 text-sm hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isUploading ? <Loader2 size={16} className="animate-spin" aria-hidden /> : null}
-                  {editingActivity ? "Enregistrer" : "Créer l’activité"}
+                  {editingActivity ? "Enregistrer" : "Créer l'activité"}
                 </button>
               </div>
             </form>
+              </div>
+            )}
           </div>
 
+          {/* Activités existantes - Grid 3 par ligne */}
           <div>
             <h3 className="text-xl font-serif mb-6">Activités existantes</h3>
-            <div className="flex flex-col gap-3 max-h-[min(70vh,640px)] overflow-y-auto overscroll-contain pr-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[min(70vh,640px)] overflow-y-auto overscroll-contain pr-2">
               {activities.map((a) => (
                 <div
                   key={a.id}

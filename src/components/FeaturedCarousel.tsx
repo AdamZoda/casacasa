@@ -159,65 +159,68 @@ export function FeaturedCarousel() {
           </Link>
         </div>
 
-        {/* Carte produit 50/50, fond clair, ombre */}
-        <article className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)] dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
-          <div className="flex min-h-0 flex-col md:flex-row md:items-stretch">
-            {/* Image — remplit la moitié gauche (hauteur = colonne droite) */}
+        {/* Carte produit — image en haut, info en bas, cadre fixe */}
+        <article className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)] dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]" style={{ minHeight: '620px' }}>
+          <div className="flex flex-col h-full">
+            {/* Image — en haut, hauteur fixe */}
             <motion.div
-              className="relative w-full shrink-0 overflow-hidden md:w-1/2"
+              className="relative w-full shrink-0 overflow-hidden"
+              style={{ height: '340px' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.35 }}
             >
-              <div className="relative aspect-[4/3] w-full min-h-[220px] md:absolute md:inset-0 md:aspect-auto md:min-h-full md:h-full">
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={currentItem.id}
-                    src={currentItem.image}
-                    alt={currentItem.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover object-center"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.35 }}
-                  />
-                </AnimatePresence>
-              </div>
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={currentItem.id}
+                  src={currentItem.image}
+                  alt={currentItem.title}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover object-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35 }}
+                />
+              </AnimatePresence>
               <span className="absolute left-4 top-4 z-10 border border-neutral-900 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-900 dark:border-white dark:bg-neutral-900 dark:text-white">
                 Exclusif
               </span>
             </motion.div>
 
-            {/* Contenu */}
-            <div className="flex w-full flex-col justify-between gap-8 p-6 sm:p-8 md:w-1/2 lg:p-10">
-              <div className="space-y-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F1A139]">
-                  Disponible
-                </p>
-                <div className="flex items-center gap-2 text-amber-500">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} size={14} className="fill-current" strokeWidth={0} aria-hidden />
-                  ))}
-                  <span className="text-xs text-neutral-400">(1)</span>
+            {/* Contenu — en bas */}
+            <div className="flex w-full flex-col justify-between gap-6 p-6 sm:p-8 lg:p-10 flex-1">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F1A139]">
+                    Disponible
+                  </p>
+                  <div className="flex items-center gap-1.5 text-amber-500">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star key={i} size={12} className="fill-current" strokeWidth={0} aria-hidden />
+                    ))}
+                    <span className="text-xs text-neutral-400 ml-1">(1)</span>
+                  </div>
                 </div>
                 <motion.h3
                   key={`title-${currentItem.id}`}
-                  className="font-serif text-2xl font-semibold leading-snug tracking-tight text-neutral-900 dark:text-neutral-50 md:text-[1.65rem]"
+                  className="font-serif text-2xl font-semibold leading-snug tracking-tight text-neutral-900 dark:text-neutral-50 md:text-3xl"
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
                   {currentItem.title}
                 </motion.h3>
-                <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-neutral-500 dark:text-neutral-400">
-                  {currentItem.categoryLabel}
-                </p>
-                {currentItem.price ? renderPrice(currentItem.price) : null}
+                <div className="flex items-center gap-4 flex-wrap">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-neutral-500 dark:text-neutral-400">
+                    {currentItem.categoryLabel}
+                  </p>
+                  {currentItem.price ? renderPrice(currentItem.price) : null}
+                </div>
                 <motion.p
                   key={`desc-${currentItem.id}`}
-                  className="line-clamp-4 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400"
+                  className="line-clamp-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.25, delay: 0.05 }}
@@ -226,7 +229,7 @@ export function FeaturedCarousel() {
                 </motion.p>
               </div>
 
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div className="flex flex-wrap items-stretch gap-3">
                   <Link
                     to={itemHref}
@@ -247,7 +250,7 @@ export function FeaturedCarousel() {
                     <Heart size={20} className={isFav ? "fill-current" : ""} strokeWidth={1.5} />
                   </button>
                 </div>
-                <div className="space-y-2 border-t border-neutral-200/80 pt-5 text-[11px] text-neutral-500 dark:border-white/10 dark:text-neutral-400">
+                <div className="flex items-center gap-6 border-t border-neutral-200/80 pt-4 text-[11px] text-neutral-500 dark:border-white/10 dark:text-neutral-400">
                   <p className="flex items-center gap-2">
                     <Package size={14} strokeWidth={1.5} className="shrink-0 text-neutral-400" />
                     Paiement à la livraison disponible

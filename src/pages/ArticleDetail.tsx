@@ -18,8 +18,8 @@ export function ArticleDetail() {
   const activity = activities.find((a) => a.id === activityId);
   const article = articles.find((ar) => ar.id === articleId);
 
-  // 🆕 Get child articles if this is a parent article
-  const childArticles = article?.articleType === 'parent'
+  // 🆕 Get child articles — detect by actual parentArticleId references, not just articleType
+  const childArticles = article
     ? articles.filter(a => a.parentArticleId === article.id && a.articleType === 'child')
     : [];
 
@@ -27,6 +27,11 @@ export function ArticleDetail() {
 
   if (!universe || !activity || !article) {
     return <Navigate to="/" replace />;
+  }
+
+  // 🆕 If this article has sub-articles, redirect to the sub-articles page
+  if (childArticles.length > 0) {
+    return <Navigate to={`/article/${universeId}/${activityId}/${articleId}/sub-articles`} replace />;
   }
 
   const images = article.image ? [article.image] : [];

@@ -1,16 +1,27 @@
 import { useParams, Navigate, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAppContext } from "../context/AppContext";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Layers } from "lucide-react";
 
 export function ActivityArticles() {
   const { universeId, activityId } = useParams<{ universeId: string; activityId: string }>();
   const navigate = useNavigate();
-  const { universes, activities, getArticlesByActivityId } = useAppContext();
+  const { universes, activities, articles: allArticles, getArticlesByActivityId } = useAppContext();
 
   const universe = universes.find((u) => u.id === universeId);
   const activity = activities.find((a) => a.id === activityId);
-  const articles = activity ? getArticlesByActivityId(activity.id) : [];
+  const activityArticles = activity ? getArticlesByActivityId(activity.id) : [];
+
+  // Only show standalone and parent articles — exclude child (sub-articles)
+  const articles = activityArticles.filter(
+    (a) => a.articleType !== "child"
+  );
+
+  // Helper: count children for a parent article
+  const getChildCount = (parentId: string) =>
+    allArticles.filter(
+      (a) => a.parentArticleId === parentId && a.articleType === "child"
+    ).length;
 
   if (!universe || !activity) {
     return <Navigate to="/" replace />;
@@ -74,55 +85,85 @@ export function ActivityArticles() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {articles.map((article, index) => (
-                  <motion.div
-                    key={article.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    className="group rounded-lg border border-border-primary overflow-hidden hover:border-brand-gold/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-gold/10 flex flex-col h-full"
-                  >
-                    {/* Image */}
-                    {article.image && (
-                      <div className="relative h-56 overflow-hidden bg-text-primary/5">
-                        <img
-                          src={article.image}
-                          alt={article.title}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    )}
+                {articles.map((article, index) => {
+                  // Detect parent by actual children, not just articleType
+                  const childCount = getChildCount(article.id);
+                  const hasChildren = childCount > 0;
 
-                    {/* Content */}
-                    <div className="p-6 flex flex-col flex-1">
-                      <h3 className="text-lg font-serif text-text-primary mb-3 line-clamp-2">{article.title}</h3>
-
-                      {article.description && (
-                        <p className="text-sm text-text-primary/60 line-clamp-3 mb-4 flex-1">{article.description}</p>
+                  return (
+                    <motion.div
+                      key={article.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ duration: 0.6, delay: index * 0.1 }}
+                      className="group rounded-lg border border-border-primary overflow-hidden hover:border-brand-gold/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-gold/10 flex flex-col h-full"
+                    >
+                      {/* Image */}
+                      {article.image && (
+                        <div className="relative h-56 overflow-hidden bg-text-primary/5">
+                          <img
+                            src={article.image}
+                            alt={article.title}
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          {/* Badge for parent articles with sub-articles */}
+                          {hasChildren && (
+                            <div className="absolute top-3 right-3">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-black/60 backdrop-blur-sm text-white text-[10px] font-semibold uppercase tracking-wider rounded">
+                                <Layers size={10} aria-hidden />
+                                {childCount} sous-article{childCount > 1 ? "s" : ""}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       )}
 
-                      {/* Price */}
-                      <div className="flex items-baseline justify-between py-4 border-t border-border-primary/30">
-                        <span className="text-base text-brand-gold font-semibold">{formatPrice(article)}</span>
-                        {article.availabilityCount && (
-                          <span className="text-xs text-text-primary/50">Stock: {article.availabilityCount}</span>
+                      {/* Content */}
+                      <div className="p-6 flex flex-col flex-1">
+                        <h3 className="text-lg font-serif text-text-primary mb-3 line-clamp-2">{article.title}</h3>
+
+                        {article.description && (
+                          <p className="text-sm text-text-primary/60 line-clamp-3 mb-4 flex-1">{article.description}</p>
+                        )}
+
+                        {/* Price */}
+                        <div className="flex items-baseline justify-between py-4 border-t border-border-primary/30">
+                          <span className="text-base text-brand-gold font-semibold">{formatPrice(article)}</span>
+                          {article.availabilityCount && (
+                            <span className="text-xs text-text-primary/50">Stock: {article.availabilityCount}</span>
+                          )}
+                        </div>
+
+                        {/* Action Button — different for parent vs standalone */}
+                        {hasChildren ? (
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/article/${universeId}/${activityId}/${article.id}/sub-articles`
+                              )
+                            }
+                            className="w-full mt-4 px-4 py-3 bg-brand-gold/10 hover:bg-brand-gold hover:text-bg-primary text-brand-gold font-semibold text-sm rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group/btn"
+                          >
+                            <Layers size={14} aria-hidden />
+                            Voir les sous-articles ({childCount})
+                            <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" aria-hidden />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => navigate(`/article/${universeId}/${activityId}/${article.id}/detail`)}
+                            className="w-full mt-4 px-4 py-3 bg-brand-gold/10 hover:bg-brand-gold hover:text-bg-primary text-brand-gold font-semibold text-sm rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group/btn"
+                          >
+                            Voir les détails
+                            <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" aria-hidden />
+                          </button>
                         )}
                       </div>
-
-                      {/* Reserve Button */}
-                      <button
-                        onClick={() => navigate(`/article/${universeId}/${activityId}/${article.id}/detail`)}
-                        className="w-full mt-4 px-4 py-3 bg-brand-gold/10 hover:bg-brand-gold hover:text-bg-primary text-brand-gold font-semibold text-sm rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group/btn"
-                      >
-                        Voir les détails
-                        <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" aria-hidden />
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
           )}

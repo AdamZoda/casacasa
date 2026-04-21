@@ -234,6 +234,7 @@ interface AppContextType {
   updateArticle: (a: Article) => void;
   deleteArticle: (id: string) => void;
   getArticlesByActivityId: (activityId: string) => Article[];
+  refreshArticles: () => void;
 
   products: Product[];
   addProduct: (p: Product) => void;
@@ -665,7 +666,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addArticle = useCallback(async (a: Article) => {
-    setArticles((prev) => [...prev, a]);
+    console.log('🔧 Adding article to database:', a.title);
+    
     const row = {
       id: a.id,
       activity_id: a.activityId,
@@ -682,14 +684,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // 🆕 Article Hierarchy
       is_reservable: a.isReservable ?? false,
       article_type: a.articleType ?? 'standalone',
-      parent_article_id: a.parentArticleId ?? null,
+      parent_article_id: a.parentArticleId && a.parentArticleId.trim() !== "" ? a.parentArticleId : null,
     };
-    const { error } = await supabase.from('articles').insert([row]);
-    if (error) console.error('[Supabase] articles insert:', error.message);
+    
+    console.log('🔧 Inserting row into articles table:', row);
+    const { data, error } = await supabase.from('articles').insert([row]).select();
+    
+    if (error) {
+      console.error('[Supabase] articles insert ERROR:', error.message);
+      console.error('[Supabase] Full error details:', error);
+      throw new Error(`Failed to save article to database: ${error.message}`);
+    }
+    
+    console.log('✅ Article successfully saved to database:', data);
+    // Mettre à jour l'état local seulement après la sauvegarde réussie
+    setArticles((prev) => [...prev, a]);
   }, []);
 
   const updateArticle = useCallback(async (a: Article) => {
-    setArticles((prev) => prev.map((i) => (i.id === a.id ? a : i)));
+    console.log('🔧 Updating article in database:', a.title);
+    
     const row = {
       id: a.id,
       activity_id: a.activityId,
@@ -706,16 +720,76 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // 🆕 Article Hierarchy
       is_reservable: a.isReservable ?? false,
       article_type: a.articleType ?? 'standalone',
-      parent_article_id: a.parentArticleId ?? null,
+      parent_article_id: a.parentArticleId && a.parentArticleId.trim() !== "" ? a.parentArticleId : null,
     };
-    const { error } = await supabase.from('articles').update(row).eq('id', a.id);
-    if (error) console.error('[Supabase] articles update:', error.message);
+    
+    console.log('🔧 Updating row in articles table:', row);
+    const { data, error } = await supabase.from('articles').update(row).eq('id', a.id).select();
+    
+    if (error) {
+      console.error('[Supabase] articles update ERROR:', error.message);
+      console.error('[Supabase] Full error details:', error);
+      throw new Error(`Failed to update article in database: ${error.message}`);
+    }
+    
+    console.log('✅ Article successfully updated in database:', data);
+    // Mettre à jour l'état local seulement après la sauvegarde réussie
+    setArticles((prev) => prev.map((i) => (i.id === a.id ? a : i)));
   }, []);
 
   const deleteArticle = useCallback(async (id: string) => {
+    console.log('🔧 Deleting article from database:', id);
+    
+    const { data, error } = await supabase.from('articles').delete().eq('id', id).select();
+    
+    if (error) {
+      console.error('[Supabase] articles delete ERROR:', error.message);
+      console.error('[Supabase] Full error details:', error);
+      throw new Error(`Failed to delete article from database: ${error.message}`);
+    }
+    
+    console.log('✅ Article successfully deleted from database:', data);
+    // Mettre à jour l'état local seulement après la suppression réussie
     setArticles((prev) => prev.filter((x) => x.id !== id));
-    const { error } = await supabase.from('articles').delete().eq('id', id);
-    if (error) console.error('[Supabase] articles delete:', error.message);
+  }, []);
+
+  const refreshArticles = useCallback(async () => {
+    console.log('🔄 Refreshing articles from database...');
+    const { data, error } = await supabase.from('articles').select('*');
+    
+    if (error) {
+      console.error('[Supabase] articles refresh ERROR:', error.message);
+      throw new Error(`Failed to refresh articles from database: ${error.message}`);
+    }
+    
+    if (data?.length) {
+      const mappedArticles = data.map((row: any) => {
+        const displayType = row.featured_display_type ?? 'card';
+        const isValidDisplayType = ['card', 'hero', 'grid', 'carousel'].includes(displayType);
+        return {
+          id: row.id,
+          activityId: row.activity_id,
+          title: row.title,
+          image: row.image,
+          description: row.description,
+          priceType: row.price_type,
+          price: row.price,
+          durationUnit: row.duration_unit,
+          pricePerUnit: row.price_per_unit,
+          availabilityCount: row.availability_count,
+          isFeatured: Boolean(row.is_featured),
+          featuredDisplayType: (isValidDisplayType ? displayType : 'card') as 'card' | 'hero' | 'grid' | 'carousel',
+          isReservable: Boolean(row.is_reservable),
+          articleType: (row.article_type ?? 'standalone') as 'standalone' | 'parent' | 'child',
+          parentArticleId: row.parent_article_id ?? undefined,
+        };
+      });
+      setArticles(mappedArticles);
+      console.log('✅ Articles successfully refreshed from database:', mappedArticles.length, 'articles');
+    } else {
+      setArticles([]);
+      console.log('✅ No articles found in database');
+    }
   }, []);
 
   const getArticlesByActivityId = useCallback(
@@ -903,6 +977,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setCurrency,
       exchangeRates,
       refreshExchangeRates,
+      refreshArticles,
       searchQuery,
       setSearchQuery,
       profiles,
@@ -967,6 +1042,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       currency,
       exchangeRates,
       refreshExchangeRates,
+      refreshArticles,
       searchQuery,
       profiles,
       deleteProfile,

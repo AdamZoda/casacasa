@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAppContext, type Article } from "../../context/AppContext";
-import { Plus, Trash2, Upload, Loader2, Pencil } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2, Pencil, RefreshCw } from "lucide-react";
 import { uploadImage } from "../../lib/storage";
 import { AdminPageHeader } from "../../components/admin/adminShared";
 
@@ -37,17 +37,21 @@ const emptyArticleDraft = (): ArticleDraft => ({
 });
 
 export function ArticlesManager() {
-  const { activities, articles, addArticle, updateArticle, deleteArticle, getArticlesByActivityId } = useAppContext();
+  const { activities, articles, addArticle, updateArticle, deleteArticle, getArticlesByActivityId, refreshArticles } = useAppContext();
   
-  const [selectedActivityId, setSelectedActivityId] = useState<string>("");
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showArticleForm, setShowArticleForm] = useState(false);
+  const [activityFilter, setActivityFilter] = useState<string>("all");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [newArticle, setNewArticle] = useState<ArticleDraft>(emptyArticleDraft);
 
-  const activeActivityId = editingArticle?.activityId || selectedActivityId;
-  const activeActivity = activities.find((a) => a.id === activeActivityId);
-  const activityArticles = activeActivity ? getArticlesByActivityId(activeActivity.id) : [];
+  // Afficher tous les articles, filtrés par activité si nécessaire
+  const allArticles = articles.filter(a => !a.parentArticleId); // Only parent and standalone articles
+  const filteredArticles = activityFilter === "all" 
+    ? allArticles 
+    : allArticles.filter(a => a.activityId === activityFilter);
 
   const handleFileUpload = async (file: File, onSuccess: (url: string) => void) => {
     setIsUploading(true);
@@ -59,14 +63,26 @@ export function ArticlesManager() {
     }
   };
 
+  const handleRefreshArticles = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshArticles();
+      console.log('✅ Articles rafraîchis depuis la base de données');
+    } catch (error) {
+      console.error('❌ Erreur lors du rafraîchissement des articles:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleAddArticle = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeActivityId) return;
+    if (!newArticle.activityId || !newArticle.title) return;
 
     try {
       const article: Article = {
-        id: editingArticle?.id || `art-${crypto.randomUUID?.() || Date.now()}`,
-        activityId: activeActivityId,
+        id: `art-${crypto.randomUUID?.() || Date.now()}`,
+        activityId: newArticle.activityId,
         title: newArticle.title,
         image: newArticle.image,
         description: newArticle.description,
@@ -74,22 +90,21 @@ export function ArticlesManager() {
         price: newArticle.priceType === "fixed" ? parseFloat(newArticle.price) : undefined,
         durationUnit: newArticle.priceType === "per_duration" ? newArticle.durationUnit : undefined,
         pricePerUnit: newArticle.priceType === "per_duration" ? parseFloat(newArticle.pricePerUnit) : undefined,
-        availabilityCount: newArticle.availabilityCount ? parseInt(newArticle.availabilityCount, 10) : undefined,
+        availabilityCount: newArticle.availabilityCount ? parseInt(newArticle.availabilityCount) : undefined,
         isFeatured: newArticle.isFeatured,
-        // 🆕 Article Hierarchy
         isReservable: newArticle.isReservable,
         articleType: newArticle.articleType,
-        parentArticleId: newArticle.parentArticleId || undefined,
+        parentArticleId: newArticle.parentArticleId,
       };
 
       if (editingArticle) {
-        await updateArticle(article);
+        await updateArticle({ ...article, id: editingArticle.id });
       } else {
         await addArticle(article);
       }
 
-      setEditingArticle(null);
       setNewArticle(emptyArticleDraft());
+      setShowArticleForm(false);
     } catch (error) {
       console.error("Error saving article:", error);
     }
@@ -99,37 +114,81 @@ export function ArticlesManager() {
     <div className="space-y-8">
       <AdminPageHeader title="Gestion des Articles" subtitle="Gérez les articles/offres des activités" />
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 xl:gap-10">
-        {/* Form */}
-        <div className="admin-card p-6 md:p-8">
-          <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
-            <Plus size={20} strokeWidth={1.5} className="text-brand-gold" aria-hidden />
-            {editingArticle ? "Modifier l'article" : "Nouveau article"}
-          </h3>
-
-          <form onSubmit={handleAddArticle} className="flex flex-col gap-4">
-            {/* Activité Selection */}
+      <div className="space-y-8">
+          {/* Filtre d'activité */}
+          <div className="admin-card p-6 md:p-8">
+            <h3 className="text-xl font-serif mb-6">Filtrer par activité</h3>
             <select
-              value={activeActivityId}
-              onChange={(e) => {
-                setSelectedActivityId(e.target.value);
-                setEditingArticle(null);
-                setNewArticle(emptyArticleDraft());
-              }}
+              value={activityFilter}
+              onChange={(e) => setActivityFilter(e.target.value)}
               className="admin-input w-full text-sm cursor-pointer"
-              required
             >
-              <option value="" disabled>
-                Choisir une activité…
-              </option>
+              <option value="all">Toutes les activités</option>
               {activities.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.title} ({a.universeId})
+                  {a.title}
                 </option>
               ))}
             </select>
+            <p className="text-sm text-text-primary/60 mt-2">
+              {filteredArticles.length} article{filteredArticles.length > 1 ? 's' : ''} trouvé{filteredArticles.length > 1 ? 's' : ''}
+            </p>
+          </div>
 
-            {activeActivityId && (
+          {/* Bouton Ajouter et Formulaire */}
+          <div>
+            {!showArticleForm && !editingArticle && (
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleRefreshArticles}
+                  disabled={isRefreshing}
+                  className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isRefreshing ? (
+                    <Loader2 size={20} strokeWidth={1.5} className="animate-spin" aria-hidden />
+                  ) : (
+                    <RefreshCw size={20} strokeWidth={1.5} aria-hidden />
+                  )}
+                  {isRefreshing ? 'Rafraîchissement...' : 'Rafraîchir'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowArticleForm(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-black font-semibold rounded-lg transition-all shadow-lg hover:shadow-xl"
+                >
+                  <Plus size={20} strokeWidth={1.5} aria-hidden />
+                  Ajouter un article
+                </button>
+              </div>
+            )}
+            
+            {(showArticleForm || editingArticle) && (
+              <div className="admin-card p-6 md:p-8">
+                <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
+                  <Plus size={20} strokeWidth={1.5} className="text-brand-gold" aria-hidden />
+                  {editingArticle ? "Modifier l'article" : "Nouveau article"}
+                </h3>
+
+                <form onSubmit={handleAddArticle} className="flex flex-col gap-4">
+                  {/* Activité Selection */}
+                  <select
+                    value={newArticle.activityId}
+                    onChange={(e) => setNewArticle({ ...newArticle, activityId: e.target.value })}
+                    className="admin-input w-full text-sm cursor-pointer"
+                    required
+                  >
+                    <option value="" disabled>
+                      Choisir une activitéâ
+                    </option>
+                    {activities.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.title}
+                      </option>
+                    ))}
+                  </select>
+
+                  {newArticle.activityId && (
               <>
                 {/* Article Title */}
                 <input
@@ -279,7 +338,7 @@ export function ArticlesManager() {
                       >
                         <option value="">Aucun parent</option>
                         {articles
-                          .filter(a => a.activityId === activeActivityId && a.articleType !== 'child')
+                          .filter(a => a.activityId === newArticle.activityId && a.articleType !== 'child')
                           .map((article) => (
                             <option key={article.id} value={article.id}>
                               {article.title}
@@ -347,14 +406,25 @@ export function ArticlesManager() {
                     </button>
                   )}
                   <button
+                    type="button"
+                    onClick={() => {
+                      setShowArticleForm(false);
+                      setEditingArticle(null);
+                      setNewArticle(emptyArticleDraft());
+                    }}
+                    className="px-4 py-2 text-xs bg-text-primary/10 hover:bg-text-primary/15 text-text-primary rounded-lg transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
                     type="submit"
-                    disabled={isUploading || !activeActivityId || !newArticle.title}
+                    disabled={isUploading || !newArticle.activityId || !newArticle.title}
                     className="px-4 py-2 font-bold text-xs bg-brand-gold hover:bg-brand-gold/90 disabled:opacity-50 disabled:cursor-not-allowed text-bg-primary rounded-lg transition-colors flex items-center justify-center gap-2"
                   >
                     {isUploading ? (
                       <>
                         <Loader2 size={14} className="animate-spin" aria-hidden />
-                        Chargement…
+                        Chargementâ
                       </>
                     ) : editingArticle ? (
                       "Modifier l'article"
@@ -366,27 +436,31 @@ export function ArticlesManager() {
               </>
             )}
           </form>
-        </div>
+              </div>
+            )}
+          </div>
 
-        {/* Article List */}
-        <div className="admin-card p-6 md:p-8">
-          <h3 className="text-xl font-serif mb-6">
-            Articles
-            {activeActivity && <span className="text-sm font-normal text-text-primary/60"> — {activeActivity.title}</span>}
-          </h3>
-
-          {activityArticles.length === 0 ? (
-            <p className="text-text-primary/50 text-sm">
-              {activeActivityId ? "Aucun article pour cette activité" : "Sélectionnez une activité pour voir ses articles"}
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {activityArticles
-                .filter(a => !a.parentArticleId) // Show only parent and standalone articles
-                .map((article) => {
-                  const childArticles = activityArticles.filter(a => a.parentArticleId === article.id);
+          {/* Articles List - Grid 3 par ligne */}
+          <div className="admin-card p-6 md:p-8">
+            <h3 className="text-xl font-serif mb-6">
+              Articles
+              {activityFilter !== "all" && (
+                <span className="text-sm font-normal text-text-primary/60">
+                  {" "}- {activities.find(a => a.id === activityFilter)?.title}
+                </span>
+              )}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredArticles.length === 0 ? (
+                <p className="text-text-primary/50 text-sm col-span-full">
+                  {activityFilter === "all" ? "Aucun article trouvé" : "Aucun article pour cette activité"}
+                </p>
+              ) : (
+                filteredArticles.map((article) => {
+                  const childArticles = articles.filter(a => a.parentArticleId === article.id);
                   const articleTypeLabel = article.articleType === 'parent' ? 'Parent' : article.articleType === 'child' ? 'Enfant' : 'Simple';
                   const articleTypeBgColor = article.articleType === 'parent' ? 'bg-brand-gold/10 border-brand-gold/30' : article.articleType === 'child' ? 'bg-blue-500/10 border-blue-500/30' : '';
+                  const articleActivity = activities.find(a => a.id === article.activityId);
 
                   return (
                     <div key={article.id}>
@@ -403,15 +477,18 @@ export function ArticlesManager() {
                             </span>
                             {article.isFeatured && (
                               <span className="text-xs px-2 py-0.5 bg-brand-gold/20 text-brand-gold rounded-full font-medium whitespace-nowrap">
-                                ⭐ Principal
+                                â Principal
                               </span>
                             )}
                             {article.isReservable && (
                               <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full font-medium whitespace-nowrap">
-                                📅 Réservable
+                                à Réservable
                               </span>
                             )}
                           </div>
+                          <p className="text-xs text-text-primary/55 truncate">
+                            {articleActivity?.title}
+                          </p>
                           <p className="text-xs text-text-primary/55 truncate">
                             {article.priceType === "fixed"
                               ? `${article.price} DH`
@@ -473,10 +550,10 @@ export function ArticlesManager() {
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <h4 className="font-medium truncate text-sm">↳ {child.title}</h4>
+                                  <h4 className="font-medium truncate text-sm">â³ {child.title}</h4>
                                   {child.isReservable && (
                                     <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full font-medium whitespace-nowrap">
-                                      📅 Réservable
+                                      à Réservable
                                     </span>
                                   )}
                                 </div>
@@ -527,11 +604,11 @@ export function ArticlesManager() {
                       )}
                     </div>
                   );
-                })}
+                })
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
     </div>
   );
 }
