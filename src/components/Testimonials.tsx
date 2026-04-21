@@ -5,6 +5,20 @@ import { Quote, Star, Plus, X, LogIn } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 
+/**
+ * COMPOSANT DE TÉMOIGNAGES AVEC SCROLL INFINI
+ * 
+ * FONCTIONNALITÉ PRINCIPALE :
+ * - Les blocs de commentaires défilent horizontalement de gauche à droite en scroll infini
+ * - S'il n'y a qu'un seul commentaire, il se répète pour créer l'illusion d'un scroll continu
+ * - S'il y a plusieurs commentaires, ils sont dupliqués pour créer une boucle sans fin
+ * 
+ * IMPLÉMENTATION :
+ * - Utilise loopedTestimonials = [...approvedTestimonials, ...approvedTestimonials]
+ * - Animation CSS avec transform: translateX() pour le défilement horizontal
+ * - Pause au survol pour permettre la lecture
+ * - Responsive et accessible
+ */
 export function Testimonials() {
   const { testimonials, addTestimonial } = useAppContext();
   const { user, loading: authLoading } = useAuth();
@@ -28,22 +42,46 @@ export function Testimonials() {
 
   useEffect(() => {
     const el = railRef.current;
-    if (!el || approvedTestimonials.length === 0) return;
+    console.log("🔍 DEBUG Testimonials animation:", {
+      hasElement: !!el,
+      approvedCount: approvedTestimonials.length,
+      isPaused,
+      isInteracting,
+      loopedCount: loopedTestimonials.length
+    });
+    
+    if (!el || approvedTestimonials.length === 0) {
+      console.log("❌ Animation stopped: No element or no testimonials");
+      return;
+    }
 
     let rafId = 0;
+    let frameCount = 0;
     const step = () => {
+      frameCount++;
       if (!isPaused && !isInteracting) {
-        el.scrollLeft += 0.55;
+        el.scrollLeft += 2.0; // Augmenté de 0.55 à 2.0 pour un mouvement plus visible
         const loopPoint = el.scrollWidth / 2;
         if (loopPoint > 0 && el.scrollLeft >= loopPoint) {
           el.scrollLeft -= loopPoint;
+          console.log(`🔄 Loop reset at frame ${frameCount}, scrollLeft: ${el.scrollLeft}`);
+        }
+        
+        // Log toutes les 100 frames pour éviter de spammer
+        if (frameCount % 100 === 0) {
+          console.log(`📊 Animation frame ${frameCount}: scrollLeft=${el.scrollLeft}, loopPoint=${loopPoint}`);
         }
       }
       rafId = requestAnimationFrame(step);
     };
+    
+    console.log("🚀 Starting testimonials animation...");
     rafId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(rafId);
-  }, [approvedTestimonials.length, isPaused, isInteracting]);
+    return () => {
+      console.log("🛑 Stopping testimonials animation");
+      cancelAnimationFrame(rafId);
+    };
+  }, [approvedTestimonials.length, isPaused, isInteracting, loopedTestimonials.length]);
 
   const openCommentModal = () => {
     if (!user) return;
@@ -136,7 +174,10 @@ export function Testimonials() {
           </div>
           <div
             ref={railRef}
-            className="flex min-w-max gap-4 sm:gap-6 overflow-x-auto overscroll-x-contain px-4 sm:px-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [scroll-behavior:auto] touch-pan-x"
+            className="testimonials-rail flex min-w-max gap-4 sm:gap-6 overflow-x-auto overscroll-x-contain px-4 sm:px-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [scroll-behavior:auto] touch-pan-x"
+            style={{
+              animation: approvedTestimonials.length > 0 ? 'scrollTestimonials 30s linear infinite' : 'none'
+            }}
             onPointerDown={() => setIsInteracting(true)}
             onPointerUp={() => setIsInteracting(false)}
             onPointerCancel={() => setIsInteracting(false)}
@@ -255,4 +296,33 @@ export function Testimonials() {
       </AnimatePresence>
     </section>
   );
+}
+
+// Ajouter l'animation CSS pour le scroll infini
+if (typeof document !== 'undefined') {
+  const styleId = 'testimonials-scroll-animation';
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      @keyframes scrollTestimonials {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+      
+      /* Forcer l'animation même si JavaScript est désactivé */
+      .testimonials-rail {
+        animation: scrollTestimonials 30s linear infinite;
+      }
+      
+      .testimonials-rail:hover {
+        animation-play-state: paused;
+      }
+    `;
+    document.head.appendChild(style);
+  }
 }
