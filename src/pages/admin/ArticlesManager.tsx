@@ -115,30 +115,25 @@ export function ArticlesManager() {
       <AdminPageHeader title="Gestion des Articles" subtitle="Gérez les articles/offres des activités" />
 
       <div className="space-y-8">
-          {/* Filtre d'activité */}
-          <div className="admin-card p-6 md:p-8">
-            <h3 className="text-xl font-serif mb-6">Filtrer par activité</h3>
-            <select
-              value={activityFilter}
-              onChange={(e) => setActivityFilter(e.target.value)}
-              className="admin-input w-full text-sm cursor-pointer"
-            >
-              <option value="all">Toutes les activités</option>
-              {activities.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.title}
-                </option>
-              ))}
-            </select>
-            <p className="text-sm text-text-primary/60 mt-2">
-              {filteredArticles.length} article{filteredArticles.length > 1 ? 's' : ''} trouvé{filteredArticles.length > 1 ? 's' : ''}
-            </p>
-          </div>
-
-          {/* Bouton Ajouter et Formulaire */}
-          <div>
+          {/* Actions principales */}
+          <div className="flex flex-wrap gap-3 items-center">
             {!showArticleForm && !editingArticle && (
-              <div className="flex gap-3">
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingArticle(null);
+                    setNewArticle((prev) => ({
+                      ...emptyArticleDraft(),
+                      activityId: activityFilter !== "all" ? activityFilter : prev.activityId,
+                    }));
+                    setShowArticleForm(true);
+                  }}
+                  className="flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-black font-semibold rounded-lg transition-all shadow-lg hover:shadow-xl"
+                >
+                  <Plus size={20} strokeWidth={1.5} aria-hidden />
+                  Créer un article
+                </button>
                 <button
                   type="button"
                   onClick={handleRefreshArticles}
@@ -152,22 +147,35 @@ export function ArticlesManager() {
                   )}
                   {isRefreshing ? 'Rafraîchissement...' : 'Rafraîchir'}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowArticleForm(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-black font-semibold rounded-lg transition-all shadow-lg hover:shadow-xl"
-                >
-                  <Plus size={20} strokeWidth={1.5} aria-hidden />
-                  Ajouter un article
-                </button>
-              </div>
+              </>
             )}
-            
-            {(showArticleForm || editingArticle) && (
+
+            {/* Filtre compact (plus léger visuellement) */}
+            <div className="ml-auto min-w-[260px]">
+              <label className="text-[10px] uppercase tracking-widest text-text-primary/45 font-bold block mb-2">
+                Affichage
+              </label>
+              <select
+                value={activityFilter}
+                onChange={(e) => setActivityFilter(e.target.value)}
+                className="admin-input w-full text-sm cursor-pointer"
+              >
+                <option value="all">Toutes les activités</option>
+                {activities.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Formulaire de création / modification */}
+          {(showArticleForm || editingArticle) && (
               <div className="admin-card p-6 md:p-8">
                 <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
                   <Plus size={20} strokeWidth={1.5} className="text-brand-gold" aria-hidden />
-                  {editingArticle ? "Modifier l'article" : "Nouveau article"}
+                  {editingArticle ? "Modifier l'article" : "Créer un nouvel article"}
                 </h3>
 
                 <form onSubmit={handleAddArticle} className="flex flex-col gap-4">
@@ -188,7 +196,6 @@ export function ArticlesManager() {
                     ))}
                   </select>
 
-                  {newArticle.activityId && (
               <>
                 {/* Article Title */}
                 <input
@@ -434,22 +441,25 @@ export function ArticlesManager() {
                   </button>
                 </div>
               </>
-            )}
           </form>
               </div>
-            )}
-          </div>
+          )}
 
           {/* Articles List - Grid 3 par ligne */}
           <div className="admin-card p-6 md:p-8">
-            <h3 className="text-xl font-serif mb-6">
-              Articles
-              {activityFilter !== "all" && (
-                <span className="text-sm font-normal text-text-primary/60">
-                  {" "}- {activities.find(a => a.id === activityFilter)?.title}
-                </span>
-              )}
-            </h3>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+              <h3 className="text-xl font-serif">
+                Articles
+                {activityFilter !== "all" && (
+                  <span className="text-sm font-normal text-text-primary/60">
+                    {" "}- {activities.find(a => a.id === activityFilter)?.title}
+                  </span>
+                )}
+              </h3>
+              <p className="text-sm text-text-primary/60">
+                {filteredArticles.length} article{filteredArticles.length > 1 ? 's' : ''} trouvé{filteredArticles.length > 1 ? 's' : ''}
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredArticles.length === 0 ? (
                 <p className="text-text-primary/50 text-sm col-span-full">

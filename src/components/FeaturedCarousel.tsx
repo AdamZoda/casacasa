@@ -160,12 +160,12 @@ export function FeaturedCarousel() {
         </div>
 
         {/* Carte produit — image en haut, info en bas, cadre fixe */}
-        <article className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)] dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]" style={{ minHeight: '620px' }}>
+        <article className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)] dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]" style={{ minHeight: '756px' }}>
           <div className="flex flex-col h-full">
             {/* Image — en haut, hauteur fixe */}
             <motion.div
               className="relative w-full shrink-0 overflow-hidden"
-              style={{ height: '340px' }}
+              style={{ height: '416px' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.35 }}
