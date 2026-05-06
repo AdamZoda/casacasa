@@ -6,6 +6,7 @@ import { JournalTeaser } from "../components/JournalTeaser";
 import { StoreTeaser } from "../components/StoreTeaser";
 import { Newsletter } from "../components/Newsletter";
 import { FeaturedCarousel } from "../components/FeaturedCarousel";
+import { RandomActivityConcept } from "../components/RandomActivityConcept";
 
 export function Home() {
   return (
@@ -13,6 +14,7 @@ export function Home() {
       <Hero />
       <Brands />
       <FeaturedCarousel />
+      <RandomActivityConcept />
       <Services />
       <JournalTeaser />
       <StoreTeaser />

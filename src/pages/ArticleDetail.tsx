@@ -56,7 +56,7 @@ export function ArticleDetail() {
   return (
     <div className="min-h-screen bg-bg-primary">
       {/* Header Navigation */}
-      <div className="sticky top-0 z-40 bg-bg-primary/95 backdrop-blur-sm border-b border-border-primary">
+      <div className="sticky top-[3.75rem] md:top-[4.5rem] z-30 bg-bg-primary/95 backdrop-blur-sm border-b border-border-primary">
         <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
           <button
             onClick={() => navigate(`/activity/${universeId}/${activityId}/articles`)}
@@ -186,7 +186,9 @@ export function ArticleDetail() {
             {article.description && (
               <div className="space-y-4">
                 <h2 className="text-lg font-serif text-text-primary">Description</h2>
-                <p className="text-text-primary/70 leading-relaxed text-lg">{article.description}</p>
+                <p className="text-text-primary/70 leading-relaxed text-lg whitespace-pre-line break-words">
+                  {article.description}
+                </p>
               </div>
             )}
 

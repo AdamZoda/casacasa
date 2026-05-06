@@ -131,14 +131,7 @@ export default function App() {
                 <Route path="newsletter" element={<NewsletterManager />} />
                 <Route path="points-of-interest" element={<PointOfInterestCenterPage />} />
                 <Route path="users" element={<UserManager />} />
-                <Route path="settings/about" element={<SettingsView />} />
                 <Route path="settings" element={<SettingsView />} />
-
-                <Route path="support" element={<Navigate to="/admin/experience-client/conciergerie" replace />} />
-                <Route path="testimonials" element={<Navigate to="/admin/experience-client/temoignages" replace />} />
-                <Route path="journal" element={<Navigate to="/admin/signature/journal" replace />} />
-                <Route path="globalservices" element={<Navigate to="/admin/signature/services" replace />} />
-                <Route path="appearance" element={<Navigate to="/admin/settings" replace />} />
                 <Route path="*" element={<Navigate to="/admin" replace />} />
               </Route>
             </Routes>

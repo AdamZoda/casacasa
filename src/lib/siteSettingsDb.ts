@@ -31,12 +31,10 @@ export interface SiteSettings {
     linkedin: string[];
     youtube: string[];
   };
-  maintenanceMode: boolean;
   heroBackgroundUrl: string;
   heroTitle: string;
   heroSubtitle: string;
   heroCta: string;
-  brandGoldColor: string;
   /** Chiffres pour wa.me — plusieurs lignes WhatsApp possibles */
   whatsappNumbers: string[];
   logoText: string;
@@ -61,12 +59,10 @@ export type SiteSettingsRow = {
   phones?: unknown;
   address?: string | null;
   social_links?: unknown;
-  maintenance_mode?: boolean | null;
   hero_background_url?: string | null;
   hero_title?: string | null;
   hero_subtitle?: string | null;
   hero_cta?: string | null;
-  brand_gold_color?: string | null;
   whatsapp_number?: string | null;
   whatsapp_numbers?: unknown;
   logo_text?: string | null;
@@ -174,12 +170,10 @@ export function siteSettingsToDbRow(s: SiteSettings, id = 1): SiteSettingsRow {
     phones: cleanPhones,
     address: s.address,
     social_links: social,
-    maintenance_mode: s.maintenanceMode,
     hero_background_url: s.heroBackgroundUrl,
     hero_title: s.heroTitle,
     hero_subtitle: s.heroSubtitle,
     hero_cta: s.heroCta,
-    brand_gold_color: s.brandGoldColor,
     whatsapp_number: cleanWa[0] ?? "",
     whatsapp_numbers: cleanWa,
     logo_text: s.logoText,
@@ -212,12 +206,10 @@ export function dbRowToSiteSettings(row: SiteSettingsRow, prev: SiteSettings): S
     address: String(row.address ?? prev.address),
     socialLinks: normalizeSocialFromRow(row.social_links, prev.socialLinks),
     about: normalizeAboutFromRow(row.social_links, prev.about),
-    maintenanceMode: Boolean(row.maintenance_mode ?? prev.maintenanceMode),
     heroBackgroundUrl: String(row.hero_background_url ?? prev.heroBackgroundUrl),
     heroTitle: String(row.hero_title ?? prev.heroTitle),
     heroSubtitle: String(row.hero_subtitle ?? prev.heroSubtitle),
     heroCta: String(row.hero_cta ?? prev.heroCta),
-    brandGoldColor: String(row.brand_gold_color ?? prev.brandGoldColor),
     whatsappNumbers: whatsappFromRow(row, prev),
     logoText: String(row.logo_text ?? prev.logoText),
     footerTitle: String(row.footer_title ?? prev.footerTitle),

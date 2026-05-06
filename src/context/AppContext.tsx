@@ -283,6 +283,8 @@ interface AppContextType {
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+const APP_CACHE_KEY = 'cp:app-context-cache:v1';
+const REMEMBER_WORK_KEY = 'cp:remember-work';
 
 const initUniverses = Object.values(initialUniverses).map(u => ({
   id: u.id, name: u.name, flag: u.flag, location: u.location, description: u.description, heroImage: u.heroImage, gallery: u.gallery
@@ -340,9 +342,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     phones: [],
     address: 'Marrakech, Maroc',
     socialLinks: { instagram: [], facebook: [], linkedin: [], youtube: [] },
-    maintenanceMode: false,
     heroBackgroundUrl: '',
-    heroTitle: '', heroSubtitle: '', heroCta: '', brandGoldColor: '#E5A93A', whatsappNumbers: [], logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: [], blockWeekends: false,
+    heroTitle: '', heroSubtitle: '', heroCta: '', whatsappNumbers: [], logoText: 'CASA PRIVILEGE', footerTitle: '', footerCta: '', blockedDates: [], blockWeekends: false,
     bankName: '',
     bankBeneficiary: 'COMANE EXCELLENCE SARL',
     bankRib: '',
@@ -375,6 +376,52 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark');
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [language, setLanguage] = useState<Language>('fr');
+  const rememberEnabled = typeof window !== 'undefined' ? localStorage.getItem(REMEMBER_WORK_KEY) !== '0' : true;
+
+  useEffect(() => {
+    if (!rememberEnabled) return;
+    try {
+      const raw = localStorage.getItem(APP_CACHE_KEY);
+      if (!raw) return;
+      const cached = JSON.parse(raw) as Partial<{
+        reservations: Reservation[];
+        orders: Order[];
+        tickets: Ticket[];
+        ticketMessages: TicketMessage[];
+        universes: Universe[];
+        activities: Activity[];
+        articles: Article[];
+        products: Product[];
+        journalPosts: JournalPost[];
+        testimonials: Testimonial[];
+        globalServices: GlobalService[];
+        subscribers: NewsletterSubscriber[];
+        settings: SiteSettings;
+        currency: Currency;
+        theme: Theme;
+        language: Language;
+      }>;
+
+      if (Array.isArray(cached.reservations)) setReservations(cached.reservations);
+      if (Array.isArray(cached.orders)) setOrders(cached.orders);
+      if (Array.isArray(cached.tickets)) setTickets(cached.tickets);
+      if (Array.isArray(cached.ticketMessages)) setTicketMessages(cached.ticketMessages);
+      if (Array.isArray(cached.universes) && cached.universes.length > 0) setUniverses(cached.universes);
+      if (Array.isArray(cached.activities) && cached.activities.length > 0) setActivities(cached.activities);
+      if (Array.isArray(cached.articles)) setArticles(cached.articles);
+      if (Array.isArray(cached.products) && cached.products.length > 0) setProducts(cached.products);
+      if (Array.isArray(cached.journalPosts) && cached.journalPosts.length > 0) setJournalPosts(cached.journalPosts);
+      if (Array.isArray(cached.testimonials)) setTestimonials(cached.testimonials);
+      if (Array.isArray(cached.globalServices) && cached.globalServices.length > 0) setGlobalServices(cached.globalServices);
+      if (Array.isArray(cached.subscribers)) setSubscribers(cached.subscribers);
+      if (cached.settings) setSettings(cached.settings);
+      if (cached.currency === 'MAD' || cached.currency === 'EUR' || cached.currency === 'USD') setCurrency(cached.currency);
+      if (cached.theme === 'light' || cached.theme === 'dark') setTheme(cached.theme);
+      if (cached.language === 'fr' || cached.language === 'en') setLanguage(cached.language);
+    } catch (e) {
+      console.warn('Impossible de restaurer le cache local:', e);
+    }
+  }, [rememberEnabled]);
 
   useEffect(() => {
     if (theme === 'dark') document.documentElement.classList.add('dark');
@@ -391,6 +438,51 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem('currency', currency);
   }, [currency]);
+
+  useEffect(() => {
+    if (!rememberEnabled) return;
+    try {
+      const payload = {
+        reservations,
+        orders,
+        tickets,
+        ticketMessages,
+        universes,
+        activities,
+        articles,
+        products,
+        journalPosts,
+        testimonials,
+        globalServices,
+        subscribers,
+        settings,
+        currency,
+        theme,
+        language,
+      };
+      localStorage.setItem(APP_CACHE_KEY, JSON.stringify(payload));
+    } catch (e) {
+      console.warn('Impossible de sauvegarder le cache local:', e);
+    }
+  }, [
+    reservations,
+    orders,
+    tickets,
+    ticketMessages,
+    universes,
+    activities,
+    articles,
+    products,
+    journalPosts,
+    testimonials,
+    globalServices,
+    subscribers,
+    settings,
+    currency,
+    theme,
+    language,
+    rememberEnabled,
+  ]);
 
   const refreshExchangeRates = useCallback(async () => {
     const rates = await fetchExchangeRates('MAD');
@@ -667,24 +759,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addArticle = useCallback(async (a: Article) => {
     console.log('🔧 Adding article to database:', a.title);
-    
+
+    const cap255 = (value?: string | null): string | null => {
+      if (!value) return null;
+      return String(value).slice(0, 255);
+    };
+
+    // Evite les URLs signées trop longues pour les colonnes varchar(255)
+    const compactImage = (() => {
+      if (!a.image) return null;
+      const raw = String(a.image);
+      if (raw.length <= 255) return raw;
+      const withoutQuery = raw.split("?")[0] ?? raw;
+      return withoutQuery.length <= 255 ? withoutQuery : withoutQuery.slice(0, 255);
+    })();
+
     const row = {
-      id: a.id,
-      activity_id: a.activityId,
-      title: a.title,
-      image: a.image,
+      id: cap255(a.id) ?? '',
+      activity_id: cap255(a.activityId) ?? '',
+      title: cap255(a.title) ?? '',
+      image: compactImage,
       description: a.description,
-      price_type: a.priceType,
+      price_type: cap255(a.priceType) ?? 'fixed',
       price: a.price,
-      duration_unit: a.durationUnit,
+      duration_unit: cap255(a.durationUnit),
       price_per_unit: a.pricePerUnit,
       availability_count: a.availabilityCount,
       is_featured: a.isFeatured ?? false,
-      featured_display_type: a.featuredDisplayType ?? 'card',
+      featured_display_type: cap255(a.featuredDisplayType ?? 'card') ?? 'card',
       // 🆕 Article Hierarchy
       is_reservable: a.isReservable ?? false,
-      article_type: a.articleType ?? 'standalone',
-      parent_article_id: a.parentArticleId && a.parentArticleId.trim() !== "" ? a.parentArticleId : null,
+      article_type: cap255(a.articleType ?? 'standalone') ?? 'standalone',
+      parent_article_id: a.parentArticleId && a.parentArticleId.trim() !== "" ? cap255(a.parentArticleId) : null,
     };
     
     console.log('🔧 Inserting row into articles table:', row);
@@ -703,24 +809,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateArticle = useCallback(async (a: Article) => {
     console.log('🔧 Updating article in database:', a.title);
-    
+
+    const cap255 = (value?: string | null): string | null => {
+      if (!value) return null;
+      return String(value).slice(0, 255);
+    };
+
+    const compactImage = (() => {
+      if (!a.image) return null;
+      const raw = String(a.image);
+      if (raw.length <= 255) return raw;
+      const withoutQuery = raw.split("?")[0] ?? raw;
+      return withoutQuery.length <= 255 ? withoutQuery : withoutQuery.slice(0, 255);
+    })();
+
     const row = {
-      id: a.id,
-      activity_id: a.activityId,
-      title: a.title,
-      image: a.image,
+      id: cap255(a.id) ?? '',
+      activity_id: cap255(a.activityId) ?? '',
+      title: cap255(a.title) ?? '',
+      image: compactImage,
       description: a.description,
-      price_type: a.priceType,
+      price_type: cap255(a.priceType) ?? 'fixed',
       price: a.price,
-      duration_unit: a.durationUnit,
+      duration_unit: cap255(a.durationUnit),
       price_per_unit: a.pricePerUnit,
       availability_count: a.availabilityCount,
       is_featured: a.isFeatured ?? false,
-      featured_display_type: a.featuredDisplayType ?? 'card',
+      featured_display_type: cap255(a.featuredDisplayType ?? 'card') ?? 'card',
       // 🆕 Article Hierarchy
       is_reservable: a.isReservable ?? false,
-      article_type: a.articleType ?? 'standalone',
-      parent_article_id: a.parentArticleId && a.parentArticleId.trim() !== "" ? a.parentArticleId : null,
+      article_type: cap255(a.articleType ?? 'standalone') ?? 'standalone',
+      parent_article_id: a.parentArticleId && a.parentArticleId.trim() !== "" ? cap255(a.parentArticleId) : null,
     };
     
     console.log('🔧 Updating row in articles table:', row);

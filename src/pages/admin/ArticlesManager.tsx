@@ -37,7 +37,7 @@ const emptyArticleDraft = (): ArticleDraft => ({
 });
 
 export function ArticlesManager() {
-  const { activities, articles, addArticle, updateArticle, deleteArticle, getArticlesByActivityId, refreshArticles } = useAppContext();
+  const { activities, articles, addArticle, updateArticle, deleteArticle, refreshArticles } = useAppContext();
   
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -48,7 +48,7 @@ export function ArticlesManager() {
   const [newArticle, setNewArticle] = useState<ArticleDraft>(emptyArticleDraft);
 
   // Afficher tous les articles, filtrés par activité si nécessaire
-  const allArticles = articles.filter(a => !a.parentArticleId); // Only parent and standalone articles
+  const allArticles = articles;
   const filteredArticles = activityFilter === "all" 
     ? allArticles 
     : allArticles.filter(a => a.activityId === activityFilter);
@@ -550,68 +550,6 @@ export function ArticlesManager() {
                         </div>
                       </div>
 
-                      {/* Child Articles (if parent) */}
-                      {childArticles.length > 0 && (
-                        <div className="ml-4 mt-2 space-y-2 border-l-2 border-brand-gold/30 pl-4">
-                          {childArticles.map((child) => (
-                            <div key={child.id} className="flex gap-3 p-3 border border-border-primary/50 rounded-lg hover:border-brand-gold/50 transition-colors bg-text-primary/[0.02]">
-                              {child.image && (
-                                <img src={child.image} alt="" className="w-10 h-10 object-cover rounded-md shrink-0" />
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h4 className="font-medium truncate text-sm">â³ {child.title}</h4>
-                                  {child.isReservable && (
-                                    <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full font-medium whitespace-nowrap">
-                                      à Réservable
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-xs text-text-primary/55 truncate">
-                                  {child.priceType === "fixed"
-                                    ? `${child.price} DH`
-                                    : `${child.pricePerUnit} DH/${child.durationUnit}`}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEditingArticle(child);
-                                    setNewArticle({
-                                      activityId: child.activityId,
-                                      title: child.title,
-                                      image: child.image,
-                                      description: child.description,
-                                      priceType: child.priceType,
-                                      price: child.price?.toString() || "",
-                                      durationUnit: child.durationUnit || "day",
-                                      pricePerUnit: child.pricePerUnit?.toString() || "",
-                                      availabilityCount: child.availabilityCount?.toString() || "",
-                                      isFeatured: child.isFeatured || false,
-                                      isReservable: child.isReservable || false,
-                                      articleType: child.articleType || "child",
-                                      parentArticleId: child.parentArticleId || "",
-                                    });
-                                  }}
-                                  className="p-2 rounded-lg text-text-primary/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"
-                                  title="Modifier"
-                                >
-                                  <Pencil size={16} aria-hidden />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => deleteArticle(child.id)}
-                                  className="p-2 rounded-lg text-text-primary/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                                  title="Supprimer"
-                                >
-                                  <Trash2 size={16} aria-hidden />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   );
                 })

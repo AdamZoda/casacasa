@@ -115,6 +115,10 @@ export function SettingsView() {
   const [activeTab, setActiveTab] = useState<TabType>("general");
   const [saved, setSaved] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [rememberWorkspace, setRememberWorkspace] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("cp:remember-work") !== "0";
+  });
 
   const location = useLocation();
 
@@ -132,6 +136,12 @@ export function SettingsView() {
     void updateSettings(formData);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleToggleRememberWorkspace = () => {
+    const next = !rememberWorkspace;
+    setRememberWorkspace(next);
+    localStorage.setItem("cp:remember-work", next ? "1" : "0");
   };
 
   const currentHeroBgUrl = formData.heroBackgroundUrl?.trim() || "";
@@ -163,7 +173,6 @@ export function SettingsView() {
     } else if (section === "branding") {
       setFormData({
         ...formData,
-        brandGoldColor: "#E5A93A",
         logoText: "CASA PRIVILEGE",
       });
     }
@@ -377,69 +386,6 @@ export function SettingsView() {
                       className="admin-input w-full py-3.5 px-4 text-sm"
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <div className="border-t border-border-primary/30 pt-6">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-text-primary/45 font-bold mb-4">Réseaux officiels</p>
-                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        <div>
-                          <label className={labelClass}>Instagram</label>
-                          <StringListEditor
-                            items={formData.socialLinks.instagram}
-                            onChange={(instagram) =>
-                              setFormData({
-                                ...formData,
-                                socialLinks: { ...formData.socialLinks, instagram },
-                              })
-                            }
-                            placeholder="https://instagram.com/…"
-                            addLabel="Ajouter un Instagram"
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Facebook</label>
-                          <StringListEditor
-                            items={formData.socialLinks.facebook}
-                            onChange={(facebook) =>
-                              setFormData({
-                                ...formData,
-                                socialLinks: { ...formData.socialLinks, facebook },
-                              })
-                            }
-                            placeholder="https://facebook.com/…"
-                            addLabel="Ajouter un Facebook"
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>LinkedIn</label>
-                          <StringListEditor
-                            items={formData.socialLinks.linkedin}
-                            onChange={(linkedin) =>
-                              setFormData({
-                                ...formData,
-                                socialLinks: { ...formData.socialLinks, linkedin },
-                              })
-                            }
-                            placeholder="https://linkedin.com/…"
-                            addLabel="Ajouter un LinkedIn"
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>YouTube</label>
-                          <StringListEditor
-                            items={formData.socialLinks.youtube}
-                            onChange={(youtube) =>
-                              setFormData({
-                                ...formData,
-                                socialLinks: { ...formData.socialLinks, youtube },
-                              })
-                            }
-                            placeholder="https://youtube.com/…"
-                            addLabel="Ajouter un YouTube"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="space-y-3 border-t border-border-primary/30 pt-6">
@@ -489,39 +435,6 @@ export function SettingsView() {
 
           {activeTab === "design" && (
             <div className="space-y-6 md:space-y-8 animate-in fade-in duration-300">
-              <div className="admin-card p-4 sm:p-6 md:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 md:gap-8">
-                <div className="flex min-w-0 items-start gap-4">
-                  <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
-                    <Palette size={22} strokeWidth={1.25} aria-hidden />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-serif text-xl md:text-2xl text-text-primary">Couleur d’accent</h3>
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-3 shrink-0">
-                  <input
-                    type="color"
-                    value={formData.brandGoldColor}
-                    onChange={(e) => setFormData({ ...formData, brandGoldColor: e.target.value })}
-                    className="size-14 cursor-pointer rounded-lg border border-border-primary bg-transparent"
-                    aria-label="Sélecteur de couleur"
-                  />
-                  <input
-                    type="text"
-                    value={formData.brandGoldColor}
-                    onChange={(e) => setFormData({ ...formData, brandGoldColor: e.target.value })}
-                    className="admin-input w-[9.5rem] py-3.5 px-3 font-mono text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, brandGoldColor: "#E5A93A" })}
-                    className="rounded-lg border border-border-primary/60 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-text-primary/50 transition-colors hover:border-brand-gold/40 hover:text-brand-gold"
-                  >
-                    Défaut Casa
-                  </button>
-                </div>
-              </div>
-
               <div className="admin-card p-4 sm:p-6 md:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 md:gap-8">
                 <div className="flex min-w-0 items-start gap-4">
                   <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
@@ -906,30 +819,35 @@ export function SettingsView() {
               <div className="admin-card p-4 sm:p-6 md:p-8 lg:p-10 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-border-primary/40">
                   <div className="flex items-center gap-4">
-                    <div
-                      className={`flex size-11 items-center justify-center rounded-xl ${formData.maintenanceMode ? "bg-red-500/15 text-red-400" : "bg-brand-gold/10 text-brand-gold"}`}
-                    >
-                      <ShieldAlert size={22} strokeWidth={1.25} aria-hidden />
+                    <div className="flex size-11 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
+                      <ShieldCheck size={22} strokeWidth={1.25} aria-hidden />
                     </div>
-                    <h3 className="text-xl md:text-2xl font-serif">Mode maintenance</h3>
+                    <div>
+                      <h3 className="text-xl md:text-2xl font-serif">Mémoire locale</h3>
+                      <p className="mt-1 text-xs text-text-primary/45">
+                        Se souvenir de votre page, votre position et vos saisies en brouillon.
+                      </p>
+                    </div>
                   </div>
                   <button
                     type="button"
                     role="switch"
-                    aria-checked={formData.maintenanceMode}
-                    onClick={() => setFormData({ ...formData, maintenanceMode: !formData.maintenanceMode })}
+                    aria-checked={rememberWorkspace}
+                    onClick={handleToggleRememberWorkspace}
                     className={`relative h-9 w-16 shrink-0 rounded-full transition-all ${
-                      formData.maintenanceMode ? "bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.25)]" : "bg-text-primary/15"
+                      rememberWorkspace ? "bg-brand-gold shadow-[0_0_20px_rgba(229,169,58,0.25)]" : "bg-text-primary/15"
                     }`}
                   >
                     <span
                       className={`absolute top-1.5 size-6 rounded-full bg-white shadow transition-all ${
-                        formData.maintenanceMode ? "left-9" : "left-1.5"
+                        rememberWorkspace ? "left-9" : "left-1.5"
                       }`}
                     />
                   </button>
                 </div>
-                <p className="text-xs text-text-primary/45">Public bloqué · admin OK.</p>
+                <p className="text-xs text-text-primary/45">
+                  État actuel : <span className="font-semibold">{rememberWorkspace ? "Activé" : "Désactivé"}</span>
+                </p>
               </div>
 
               <div className="admin-card p-4 sm:p-6 md:p-8 lg:p-10 space-y-6">

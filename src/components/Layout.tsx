@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Footer } from "./Footer";
 import { SearchOverlay } from "./SearchOverlay";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Moon, Sun, User, ShoppingBag, LogIn, LogOut, Menu, X, Heart, Settings, Shield, Search, Globe } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import { useShopping } from "../context/ShoppingContext";
@@ -23,8 +23,12 @@ export function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const lastPathRestoredRef = useRef(false);
+  const lastScrollRestoreKeyRef = useRef<string | null>(null);
+  const rememberEnabled = typeof window !== "undefined" ? localStorage.getItem("cp:remember-work") !== "0" : true;
   const t = translations[language];
   const hp = settings.hiddenPages ?? [];
+  const fullPath = location.pathname + location.search + location.hash;
   
   const languages = [
     { code: 'fr', label: 'Français', flag: '🇫🇷' },
@@ -54,11 +58,58 @@ export function Layout() {
     document.title = title;
   }, [location.pathname]);
 
-  // Scroll to top and close mobile menu on route change
+  // Fermer le menu mobile au changement de route (sans forcer scrollTop)
   useEffect(() => {
-    window.scrollTo(0, 0);
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!rememberEnabled) return;
+    localStorage.setItem("cp:last-path", fullPath);
+  }, [fullPath, rememberEnabled]);
+
+  useEffect(() => {
+    if (!rememberEnabled) return;
+    if (lastPathRestoredRef.current) return;
+    lastPathRestoredRef.current = true;
+    const savedPath = localStorage.getItem("cp:last-path");
+    if (!savedPath || savedPath === "/" || savedPath === fullPath) return;
+    if (location.pathname === "/") {
+      navigate(savedPath, { replace: true });
+    }
+  }, [location.pathname, fullPath, navigate, rememberEnabled]);
+
+  useEffect(() => {
+    if (!rememberEnabled) return;
+    const scrollKey = `cp:scroll:${fullPath}`;
+    if (lastScrollRestoreKeyRef.current === scrollKey) return;
+    lastScrollRestoreKeyRef.current = scrollKey;
+    const raw = localStorage.getItem(scrollKey);
+    const y = raw ? Number(raw) : NaN;
+    if (!Number.isFinite(y)) return;
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: Math.max(0, y), left: 0, behavior: "auto" });
+    });
+  }, [fullPath, rememberEnabled]);
+
+  useEffect(() => {
+    if (!rememberEnabled) return;
+    const saveScroll = () => {
+      localStorage.setItem(`cp:scroll:${fullPath}`, String(window.scrollY || 0));
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") saveScroll();
+    };
+    window.addEventListener("scroll", saveScroll, { passive: true });
+    window.addEventListener("pagehide", saveScroll);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      saveScroll();
+      window.removeEventListener("scroll", saveScroll);
+      window.removeEventListener("pagehide", saveScroll);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [fullPath, rememberEnabled]);
 
   useEffect(() => {
     const handleScroll = () => {

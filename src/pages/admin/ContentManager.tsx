@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAppContext, type Activity, type Universe } from "../../context/AppContext";
 import { Plus, Trash2, Upload, Loader2, Globe, Pencil } from "lucide-react";
 import { uploadImage } from "../../lib/storage";
@@ -57,9 +57,6 @@ type ActivityFormState = {
   hasArticles: boolean;
   articleDisplayType: "direct" | "articles_only";
   isFeatured: boolean;
-  featuredOrder: string;
-  featuredDisplayType: "card" | "hero" | "grid" | "carousel";
-  featuredImageUrl: string;
 };
 
 const emptyActivityForm = (universeId = ""): ActivityFormState => ({
@@ -73,12 +70,12 @@ const emptyActivityForm = (universeId = ""): ActivityFormState => ({
   hasArticles: false,
   articleDisplayType: "direct",
   isFeatured: false,
-  featuredOrder: "",
-  featuredDisplayType: "card",
-  featuredImageUrl: "",
 });
 
 export function ContentManager() {
+  const CONTENT_MANAGER_DRAFT_KEY = "cp:admin:content-manager:draft:v1";
+  const CONTENT_MANAGER_LAST_TAB_KEY = "cp:admin:content-manager:last-tab:v1";
+  const REMEMBER_WORK_KEY = "cp:remember-work";
   const {
     universes,
     activities,
@@ -106,6 +103,72 @@ export function ContentManager() {
     galleryUrls: "",
   });
   const [newActivity, setNewActivity] = useState<ActivityFormState>(emptyActivityForm());
+  const draftRestoredRef = useRef(false);
+  const tabHydratedRef = useRef(false);
+  const rememberEnabled = typeof window !== "undefined" ? localStorage.getItem(REMEMBER_WORK_KEY) !== "0" : true;
+
+  useEffect(() => {
+    if (!rememberEnabled) {
+      draftRestoredRef.current = true;
+      tabHydratedRef.current = true;
+      return;
+    }
+    try {
+      const savedTab = localStorage.getItem(CONTENT_MANAGER_LAST_TAB_KEY);
+      if (savedTab === "universes" || savedTab === "activities" || savedTab === "articles" || savedTab === "sub-articles") {
+        setActiveTab(savedTab);
+      }
+
+      const raw = localStorage.getItem(CONTENT_MANAGER_DRAFT_KEY);
+      if (!raw) {
+        draftRestoredRef.current = true;
+        return;
+      }
+      const cached = JSON.parse(raw) as Partial<{
+        activeTab: "universes" | "activities" | "articles" | "sub-articles";
+        showUniverseForm: boolean;
+        showActivityForm: boolean;
+        newUniverse: typeof newUniverse;
+        newActivity: ActivityFormState;
+      }>;
+
+      if (cached.activeTab) setActiveTab(cached.activeTab);
+      if (typeof cached.showUniverseForm === "boolean") setShowUniverseForm(cached.showUniverseForm);
+      if (typeof cached.showActivityForm === "boolean") setShowActivityForm(cached.showActivityForm);
+      if (cached.newUniverse) setNewUniverse(cached.newUniverse);
+      if (cached.newActivity) setNewActivity(cached.newActivity);
+    } catch (e) {
+      console.warn("Impossible de restaurer le brouillon contenu admin:", e);
+    } finally {
+      draftRestoredRef.current = true;
+      tabHydratedRef.current = true;
+    }
+  }, [rememberEnabled]);
+
+  useEffect(() => {
+    if (!rememberEnabled) return;
+    if (!tabHydratedRef.current) return;
+    localStorage.setItem(CONTENT_MANAGER_LAST_TAB_KEY, activeTab);
+  }, [activeTab, rememberEnabled]);
+
+  useEffect(() => {
+    if (!rememberEnabled) return;
+    if (!draftRestoredRef.current) return;
+    try {
+      localStorage.setItem(
+        CONTENT_MANAGER_DRAFT_KEY,
+        JSON.stringify({
+          activeTab,
+          showUniverseForm,
+          showActivityForm,
+          newUniverse,
+          newActivity,
+        })
+      );
+    } catch (e) {
+      console.warn("Impossible de sauvegarder le brouillon contenu admin:", e);
+    }
+  }, [activeTab, showUniverseForm, showActivityForm, newUniverse, newActivity, rememberEnabled]);
 
   const handleAddUniverse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,6 +208,7 @@ export function ContentManager() {
       }
       setNewUniverse({ name: "", location: "", description: "", heroImage: "", flag: "", galleryUrls: "" });
       setShowUniverseForm(false);
+      localStorage.removeItem(CONTENT_MANAGER_DRAFT_KEY);
     } catch (err) {
       alert("Erreur : " + (err as Error).message);
     } finally {
@@ -197,6 +261,7 @@ export function ContentManager() {
       });
     }
     setNewActivity(emptyActivityForm(newActivity.universeId));
+    localStorage.removeItem(CONTENT_MANAGER_DRAFT_KEY);
   };
 
   const resetUniverseForm = () => {
@@ -677,7 +742,7 @@ export function ContentManager() {
           {/* Activités existantes - Grid 3 par ligne */}
           <div>
             <h3 className="text-xl font-serif mb-6">Activités existantes</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[min(70vh,640px)] overflow-y-auto overscroll-contain pr-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pr-2">
               {activities.map((a) => (
                 <div
                   key={a.id}
@@ -708,9 +773,6 @@ export function ContentManager() {
                           hasArticles: a.hasArticles || false,
                           articleDisplayType: a.articleDisplayType || "direct",
                           isFeatured: a.isFeatured || false,
-                          featuredOrder: a.featuredOrder?.toString() || "",
-                          featuredDisplayType: a.featuredDisplayType || "card",
-                          featuredImageUrl: a.featuredImageUrl || "",
                         });
                       }}
                       className="p-2.5 rounded-lg text-text-primary/50 hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"

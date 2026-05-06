@@ -81,7 +81,7 @@ export function Universe() {
       </section>
 
       {/* Description */}
-      <section className="py-40 px-6 max-w-5xl mx-auto text-center w-full">
+      <section className="py-20 px-6 max-w-6xl mx-auto text-center w-full">
         <motion.div
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
@@ -89,115 +89,79 @@ export function Universe() {
           transition={{ duration: 0.8 }}
           className="h-px w-24 bg-brand-gold mx-auto mb-16"
         />
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 1 }}
-          className="text-3xl md:text-5xl font-serif leading-relaxed text-text-primary"
+          className="text-sm md:text-base font-light tracking-wide text-text-primary/80 whitespace-nowrap overflow-hidden text-ellipsis"
         >
-          "{universe.description}"
+          Experience the magic of the Kingdom with exclusive access to private riads, desert camps, and VIP events.
         </motion.p>
       </section>
 
-      {/* Catalogue of Activities */}
+      {/* Catalogue of Activities — visual mosaic */}
       <section className="py-32 px-6 md:px-12 lg:px-24 max-w-[1400px] mx-auto border-t border-border-primary">
-        <div className="text-center mb-32">
+        <div className="text-center mb-20">
           <h2 className="text-4xl md:text-6xl font-serif mb-6">Expériences Exclusives</h2>
           <p className="text-xs tracking-[0.2em] uppercase text-text-primary/50">Curated for you</p>
         </div>
-        
-        <div className="flex flex-col gap-32">
-          {universeActivities.map((activity, index) => (
-            <motion.div 
-              key={activity.id}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className={`flex flex-col ${index % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-16 lg:gap-24 items-center`}
-            >
-              <div className="w-full lg:w-1/2 h-[50vh] lg:h-[70vh] overflow-hidden relative group">
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10" />
-                <LazyImg 
-                  src={activity.image} 
-                  alt={activity.title}
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                  referrerPolicy="no-referrer"
-                />
-                <button 
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {universeActivities.map((activity, index) => {
+            const targetPath =
+              activity.articleDisplayType === "articles_only"
+                ? `/activity/${universe.id}/${activity.id}/articles`
+                : `/book/${universe.id}/${activity.id}`;
+            return (
+              <motion.div
+                key={activity.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.5, delay: (index % 8) * 0.04 }}
+                className="relative overflow-hidden border border-border-primary/70 bg-black group"
+              >
+                <Link to={targetPath} className="block relative">
+                  <div className="aspect-[3/4] overflow-hidden">
+                    <LazyImg
+                      src={activity.image}
+                      alt={activity.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/10" />
+                  <span className="absolute left-2 top-2 bg-white/85 text-black text-[8px] px-2 py-1 uppercase tracking-wider font-semibold">
+                    {activity.category || "Activité"}
+                  </span>
+                  <div className="absolute inset-x-0 bottom-0 p-3">
+                    <p className="text-white text-xs font-semibold uppercase tracking-wide line-clamp-2">
+                      {activity.title}
+                    </p>
+                  </div>
+                </Link>
+
+                <button
                   onClick={(e) => {
                     e.preventDefault();
                     toggleFavorite(activity.id);
                   }}
-                  className={`absolute top-8 right-8 z-20 p-4 rounded-full backdrop-blur-md border transition-all duration-500 ${favorites.includes(activity.id) ? 'bg-brand-gold border-brand-gold text-brand-black' : 'bg-black/20 border-white/20 text-white hover:bg-white/40'}`}
+                  className={`absolute right-2 top-2 z-20 p-2 rounded-full backdrop-blur border transition-all duration-300 ${
+                    favorites.includes(activity.id)
+                      ? "bg-brand-gold border-brand-gold text-brand-black"
+                      : "bg-black/30 border-white/25 text-white hover:bg-white/30"
+                  }`}
+                  aria-label="Ajouter aux favoris"
                 >
-                  <Heart size={20} fill={favorites.includes(activity.id) ? "currentColor" : "none"} strokeWidth={1.5} />
+                  <Heart size={14} fill={favorites.includes(activity.id) ? "currentColor" : "none"} strokeWidth={1.5} />
                 </button>
-              </div>
-              
-              <div className="w-full lg:w-1/2 flex flex-col justify-center">
-                <span className="text-brand-gold text-[10px] uppercase tracking-[0.3em] mb-6">{activity.category}</span>
-                <h3 className="text-4xl md:text-5xl lg:text-6xl mb-8 font-serif leading-tight">{activity.title}</h3>
-                <p className="text-text-primary/60 font-light leading-relaxed mb-12 text-lg md:text-xl">
-                  {activity.description}
-                </p>
-                <div className="flex items-center gap-8 mb-12">
-                  <div className="h-px w-12 bg-border-primary" />
-                  <p className="font-serif text-2xl">
-                    {activity.price}
-                  </p>
-                </div>
-                
-                {/* Display Articles or Direct Booking */}
-                {activity.articleDisplayType === "articles_only" ? (
-                  <Link 
-                    to={`/activity/${universe.id}/${activity.id}/articles`}
-                    className="self-start group relative inline-flex items-center justify-center px-10 py-5 bg-brand-gold/10 border border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-bg-primary transition-all duration-500 ease-out overflow-hidden"
-                  >
-                    <span className="relative z-10 font-light tracking-[0.15em] text-sm uppercase">Voir les articles</span>
-                  </Link>
-                ) : (
-                  <Link 
-                    to={`/book/${universe.id}/${activity.id}`}
-                    className="self-start group relative inline-flex items-center justify-center px-10 py-5 bg-transparent border border-text-primary text-text-primary hover:bg-text-primary hover:text-bg-primary transition-all duration-500 ease-out overflow-hidden"
-                  >
-                    <span className="relative z-10 font-light tracking-[0.15em] text-sm uppercase">Réserver cette activité</span>
-                  </Link>
-                )}
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       </section>
 
-      {/* Premium Gallery */}
-      <section className="py-32 px-6 max-w-[1400px] mx-auto w-full border-t border-border-primary">
-        <div className="text-center mb-24">
-          <h2 className="text-4xl md:text-5xl font-serif mb-6">Gallery</h2>
-          <p className="text-xs tracking-[0.2em] uppercase text-text-primary/50">Visual Journey</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {universe.gallery.map((img, index) => (
-            <motion.div 
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, delay: index * 0.1 }}
-              className={`relative overflow-hidden group ${index === 0 ? 'md:col-span-2 h-[60vh] md:h-[80vh]' : 'h-[50vh]'}`}
-            >
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10" />
-              <LazyImg 
-                src={img} 
-                alt={`${universe.name} Gallery ${index + 1}`}
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                referrerPolicy="no-referrer"
-              />
-            </motion.div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }
