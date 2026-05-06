@@ -2,6 +2,7 @@ import { useParams, Navigate, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAppContext } from "../context/AppContext";
 import { ChevronLeft, ChevronRight, Layers } from "lucide-react";
+import { formatMoney } from "../lib/utils";
 
 export function ArticleSubArticles() {
   const { universeId, activityId, articleId } = useParams<{
@@ -10,7 +11,7 @@ export function ArticleSubArticles() {
     articleId: string;
   }>();
   const navigate = useNavigate();
-  const { universes, activities, articles } = useAppContext();
+  const { universes, activities, articles, currency, exchangeRates } = useAppContext();
 
   const universe = universes.find((u) => u.id === universeId);
   const activity = activities.find((a) => a.id === activityId);
@@ -29,10 +30,10 @@ export function ArticleSubArticles() {
 
   const formatPrice = (article: any) => {
     if (article.priceType === "fixed") {
-      return `${article.price} DH`;
+      return formatMoney(Number(article.price || 0), currency, exchangeRates);
     } else {
       const unit = article.durationUnit === "night" ? "nuit" : "jour";
-      return `À partir de ${article.pricePerUnit} DH/${unit}`;
+      return `À partir de ${formatMoney(Number(article.pricePerUnit || 0), currency, exchangeRates)}/${unit}`;
     }
   };
 

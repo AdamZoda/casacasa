@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { useAppContext } from "../context/AppContext";
 import { useShopping } from "../context/ShoppingContext";
+import { formatMoney } from "../lib/utils";
 
 /** Accent type bouton CTA (proche du orange vitrine de référence) */
 const CTA_ORANGE = "bg-[#F1A139] hover:bg-[#e0952f] text-black";
@@ -29,7 +30,7 @@ type FeaturedRow = {
 };
 
 export function FeaturedCarousel() {
-  const { activities, articles } = useAppContext();
+  const { activities, articles, currency, exchangeRates } = useAppContext();
   const { favorites, toggleFavorite } = useShopping();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -119,9 +120,37 @@ export function FeaturedCarousel() {
   const renderPrice = (raw: string) => {
     const t = raw.trim().replace(/\b(à\s*partir\s+de\s*){2,}/gi, "À partir de ");
     if (!t) return null;
+    const numericChunk = t.match(/(\d[\d\s.,]*)/)?.[1] ?? "";
+    const cleanedChunk = numericChunk.replace(/\s/g, "");
+    const lastComma = cleanedChunk.lastIndexOf(",");
+    const lastDot = cleanedChunk.lastIndexOf(".");
+    const hasComma = lastComma !== -1;
+    const hasDot = lastDot !== -1;
+    const normalizedChunk =
+      hasComma && hasDot
+        ? (lastComma > lastDot
+            ? cleanedChunk.replace(/\./g, "").replace(",", ".")
+            : cleanedChunk.replace(/,/g, ""))
+        : hasComma
+          ? cleanedChunk.replace(",", ".")
+          : cleanedChunk;
+    const extractedAmount = Number(normalizedChunk);
+    const hasAmount = Number.isFinite(extractedAmount) && extractedAmount > 0;
+    const unitMatch = t.match(/\/\s*(jour|jours|nuit|nuits)/i);
+    const unitSuffix = unitMatch ? `/${unitMatch[1].toLowerCase()}` : "";
+    const startsFrom = /à\s*partir\s*de/i.test(t);
     const lower = t.toLowerCase();
     const looksComplete =
       /à\s*partir|€|\beur\b|\bmad\b|\bdh\b|\/\s*jour|par\s+jour/i.test(lower);
+    if (hasAmount) {
+      const converted = `${formatMoney(extractedAmount, currency, exchangeRates)}${unitSuffix}`;
+      return (
+        <p className="text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-neutral-50">
+          {startsFrom ? "À partir de " : ""}
+          {converted}
+        </p>
+      );
+    }
     if (looksComplete) {
       return (
         <p className="text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-neutral-50">

@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { useAppContext } from "../context/AppContext";
 import { ChildArticlesCarousel } from "../components/ChildArticlesCarousel";
 import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { formatMoney } from "../lib/utils";
 
 export function ArticleDetail() {
   const { universeId, activityId, articleId } = useParams<{
@@ -12,7 +13,7 @@ export function ArticleDetail() {
     articleId: string;
   }>();
   const navigate = useNavigate();
-  const { universes, activities, articles } = useAppContext();
+  const { universes, activities, articles, currency, exchangeRates } = useAppContext();
 
   const universe = universes.find((u) => u.id === universeId);
   const activity = activities.find((a) => a.id === activityId);
@@ -46,10 +47,10 @@ export function ArticleDetail() {
 
   const formatPrice = () => {
     if (article.priceType === "fixed") {
-      return `${article.price} DH`;
+      return formatMoney(Number(article.price || 0), currency, exchangeRates);
     } else {
       const unit = article.durationUnit === "night" ? "nuit" : "jour";
-      return `${article.pricePerUnit} DH/${unit}`;
+      return `${formatMoney(Number(article.pricePerUnit || 0), currency, exchangeRates)}/${unit}`;
     }
   };
 
@@ -206,7 +207,9 @@ export function ArticleDetail() {
                 {article.priceType === "fixed" ? (
                   <div className="flex justify-between items-center pb-3 border-b border-border-primary/30">
                     <span className="text-text-primary/60">Prix unitaire</span>
-                    <span className="font-semibold text-brand-gold text-lg">{article.price} DH</span>
+                    <span className="font-semibold text-brand-gold text-lg">
+                      {formatMoney(Number(article.price || 0), currency, exchangeRates)}
+                    </span>
                   </div>
                 ) : (
                   <>
@@ -216,7 +219,9 @@ export function ArticleDetail() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-text-primary/60">Prix par {article.durationUnit === "night" ? "nuit" : "jour"}</span>
-                      <span className="font-semibold text-brand-gold text-lg">{article.pricePerUnit} DH</span>
+                      <span className="font-semibold text-brand-gold text-lg">
+                        {formatMoney(Number(article.pricePerUnit || 0), currency, exchangeRates)}
+                      </span>
                     </div>
                   </>
                 )}

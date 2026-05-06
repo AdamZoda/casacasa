@@ -126,6 +126,11 @@ export function Booking() {
     return parseInt(match.join(''), 10);
   };
 
+  const isDurationBasedPrice = (priceStr: string | undefined): boolean => {
+    if (!priceStr) return false;
+    return /\/\s*(jour|jours|nuit|nuits)|\b(par|per)\s+(jour|jours|nuit|nuits)\b/i.test(priceStr);
+  };
+
   // Calculate price based on article or activity
   let dailyPrice = 0;
   let priceType: 'fixed' | 'per_duration' = 'per_duration';
@@ -142,6 +147,7 @@ export function Booking() {
   } else {
     dailyPrice = getNumericPrice(activity?.price);
   }
+  const isFixedPricing = article ? priceType === 'fixed' : !isDurationBasedPrice(activity?.price);
 
   const durationInDays = formData.startDate && formData.endDate 
     ? Math.max(1, Math.floor((formData.endDate.getTime() - formData.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
@@ -149,7 +155,7 @@ export function Booking() {
   
   // Calculate total price based on price type
   let totalPrice = 0;
-  if (article && priceType === 'fixed') {
+  if (isFixedPricing) {
     // Fixed price: price × people (no duration multiplier)
     totalPrice = dailyPrice * formData.peopleCount;
   } else {
@@ -206,7 +212,7 @@ export function Booking() {
       // Format price message based on article or activity
       let activityPrice = '';
       if (dailyPrice) {
-        if (article && priceType === 'fixed') {
+        if (isFixedPricing) {
           activityPrice = `\n*Tarif :* ${formatMoney(totalPrice, currency, exchangeRates)} (${formatMoney(dailyPrice, currency, exchangeRates)} x ${formData.peopleCount} pers)`;
         } else {
           activityPrice = `\n*Tarif :* ${formatMoney(totalPrice, currency, exchangeRates)} (${formatMoney(dailyPrice, currency, exchangeRates)} x ${durationInDays} ${durationInDays > 1 ? durationUnit === 'night' ? 'nuits' : 'jours' : durationUnit === 'night' ? 'nuit' : 'jour'})`;
@@ -383,8 +389,8 @@ _Demande générée via le Concierge Casa Privilege_`;
             <span>
               {article
                 ? article.priceType === 'fixed'
-                  ? `${article.price} DH`
-                  : `${article.pricePerUnit} DH/${article.durationUnit === 'night' ? 'nuit' : 'jour'}`
+                  ? `${formatMoney(Number(article.price || 0), currency, exchangeRates)}`
+                  : `${formatMoney(Number(article.pricePerUnit || 0), currency, exchangeRates)}/${article.durationUnit === 'night' ? 'nuit' : 'jour'}`
                 : activity.price
               }
             </span>
@@ -510,7 +516,7 @@ _Demande générée via le Concierge Casa Privilege_`;
                              <div className="flex flex-col items-end">
                              <span className="text-brand-gold font-bold text-base md:text-lg leading-none">{formatMoney(totalPrice, currency, exchangeRates)}</span>
                                <span className="text-[8px] uppercase tracking-tighter text-text-primary/30 mt-1 italic">
-                                 {article && priceType === 'fixed'
+                                {isFixedPricing
                                    ? `(${formatMoney(dailyPrice, currency, exchangeRates)} x ${formData.peopleCount} pers)`
                                    : `(${formatMoney(dailyPrice, currency, exchangeRates)} x ${formData.peopleCount} pers x ${durationInDays}j)`
                                  }
