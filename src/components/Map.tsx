@@ -69,8 +69,6 @@ export function MapView({ pois, poiTypes = [], selectedPoi = null, center = [20,
 
     // Add new markers (coordonnées normalisées pour Leaflet [lat, lng])
     console.log("[MapView] Adding", pois.length, "POI markers");
-    const validCoords: LatLng[] = [];
-
     pois.forEach((poi) => {
       const ll = poiToLatLng(poi);
       if (!ll) {
@@ -114,8 +112,6 @@ export function MapView({ pois, poiTypes = [], selectedPoi = null, center = [20,
           )
           .addTo(map.current!);
 
-        validCoords.push(ll);
-
         marker.on("click", () => {
           marker.openPopup();
           if (onMarkerClick) onMarkerClick(poi);
@@ -127,22 +123,8 @@ export function MapView({ pois, poiTypes = [], selectedPoi = null, center = [20,
       }
     });
 
-    // Centrer la carte sur les marqueurs (évite la vue monde zoom 2 qui « perd » le point)
-    if (validCoords.length > 0 && map.current) {
-      try {
-        if (validCoords.length === 1) {
-          const c = validCoords[0];
-          map.current.setView([c.lat, c.lng], 13);
-        } else {
-          const bounds = L.latLngBounds(
-            validCoords.map((c) => [c.lat, c.lng] as [number, number])
-          );
-          map.current.fitBounds(bounds, { padding: [56, 56], maxZoom: 15 });
-        }
-      } catch (e) {
-        console.error("[MapView] fitBounds/setView:", e);
-      }
-    }
+    // Garder une vue monde par défaut, même quand il n'y a qu'un seul point.
+    map.current?.setView(center, zoom);
 
     // Invalidate size to fix responsive issues
     if (map.current) {

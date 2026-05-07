@@ -17,7 +17,7 @@ export function JournalPost() {
 
   return (
     <div className="min-h-screen pt-40 pb-32 px-6 md:px-12 lg:px-24 w-full">
-      <div className="max-w-[1000px] mx-auto">
+      <div className="max-w-[1400px] mx-auto">
         <Link to="/journal" className="group inline-flex items-center gap-4 mb-16 text-text-primary/60 hover:text-brand-gold transition-colors duration-500">
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-xs uppercase tracking-[0.2em] font-medium">{t.journal.back}</span>
@@ -34,7 +34,7 @@ export function JournalPost() {
             <span className="text-xs tracking-[0.1em] uppercase text-text-primary/40">{post.date}</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl lg:text-8xl mb-12 font-serif leading-tight">
+          <h1 className="mb-12 whitespace-nowrap font-serif text-[clamp(1.75rem,4vw,4rem)] leading-tight">
             {post.title}
           </h1>
 

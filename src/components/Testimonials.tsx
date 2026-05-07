@@ -60,7 +60,7 @@ export function Testimonials() {
     const step = () => {
       frameCount++;
       if (!isPaused && !isInteracting) {
-        el.scrollLeft += 2.0; // Augmenté de 0.55 à 2.0 pour un mouvement plus visible
+        el.scrollLeft += 0.45;
         const loopPoint = el.scrollWidth / 2;
         if (loopPoint > 0 && el.scrollLeft >= loopPoint) {
           el.scrollLeft -= loopPoint;
@@ -176,7 +176,7 @@ export function Testimonials() {
             ref={railRef}
             className="testimonials-rail flex min-w-max gap-4 sm:gap-6 overflow-x-auto overscroll-x-contain px-4 sm:px-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [scroll-behavior:auto] touch-pan-x"
             style={{
-              animation: approvedTestimonials.length > 0 ? 'scrollTestimonials 30s linear infinite' : 'none'
+              animation: approvedTestimonials.length > 0 ? 'scrollTestimonials 90s linear infinite' : 'none'
             }}
             onPointerDown={() => setIsInteracting(true)}
             onPointerUp={() => setIsInteracting(false)}
@@ -316,7 +316,7 @@ if (typeof document !== 'undefined') {
       
       /* Forcer l'animation même si JavaScript est désactivé */
       .testimonials-rail {
-        animation: scrollTestimonials 30s linear infinite;
+        animation: scrollTestimonials 90s linear infinite;
       }
       
       .testimonials-rail:hover {

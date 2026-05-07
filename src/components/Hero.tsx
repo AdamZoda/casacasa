@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
+import heroBackgroundVideo from "../../background-compressed.mp4";
 
 // Detect if URL is a video (YouTube, Vimeo, or direct video file)
 const isVideoUrl = (url: string): boolean => {
@@ -44,7 +45,7 @@ export function Hero() {
   const t = translations[language];
   const [videoError, setVideoError] = useState(false);
 
-  const bgUrl = settings.heroBackgroundUrl || 'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop';
+  const bgUrl = heroBackgroundVideo;
   const title = settings.heroTitle || t.hero.title;
   const subtitle = settings.heroSubtitle || t.hero.subtitle;
   const cta = settings.heroCta || t.hero.cta;

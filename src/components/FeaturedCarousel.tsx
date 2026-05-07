@@ -77,7 +77,11 @@ export function FeaturedCarousel() {
     if (featuredItems.length === 0 || !autoRotate) return;
 
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % featuredItems.length);
+      setCurrentIndex((prev) => {
+        if (featuredItems.length <= 1) return prev;
+        const randomOffset = Math.floor(Math.random() * (featuredItems.length - 1)) + 1;
+        return (prev + randomOffset) % featuredItems.length;
+      });
     }, 10000);
 
     return () => clearInterval(timer);
@@ -92,12 +96,6 @@ export function FeaturedCarousel() {
   const goToNext = () => {
     setAutoRotate(false);
     setCurrentIndex((prev) => (prev + 1) % featuredItems.length);
-    setTimeout(() => setAutoRotate(true), 5000);
-  };
-
-  const goToIndex = (index: number) => {
-    setAutoRotate(false);
-    setCurrentIndex(index);
     setTimeout(() => setAutoRotate(true), 5000);
   };
 
@@ -189,12 +187,11 @@ export function FeaturedCarousel() {
         </div>
 
         {/* Carte produit — image en haut, info en bas, cadre fixe */}
-        <article className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)] dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]" style={{ minHeight: '840px' }}>
+        <article className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)] dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
           <div className="flex flex-col h-full">
-            {/* Image — en haut, hauteur fixe */}
+            {/* Image — en haut, avec plus de présence dans la carte */}
             <motion.div
-              className="relative w-full shrink-0 overflow-hidden"
-              style={{ height: '500px' }}
+              className="relative h-[430px] w-full shrink-0 overflow-hidden sm:h-[520px] lg:h-[620px]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.35 }}
@@ -295,8 +292,8 @@ export function FeaturedCarousel() {
         </article>
 
         {/* Navigation carrousel sous la carte */}
-        <div className="mt-8 flex flex-col items-center gap-3">
-          <div className="flex w-full max-w-md items-center justify-between gap-4">
+        <div className="mt-8 flex items-center justify-center">
+          <div className="flex items-center justify-center gap-6">
             <button
               type="button"
               onClick={goToPrevious}
@@ -305,20 +302,6 @@ export function FeaturedCarousel() {
             >
               <ChevronLeft size={20} strokeWidth={1.5} />
             </button>
-            <div className="flex min-h-8 flex-1 items-center justify-center gap-1.5 px-2">
-              {featuredItems.map((_, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => goToIndex(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    idx === currentIndex ? "w-10 bg-[#F1A139]" : "w-1.5 bg-neutral-300 dark:bg-neutral-600"
-                  }`}
-                  aria-label={`Slide ${idx + 1}`}
-                  aria-current={idx === currentIndex}
-                />
-              ))}
-            </div>
             <button
               type="button"
               onClick={goToNext}
@@ -328,9 +311,6 @@ export function FeaturedCarousel() {
               <ChevronRight size={20} strokeWidth={1.5} />
             </button>
           </div>
-          <p className="text-[11px] tabular-nums text-neutral-400">
-            {currentIndex + 1} / {featuredItems.length}
-          </p>
         </div>
       </div>
     </section>
