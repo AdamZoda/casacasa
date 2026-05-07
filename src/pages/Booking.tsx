@@ -339,13 +339,13 @@ _Demande générée via le Concierge Casa Privilege_`;
   const days = Array.from({ length: daysInMonth }).map((_, i) => addDays(currentMonth, i));
 
   return (
-    <div className="pt-28 md:pt-40 pb-20 md:pb-24 px-4 sm:px-6 max-w-5xl mx-auto w-full min-h-screen flex flex-col">
-      <div className="text-center mb-10 md:mb-16">
+    <div className="pt-24 md:pt-40 pb-12 md:pb-24 px-3 sm:px-6 max-w-5xl mx-auto w-full min-h-screen flex flex-col">
+      <div className="text-center mb-6 md:mb-16">
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-3xl sm:text-4xl md:text-5xl mb-3 md:mb-4 font-serif"
+          className="text-2xl sm:text-4xl md:text-5xl mb-2 md:mb-4 font-serif"
         >
           Réservation Privée
         </motion.h1>
@@ -353,7 +353,7 @@ _Demande générée via le Concierge Casa Privilege_`;
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-brand-gold font-light tracking-[0.2em] md:tracking-widest uppercase text-[11px] md:text-sm"
+          className="text-brand-gold font-light tracking-[0.16em] md:tracking-widest uppercase text-[10px] md:text-sm"
         >
           {activity.title}
         </motion.p>
@@ -364,11 +364,11 @@ _Demande générée via le Concierge Casa Privilege_`;
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className="mb-8 p-4 border border-border-primary/50 rounded-lg bg-text-primary/[0.02] flex gap-4"
+        className="mb-5 p-3 sm:p-4 border border-border-primary/50 rounded-md sm:rounded-lg bg-text-primary/[0.02] flex gap-3 sm:gap-4"
       >
         {/* Image */}
         {(article?.image || activity?.image) && (
-          <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-lg overflow-hidden border border-border-primary/30">
+          <div className="w-16 h-16 md:w-24 md:h-24 flex-shrink-0 rounded-md sm:rounded-lg overflow-hidden border border-border-primary/30">
             <img
               src={article?.image || activity?.image || ''}
               alt={article?.title || activity?.title}
@@ -379,13 +379,13 @@ _Demande générée via le Concierge Casa Privilege_`;
         
         {/* Infos */}
         <div className="flex-grow flex flex-col justify-center">
-          <p className="text-[10px] uppercase tracking-widest text-text-primary/40 mb-1">
+          <p className="text-[9px] uppercase tracking-[0.18em] sm:tracking-widest text-text-primary/40 mb-1">
             {article ? "Article Réservé" : "Expérience"}
           </p>
-          <h3 className="text-sm md:text-base font-medium mb-1">
+          <h3 className="text-xs sm:text-sm md:text-base font-medium mb-1 line-clamp-2">
             {article ? `${activity.title} - ${article.title}` : activity.title}
           </h3>
-          <div className="flex items-center gap-3 text-[11px] text-text-primary/60">
+          <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] text-text-primary/60">
             <span>
               {article
                 ? article.priceType === 'fixed'
@@ -408,14 +408,14 @@ _Demande générée via le Concierge Casa Privilege_`;
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.3 }}
-        className="bg-bg-primary text-text-primary border border-border-primary p-4 sm:p-6 md:p-12 shadow-2xl relative overflow-hidden"
+        className="bg-bg-primary text-text-primary border border-border-primary p-3 sm:p-6 md:p-12 shadow-2xl relative overflow-hidden"
       >
-        <div className="flex justify-between mb-8 md:mb-12 relative max-w-2xl mx-auto">
+        <div className="flex justify-between mb-5 md:mb-12 relative max-w-2xl mx-auto">
           <div className="absolute top-1/2 left-0 w-full h-px bg-border-primary -z-10"></div>
           {[1, 2, 3, 4].map(i => (
             <div 
               key={i} 
-              className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-serif transition-colors duration-500 ${step >= i ? 'bg-brand-gold text-brand-black font-medium border-4 border-bg-primary shadow-[0_0_0_1px_#E5A93A]' : 'bg-bg-primary border border-border-primary text-text-primary/60'}`}
+              className={`w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center text-[10px] sm:text-xs md:text-sm font-serif transition-colors duration-500 ${step >= i ? 'bg-brand-gold text-brand-black font-medium border-2 sm:border-4 border-bg-primary shadow-[0_0_0_1px_#E5A93A]' : 'bg-bg-primary border border-border-primary text-text-primary/60'}`}
             >
               {i}
             </div>
@@ -431,16 +431,16 @@ _Demande générée via le Concierge Casa Privilege_`;
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.4 }}
               onSubmit={handleNext}
-              className="flex flex-col gap-6 md:gap-10"
+              className="flex flex-col gap-4 md:gap-10"
             >
-              <h3 className="text-xl md:text-2xl font-serif text-center mb-2 md:mb-4">Date & Heure</h3>
+              <h3 className="text-lg md:text-2xl font-serif text-center mb-1 md:mb-4">Date & Heure</h3>
               
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-12">
                 <div>
                   <div className="flex justify-between items-center mb-4 md:mb-6">
-                    <button type="button" onClick={() => setCurrentMonth(addDays(currentMonth, -daysInMonth))} className="p-2 hover:text-brand-gold transition-colors"><ChevronLeft size={20} /></button>
-                    <span className="font-serif text-base md:text-xl uppercase tracking-[0.15em] md:tracking-widest">{format(currentMonth, 'MMMM yyyy', { locale: fr })}</span>
-                    <button type="button" onClick={() => setCurrentMonth(addDays(currentMonth, daysInMonth))} className="p-2 hover:text-brand-gold transition-colors"><ChevronRight size={20} /></button>
+                    <button type="button" onClick={() => setCurrentMonth(addDays(currentMonth, -daysInMonth))} className="p-1.5 sm:p-2 hover:text-brand-gold transition-colors"><ChevronLeft size={18} /></button>
+                    <span className="font-serif text-sm md:text-xl uppercase tracking-[0.1em] md:tracking-widest">{format(currentMonth, 'MMMM yyyy', { locale: fr })}</span>
+                    <button type="button" onClick={() => setCurrentMonth(addDays(currentMonth, daysInMonth))} className="p-1.5 sm:p-2 hover:text-brand-gold transition-colors"><ChevronRight size={18} /></button>
                   </div>
                   
                   <div className="grid grid-cols-7 border-b border-border-primary/20">
@@ -495,9 +495,9 @@ _Demande générée via le Concierge Casa Privilege_`;
 
                 <div className="flex flex-col justify-center gap-5 md:gap-8">
                   <div>
-                    <label className="block text-text-primary/60 text-[10px] uppercase tracking-[0.2em] mb-3 md:mb-4">Période sélectionnée</label>
-                    <div className="w-full bg-text-primary/5 border border-border-primary p-4 md:p-6 rounded-sm">
-                      <div className="text-text-primary font-serif italic text-lg md:text-xl mb-2">
+                    <label className="block text-text-primary/60 text-[9px] md:text-[10px] uppercase tracking-[0.16em] md:tracking-[0.2em] mb-2 md:mb-4">Période sélectionnée</label>
+                    <div className="w-full bg-text-primary/5 border border-border-primary p-3 md:p-6 rounded-sm">
+                      <div className="text-text-primary font-serif italic text-base md:text-xl mb-2">
                         {formData.startDate && formData.endDate ? (
                           isSameDay(formData.startDate, formData.endDate) 
                             ? format(formData.startDate, 'd MMMM yyyy', { locale: fr })
@@ -528,7 +528,7 @@ _Demande générée via le Concierge Casa Privilege_`;
                     </div>
                   </div>
                   <div>
-                    <label className="block text-text-primary/60 text-[10px] uppercase tracking-[0.2em] mb-3 md:mb-4">Heure souhaitée</label>
+                    <label className="block text-text-primary/60 text-[9px] md:text-[10px] uppercase tracking-[0.16em] md:tracking-[0.2em] mb-2 md:mb-4">Heure souhaitée</label>
                     <input 
                       type="time" 
                       required
@@ -537,14 +537,14 @@ _Demande générée via le Concierge Casa Privilege_`;
                         setFormData({...formData, time: e.target.value});
                         setDateTimeError(null);
                       }}
-                      className="w-full bg-transparent border-b border-border-primary py-3 md:py-4 text-text-primary focus:outline-none focus:border-brand-gold transition-colors font-light text-base md:text-lg text-center"
+                      className="w-full bg-transparent border-b border-border-primary py-2.5 md:py-4 text-text-primary focus:outline-none focus:border-brand-gold transition-colors font-light text-sm md:text-lg text-center"
                     />
                   </div>
                   {dateTimeError && (
                     <p className="text-xs text-red-500 mt-2">{dateTimeError}</p>
                   )}
                   
-                  <button type="submit" disabled={!formData.startDate || !formData.endDate || isSelectedDateTimeInPast()} className="mt-4 md:mt-8 w-full min-h-12 py-3 md:py-5 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-colors duration-500 uppercase tracking-[0.2em] md:tracking-widest text-xs md:text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button type="submit" disabled={!formData.startDate || !formData.endDate || isSelectedDateTimeInPast()} className="mt-2 md:mt-8 w-full min-h-10 md:min-h-12 py-2.5 md:py-5 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-colors duration-500 uppercase tracking-[0.14em] md:tracking-widest text-[11px] md:text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed">
                     Continuer
                   </button>
                 </div>
