@@ -35,7 +35,7 @@ export function Journal() {
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-2 md:gap-12 lg:grid-cols-3">
           {journalPosts.map((post, index) => (
             <Link key={post.id} to={`/journal/${post.id}`} className="group block">
               <motion.div

@@ -77,9 +77,9 @@ export function BrandsPage() {
   }, [activitiesByUniverse, articlesByUniverse, universes]);
 
   return (
-    <div className="min-h-screen pt-40 pb-32 px-6 md:px-12 lg:px-24 w-full">
+    <div className="min-h-screen pt-32 sm:pt-40 pb-20 sm:pb-32 px-3 sm:px-6 md:px-12 lg:px-24 w-full">
       <div className="max-w-[1400px] mx-auto">
-        <div className="text-center mb-32">
+        <div className="text-center mb-16 sm:mb-32">
           <motion.div 
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
@@ -104,7 +104,7 @@ export function BrandsPage() {
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
           {universes.map((brand, index) => {
             const brandActivities = activitiesByUniverse[brand.id] ?? [];
             const activeActivities = (activityIndexes[brand.id] ?? [0, 1])
@@ -114,14 +114,14 @@ export function BrandsPage() {
             const activeArticle = brandArticles[articleIndexes[brand.id] ?? 0];
 
             return (
-              <div key={brand.id} className="space-y-4">
+              <div key={brand.id} className="space-y-3 sm:space-y-4">
                 <Link to={`/universe/${brand.id}`} className="group block">
                   <motion.div
                     initial={{ opacity: 0, y: 40 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-100px" }}
                     transition={{ duration: 0.8, delay: index * 0.15, ease: "easeOut" }}
-                    className="relative h-[58vh] min-h-[420px] w-full overflow-hidden"
+                    className="relative h-[220px] min-h-0 w-full overflow-hidden sm:h-[58vh] sm:min-h-[420px]"
                   >
                     {/* Background Image */}
                     <div className="absolute inset-0">
@@ -135,19 +135,19 @@ export function BrandsPage() {
                     </div>
 
                     {/* Content */}
-                    <div className="absolute inset-0 z-10 flex flex-col justify-between p-8 xl:p-10">
+                    <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 sm:p-8 xl:p-10">
                       <div className="flex justify-between items-start">
-                        <span className="text-4xl drop-shadow-lg filter grayscale group-hover:grayscale-0 transition-all duration-700">{brand.flag}</span>
-                        <span className="text-right text-white/90 text-[9px] uppercase tracking-[0.25em] font-medium drop-shadow-md">
+                        <span className="text-3xl sm:text-4xl drop-shadow-lg filter grayscale group-hover:grayscale-0 transition-all duration-700">{brand.flag}</span>
+                        <span className="text-right text-white/90 text-[9px] uppercase tracking-[0.18em] sm:tracking-[0.25em] font-medium drop-shadow-md">
                           {brand.location}
                         </span>
                       </div>
 
-                      <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700 ease-out">
-                        <h3 className="text-3xl font-serif text-white mb-4 drop-shadow-md xl:text-4xl">
+                      <div className="transform translate-y-1 sm:translate-y-4 group-hover:translate-y-0 transition-transform duration-700 ease-out">
+                        <h3 className="text-3xl sm:text-3xl font-serif text-white mb-0 sm:mb-4 drop-shadow-md xl:text-4xl leading-tight">
                           {brand.name}
                         </h3>
-                        <div className="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100">
+                        <div className="hidden sm:flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100">
                           <div className="h-px w-16 bg-brand-gold" />
                           <span className="text-brand-gold text-[10px] uppercase tracking-[0.2em]">Explore</span>
                         </div>
@@ -161,9 +161,9 @@ export function BrandsPage() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
-                    className="overflow-hidden border border-white/10 bg-white/[0.03]"
+                    className="overflow-hidden border border-white/10 bg-white/[0.03] flex sm:block"
                   >
-                    <div className="aspect-[16/10] overflow-hidden bg-black">
+                    <div className="aspect-square w-24 shrink-0 overflow-hidden bg-black sm:aspect-[16/10] sm:w-full">
                       <img
                         src={activeActivity.image}
                         alt={activeActivity.title}
@@ -171,11 +171,11 @@ export function BrandsPage() {
                         referrerPolicy="no-referrer"
                       />
                     </div>
-                    <div className="border-l border-brand-gold px-4 py-3">
+                    <div className="border-l border-brand-gold px-3 py-2 sm:px-4 sm:py-3">
                       <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-brand-gold">
                         Activite du moment
                       </p>
-                      <p className="mt-2 line-clamp-2 text-sm font-semibold uppercase tracking-wide text-text-primary">
+                      <p className="mt-1 sm:mt-2 line-clamp-2 text-sm font-semibold uppercase tracking-wide text-text-primary">
                         {activeActivity.title}
                       </p>
                     </div>
@@ -187,9 +187,9 @@ export function BrandsPage() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
-                    className="overflow-hidden border border-brand-gold/30 bg-brand-gold/[0.06]"
+                    className="overflow-hidden border border-brand-gold/30 bg-brand-gold/[0.06] flex sm:block"
                   >
-                    <div className="aspect-[16/10] overflow-hidden bg-black">
+                    <div className="aspect-square w-24 shrink-0 overflow-hidden bg-black sm:aspect-[16/10] sm:w-full">
                       <img
                         src={activeArticle.image}
                         alt={activeArticle.title}
@@ -197,11 +197,11 @@ export function BrandsPage() {
                         referrerPolicy="no-referrer"
                       />
                     </div>
-                    <div className="border-l border-brand-gold px-4 py-3">
+                    <div className="border-l border-brand-gold px-3 py-2 sm:px-4 sm:py-3">
                       <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-brand-gold">
                         Article du moment
                       </p>
-                      <p className="mt-2 line-clamp-2 text-sm font-semibold uppercase tracking-wide text-text-primary">
+                      <p className="mt-1 sm:mt-2 line-clamp-2 text-sm font-semibold uppercase tracking-wide text-text-primary">
                         {activeArticle.title}
                       </p>
                     </div>

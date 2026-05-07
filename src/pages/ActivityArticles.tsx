@@ -41,9 +41,9 @@ export function ActivityArticles() {
     <div className="flex flex-col w-full min-h-screen">
       {/* Header with breadcrumb */}
       <section className="bg-bg-primary border-b border-border-primary">
-        <div className="max-w-6xl mx-auto px-6 py-8 md:py-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-8 md:py-12">
           {/* Breadcrumb */}
-          <div className="flex items-center gap-3 mb-8 text-sm">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-8 text-xs sm:text-sm">
             <button
               onClick={() => navigate(`/universe/${universeId}`)}
               className="text-text-primary/50 hover:text-brand-gold transition-colors flex items-center gap-1"
@@ -56,15 +56,15 @@ export function ActivityArticles() {
           </div>
 
           {/* Title */}
-          <div className="space-y-4">
-            <h1 className="text-5xl md:text-6xl font-serif">{activity.title}</h1>
-            <p className="text-text-primary/60 text-lg max-w-2xl">{activity.description}</p>
+          <div className="space-y-2 sm:space-y-4">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif leading-tight">{activity.title}</h1>
+            <p className="text-text-primary/60 text-sm sm:text-lg max-w-2xl line-clamp-2 sm:line-clamp-none">{activity.description}</p>
           </div>
         </div>
       </section>
 
       {/* Articles Grid */}
-      <section className="flex-1 py-16 md:py-24 px-6">
+      <section className="flex-1 py-10 sm:py-16 md:py-24 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
           {articles.length === 0 ? (
             <div className="text-center py-20">
@@ -79,13 +79,13 @@ export function ActivityArticles() {
             </div>
           ) : (
             <div>
-              <div className="mb-12">
+              <div className="mb-6 sm:mb-12">
                 <p className="text-text-primary/60 text-sm uppercase tracking-widest mb-2">
                   {articles.length} {articles.length > 1 ? "articles disponibles" : "article disponible"}
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8">
                 {articles.map((article, index) => {
                   // Detect parent by actual children, not just articleType
                   const childCount = getChildCount(article.id);
@@ -98,11 +98,11 @@ export function ActivityArticles() {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-100px" }}
                       transition={{ duration: 0.6, delay: index * 0.1 }}
-                      className="group rounded-lg border border-border-primary overflow-hidden hover:border-brand-gold/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-gold/10 flex flex-col h-full"
+                      className="group rounded-md sm:rounded-lg border border-border-primary overflow-hidden hover:border-brand-gold/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-gold/10 flex flex-col h-full"
                     >
                       {/* Image */}
                       {article.image && (
-                        <div className="relative h-56 overflow-hidden bg-text-primary/5">
+                        <div className="relative h-40 sm:h-56 overflow-hidden bg-text-primary/5">
                           <img
                             src={article.image}
                             alt={article.title}
@@ -123,18 +123,18 @@ export function ActivityArticles() {
                       )}
 
                       {/* Content */}
-                      <div className="p-6 flex flex-col flex-1">
-                        <h3 className="text-lg font-serif text-text-primary mb-3 line-clamp-2">{article.title}</h3>
+                      <div className="p-3 sm:p-6 flex flex-col flex-1">
+                        <h3 className="text-sm sm:text-lg font-serif text-text-primary mb-2 sm:mb-3 line-clamp-2">{article.title}</h3>
 
                         {article.description && (
-                          <p className="text-sm text-text-primary/60 line-clamp-3 mb-4 flex-1">{article.description}</p>
+                          <p className="text-xs sm:text-sm text-text-primary/60 line-clamp-2 sm:line-clamp-3 mb-3 sm:mb-4 flex-1">{article.description}</p>
                         )}
 
                         {/* Price */}
-                        <div className="flex items-baseline justify-between py-4 border-t border-border-primary/30">
-                          <span className="text-base text-brand-gold font-semibold">{formatPrice(article)}</span>
+                        <div className="flex items-baseline justify-between py-2 sm:py-4 border-t border-border-primary/30">
+                          <span className="text-xs sm:text-base text-brand-gold font-semibold">{formatPrice(article)}</span>
                           {article.availabilityCount && (
-                            <span className="text-xs text-text-primary/50">Stock: {article.availabilityCount}</span>
+                            <span className="text-[10px] sm:text-xs text-text-primary/50">Stock: {article.availabilityCount}</span>
                           )}
                         </div>
 
@@ -146,7 +146,7 @@ export function ActivityArticles() {
                                 `/article/${universeId}/${activityId}/${article.id}/sub-articles`
                               )
                             }
-                            className="w-full mt-4 px-4 py-3 bg-brand-gold/10 hover:bg-brand-gold hover:text-bg-primary text-brand-gold font-semibold text-sm rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group/btn"
+                            className="w-full mt-3 sm:mt-4 px-2 sm:px-4 py-2.5 sm:py-3 bg-brand-gold/10 hover:bg-brand-gold hover:text-bg-primary text-brand-gold font-semibold text-[11px] sm:text-sm rounded-md sm:rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 group/btn"
                           >
                             <Layers size={14} aria-hidden />
                             Voir les sous-articles ({childCount})
@@ -155,7 +155,7 @@ export function ActivityArticles() {
                         ) : (
                           <button
                             onClick={() => navigate(`/article/${universeId}/${activityId}/${article.id}/detail`)}
-                            className="w-full mt-4 px-4 py-3 bg-brand-gold/10 hover:bg-brand-gold hover:text-bg-primary text-brand-gold font-semibold text-sm rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group/btn"
+                            className="w-full mt-3 sm:mt-4 px-2 sm:px-4 py-2.5 sm:py-3 bg-brand-gold/10 hover:bg-brand-gold hover:text-bg-primary text-brand-gold font-semibold text-[11px] sm:text-sm rounded-md sm:rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 group/btn"
                           >
                             Voir les détails
                             <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" aria-hidden />

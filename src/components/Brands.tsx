@@ -25,7 +25,7 @@ export function Brands() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-5xl md:text-6xl lg:text-7xl mb-8 font-serif text-text-primary"
+              className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl mb-8 font-serif text-text-primary whitespace-nowrap"
             >
               {t.brands.title}
             </motion.h2>
@@ -53,7 +53,7 @@ export function Brands() {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
           {universes.map((brand, index) => (
             <Link key={brand.id} to={`/universe/${brand.id}`} className="group block">
               <motion.div
@@ -61,7 +61,7 @@ export function Brands() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.8, delay: index * 0.15, ease: "easeOut" }}
-                className="relative h-[500px] w-full overflow-hidden"
+                className="relative h-[260px] md:h-[500px] w-full overflow-hidden"
               >
                 {/* Background Image */}
                 <div className="absolute inset-0">
@@ -75,16 +75,16 @@ export function Brands() {
                 </div>
                 
                 {/* Content */}
-                <div className="absolute inset-0 p-10 flex flex-col justify-between z-10">
+                <div className="absolute inset-0 p-4 md:p-10 flex flex-col justify-between z-10">
                   <div className="flex justify-between items-start">
-                    <span className="text-4xl drop-shadow-lg filter grayscale group-hover:grayscale-0 transition-all duration-700">{brand.flag}</span>
-                    <span className="text-white/90 text-[10px] uppercase tracking-[0.3em] font-medium drop-shadow-md">
+                    <span className="text-2xl md:text-4xl drop-shadow-lg filter grayscale group-hover:grayscale-0 transition-all duration-700">{brand.flag}</span>
+                    <span className="text-white/90 text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-medium drop-shadow-md">
                       {brand.location}
                     </span>
                   </div>
                   
                   <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700 ease-out">
-                    <h3 className="text-3xl font-serif text-white mb-4 drop-shadow-md">
+                    <h3 className="text-xl md:text-3xl font-serif text-white mb-2 md:mb-4 drop-shadow-md">
                       {brand.name}
                     </h3>
                     <div className="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100">

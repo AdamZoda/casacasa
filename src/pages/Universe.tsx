@@ -107,7 +107,7 @@ export function Universe() {
           <p className="text-xs tracking-[0.2em] uppercase text-text-primary/50">Curated for you</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {universeActivities.map((activity, index) => {
             const targetPath =
               activity.articleDisplayType === "articles_only"

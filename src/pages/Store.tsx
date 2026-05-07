@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { useShopping } from "../context/ShoppingContext";
 import { formatMoney } from "../lib/utils";
@@ -10,6 +11,14 @@ export function Store() {
   const { products, language, currency, exchangeRates } = useAppContext();
   const { addToCart, favorites, toggleFavorite } = useShopping();
   const t = translations[language];
+  const navigate = useNavigate();
+
+  const handleAddToCart = (product: (typeof products)[number], redirectToCart = false) => {
+    addToCart(product);
+    if (redirectToCart) {
+      navigate("/cart");
+    }
+  };
 
   return (
     <div className="pt-32 pb-32 px-6 max-w-[1600px] mx-auto min-h-screen">
@@ -31,7 +40,7 @@ export function Store() {
       </div>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-20">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-2 md:gap-x-8 md:gap-y-20 xl:grid-cols-3">
         {products.map((product, index) => (
           <motion.div 
             key={product.id}
@@ -69,10 +78,10 @@ export function Store() {
                 <button
                   type="button"
                   onClick={(e) => {
-                    e.preventDefault();
-                    addToCart(product);
+                    e.stopPropagation();
+                    handleAddToCart(product);
                   }}
-                  className="pointer-events-auto flex w-full items-center justify-center gap-3 bg-brand-black py-4 text-[10px] font-medium uppercase tracking-[0.2em] text-brand-gold transition-colors duration-300 hover:bg-brand-gold hover:text-brand-black"
+                  className="pointer-events-auto relative z-20 flex w-full items-center justify-center gap-3 bg-brand-black py-4 text-[10px] font-medium uppercase tracking-[0.2em] text-brand-gold transition-colors duration-300 hover:bg-brand-gold hover:text-brand-black"
                 >
                   <ShoppingBag size={14} strokeWidth={1.5} aria-hidden />
                   {t.store.addToCart}
@@ -82,25 +91,25 @@ export function Store() {
             
             <div className="flex flex-col flex-1 px-2">
               <div className="flex justify-between items-start mb-2 gap-4">
-                <h3 className="font-serif text-xl md:text-2xl text-text-primary group-hover:text-brand-gold transition-colors duration-300">{product.title}</h3>
+                <h3 className="font-serif text-sm sm:text-base md:text-2xl text-text-primary group-hover:text-brand-gold transition-colors duration-300 leading-snug">{product.title}</h3>
                 <div className="flex flex-col items-end text-right">
-                  <span className="text-base font-serif tracking-wide">{formatMoney(product.price, currency, exchangeRates)}</span>
+                  <span className="text-sm md:text-base font-serif tracking-wide">{formatMoney(product.price, currency, exchangeRates)}</span>
                   {product.oldPrice && (
-                    <span className="text-xs text-text-primary/40 line-through mt-0.5">{formatMoney(product.oldPrice, currency, exchangeRates)}</span>
+                    <span className="text-[11px] md:text-xs text-text-primary/40 line-through mt-0.5">{formatMoney(product.oldPrice, currency, exchangeRates)}</span>
                   )}
                 </div>
               </div>
-              <p className="text-[10px] tracking-[0.2em] uppercase text-text-primary/40 mb-4">{product.category}</p>
-              <p className="mt-auto line-clamp-2 text-sm font-light leading-relaxed text-text-primary/60">
+              <p className="text-[9px] md:text-[10px] tracking-[0.14em] md:tracking-[0.2em] uppercase text-text-primary/40 mb-3 md:mb-4">{product.category}</p>
+              <p className="mt-auto line-clamp-2 text-xs md:text-sm font-light leading-relaxed text-text-primary/60">
                 {product.description}
               </p>
               <button
                 type="button"
                 onClick={(e) => {
-                  e.preventDefault();
-                  addToCart(product);
+                  e.stopPropagation();
+                  handleAddToCart(product, true);
                 }}
-                className="md:hidden mt-5 flex min-h-12 w-full touch-manipulation items-center justify-center gap-2.5 border border-brand-gold/50 bg-brand-gold py-3.5 text-xs font-medium uppercase tracking-[0.18em] text-brand-black transition-colors active:bg-brand-gold/90"
+                className="md:hidden relative z-20 mt-4 flex min-h-10 w-full touch-manipulation items-center justify-center gap-2 border border-brand-gold/50 bg-brand-gold py-3 text-[11px] font-medium uppercase tracking-[0.14em] text-brand-black transition-colors active:bg-brand-gold/90"
               >
                 <ShoppingBag size={16} strokeWidth={1.5} aria-hidden />
                 {t.store.buy}
