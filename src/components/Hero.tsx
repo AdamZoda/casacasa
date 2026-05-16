@@ -50,7 +50,14 @@ export function Hero() {
   const subtitle = settings.heroSubtitle || t.hero.subtitle;
   const cta = settings.heroCta || t.hero.cta;
 
-  const isVideo = isVideoUrl(bgUrl) && !videoError;
+  // Decide whether to actually load the heavy background video:
+  // - only on wide screens, when connection seems fast (4g), and if user didn't prefer reduced motion
+  const canUseConnectionApi = typeof navigator !== 'undefined' && (navigator as any).connection;
+  const effectiveType = canUseConnectionApi ? (navigator as any).connection.effectiveType : '4g';
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const shouldLoadVideo = !videoError && !prefersReducedMotion && typeof window !== 'undefined' && window.innerWidth > 768 && effectiveType === '4g' && isVideoUrl(bgUrl);
+
   const normalizedBgUrl = bgUrl?.toLowerCase() || '';
   const isYouTube = normalizedBgUrl.includes('youtube.com') || normalizedBgUrl.includes('youtu.be');
   const youtubeEmbedUrl = isYouTube ? getYouTubeEmbedUrl(bgUrl) : '';
@@ -64,7 +71,7 @@ export function Hero() {
         transition={{ duration: 10, ease: "easeOut" }}
         className="absolute inset-0 z-0 w-full h-full"
       >
-        {isVideo && isYouTube && youtubeEmbedUrl ? (
+        {shouldLoadVideo && isYouTube && youtubeEmbedUrl ? (
           <iframe
             src={youtubeEmbedUrl}
             className="absolute top-0 left-0 w-full h-full object-cover border-0"
@@ -73,7 +80,7 @@ export function Hero() {
             allowFullScreen
             title="Hero Video Background"
           />
-        ) : isVideo && bgUrl?.includes('vimeo') ? (
+        ) : shouldLoadVideo && bgUrl?.includes('vimeo') ? (
           <iframe
             src={bgUrl.replace('vimeo.com', 'player.vimeo.com/video').replace(/\/(\d+)/, '/$1')}
             className="absolute top-0 left-0 w-full h-full object-cover border-0"
@@ -82,14 +89,14 @@ export function Hero() {
             allowFullScreen
             title="Hero Video Background"
           />
-        ) : isVideo && (bgUrl?.includes('.mp4') || bgUrl?.includes('.webm') || bgUrl?.includes('.mov') || bgUrl?.includes('.avi') || bgUrl?.includes('.flv')) ? (
+        ) : shouldLoadVideo && (bgUrl?.includes('.mp4') || bgUrl?.includes('.webm') || bgUrl?.includes('.mov') || bgUrl?.includes('.avi') || bgUrl?.includes('.flv')) ? (
           <video
             key={bgUrl}
             autoPlay
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="none"
             className="absolute top-0 left-0 w-full h-full object-cover"
             style={{width: '100%', height: '100%'}}
             onError={() => {
@@ -100,13 +107,12 @@ export function Hero() {
           </video>
         ) : (
           <img
-            src={bgUrl}
+            src={'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop'}
             alt="Hero Background"
             fetchPriority="high"
             decoding="async"
             className="absolute top-0 left-0 w-full h-full object-cover"
             style={{width: '100%', height: '100%'}}
-            onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop'; }}
           />
         )}
         <div className="absolute inset-0 bg-black/40"></div>

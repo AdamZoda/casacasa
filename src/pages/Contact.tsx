@@ -144,22 +144,13 @@ export function Contact() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 relative z-10">
         {/* Left: Private Channels */}
         <div className="space-y-10 md:space-y-16">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <motion.div 
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 1.5, delay: 0.5, ease: "circOut" }}
-              className="h-px w-32 bg-brand-gold mb-12 origin-left" 
-            />
-            <h1 className="text-4xl sm:text-5xl md:text-8xl font-serif mb-6 md:mb-10 leading-[0.95] md:leading-[0.9] tracking-tight md:tracking-tighter">
-              L'Art du <br /><span className="text-brand-gold">Service Privé</span>
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
+            <div className="h-px w-20 bg-brand-gold mb-6" />
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold mb-4 tracking-tight">
+              Contactez l'équipe Casa Privilege
             </h1>
-            <p className="text-text-primary/50 font-light text-base md:text-xl leading-relaxed max-w-sm italic">
-              "L'excellence est notre langue, la discrétion est notre signature."
+            <p className="text-sm text-white/70 max-w-md">
+              Pour toute demande commerciale, partenariat, réservation ou assistance, utilisez l'un des canaux ci‑dessous. Si vous êtes membre, accédez à l'espace privé pour échanger directement avec notre concierge.
             </p>
           </motion.div>
 
@@ -170,41 +161,29 @@ export function Contact() {
                 href={opt.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                whileHover={{ x: 15, scale: 1.02 }}
-                transition={{ delay: 0.4 + i * 0.15, duration: 0.6 }}
-                className={`group flex items-center gap-4 md:gap-8 p-4 md:p-8 border backdrop-blur-sm transition-shadow duration-700 ${
-                  opt.gold 
-                    ? 'bg-brand-gold border-brand-gold text-brand-black shadow-2xl shadow-brand-gold/20' 
-                    : 'border-border-primary hover:border-brand-gold/40 bg-text-primary/[0.03] hover:shadow-xl'
-                }`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + i * 0.05, duration: 0.45 }}
+                className={`flex items-center gap-4 p-3 md:p-4 border rounded-lg transition-colors ${opt.gold ? 'bg-brand-gold/5 border-brand-gold text-brand-black' : 'bg-transparent border-border-primary hover:border-brand-gold/40'}`}
               >
-                <div className={`p-3 md:p-5 rounded-full transition-transform duration-500 group-hover:rotate-[360deg] ${opt.gold ? 'bg-brand-black/10' : 'bg-brand-gold/5 text-brand-gold'}`}>
-                  <opt.icon size={22} strokeWidth={1} />
+                <div className={`p-2 md:p-3 rounded-full ${opt.gold ? 'bg-brand-black/05' : 'bg-brand-gold/5 text-brand-gold'}`}>
+                  <opt.icon size={18} strokeWidth={1} />
                 </div>
-                <div>
-                  <p className={`text-[10px] uppercase font-bold tracking-[0.2em] md:tracking-[0.3em] mb-1.5 md:mb-2 ${opt.gold ? 'text-brand-black/50' : 'text-text-primary/30'}`}>
-                    {opt.label}
-                  </p>
-                  <p className="text-sm md:text-xl font-medium tracking-wide break-all sm:break-normal">{opt.value}</p>
+                <div className="min-w-0">
+                  <p className="text-[11px] uppercase font-semibold tracking-wider text-white/60 mb-0.5">{opt.label}</p>
+                  <p className="text-sm font-medium truncate">{opt.value}</p>
                 </div>
-                <ExternalLink size={20} className={`ml-auto opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0 ${opt.gold ? 'text-brand-black' : 'text-brand-gold'}`} />
+                <ExternalLink size={18} className="ml-auto text-white/30" />
               </motion.a>
             ))}
           </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-            className="flex items-center gap-6 text-text-primary/20 group cursor-default"
-          >
-            <div className="w-10 h-10 rounded-full border border-border-primary flex items-center justify-center group-hover:border-brand-gold/50 transition-colors">
-              <MapPin size={18} />
-            </div>
-            <span className="text-[10px] uppercase tracking-[0.3em] font-medium">{settings.address}</span>
-          </motion.div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="flex items-start gap-4 text-white/60 mt-4">
+              <div className="w-9 h-9 rounded-full border border-border-primary flex items-center justify-center">
+                <MapPin size={16} />
+              </div>
+              <div className="text-sm">{settings.address}</div>
+            </motion.div>
         </div>
 
         {/* Right: Interactive Desk */}
