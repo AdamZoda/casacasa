@@ -15,6 +15,14 @@ export function AboutPage() {
   const { settings } = useAppContext();
   const about = settings.about;
   const phones = settings.phones.filter(Boolean);
+  const emailContacts = [
+    settings.contactEmail
+      ? { label: "Email principal", email: settings.contactEmail }
+      : null,
+    ...(settings.contactEmails ?? []),
+  ]
+    .map((entry) => ({ label: entry?.label?.trim() || "Contact", email: entry?.email?.trim() || "" }))
+    .filter((entry) => entry.email);
   const socials: SocialItem[] = [
     { key: "instagram", label: "Instagram", icon: Instagram, urls: settings.socialLinks.instagram, visible: about.visibility.showInstagram },
     { key: "facebook", label: "Facebook", icon: Facebook, urls: settings.socialLinks.facebook, visible: about.visibility.showFacebook },
@@ -179,10 +187,17 @@ export function AboutPage() {
                 <p className="mb-2 sm:mb-3 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.24em] sm:tracking-[0.35em] text-brand-gold">Acces prive</p>
                 <h3 className="mb-4 sm:mb-6 font-serif text-xl sm:text-3xl">Contact direct</h3>
                 <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-white/78">
-                  <p className="flex items-start gap-3">
-                    <Mail size={14} className="mt-0.5 shrink-0 text-brand-gold" />
-                    <span>{settings.contactEmail}</span>
-                  </p>
+                  <div className="space-y-2">
+                    {emailContacts.map((entry) => (
+                      <p key={`${entry.label}-${entry.email}`} className="flex items-start gap-3">
+                        <Mail size={14} className="mt-0.5 shrink-0 text-brand-gold" />
+                        <span>
+                          <strong className="block text-[9px] uppercase tracking-[0.25em] text-white/40">{entry.label}</strong>
+                          {entry.email}
+                        </span>
+                      </p>
+                    ))}
+                  </div>
                   <p className="flex items-start gap-3">
                     <MapPin size={14} className="mt-0.5 shrink-0 text-brand-gold" />
                     <span>{settings.address}</span>

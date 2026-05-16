@@ -15,6 +15,7 @@ import {
   Palette,
   Image as ImageIcon,
   MessageCircle,
+  Ticket,
   Layout as LayoutIcon,
   RotateCcw,
   Upload,
@@ -28,6 +29,7 @@ import {
 import { useAppContext } from "../../context/AppContext";
 import { HIDEABLE_PUBLIC_PATHS } from "../../lib/hiddenPages";
 import { uploadImage } from "../../lib/storage";
+import type { ContactEmailItem } from "../../lib/siteSettingsDb";
 import { AdminPageHeader } from "../../components/admin/adminShared";
 
 const isVideoUrl = (url: string): boolean => {
@@ -92,6 +94,69 @@ function StringListEditor({ items, onChange, placeholder, addLabel, inputClassNa
             onClick={() => remove(i)}
             className="shrink-0 rounded-lg p-3 text-text-primary/35 transition-colors hover:bg-red-500/10 hover:text-red-400 touch-manipulation"
             aria-label="Supprimer la ligne"
+          >
+            <Trash2 size={16} aria-hidden />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={add}
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border-primary/50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-widest text-text-primary/50 transition-colors hover:border-brand-gold/35 hover:text-brand-gold touch-manipulation"
+      >
+        <Plus size={14} aria-hidden />
+        {addLabel}
+      </button>
+    </div>
+  );
+}
+
+type ContactEmailListProps = {
+  items: ContactEmailItem[];
+  onChange: (next: ContactEmailItem[]) => void;
+  labelPlaceholder?: string;
+  emailPlaceholder?: string;
+  addLabel: string;
+};
+
+function ContactEmailListEditor({
+  items,
+  onChange,
+  labelPlaceholder = "Ex. Réservations",
+  emailPlaceholder = "email@casaprivilege.com",
+  addLabel,
+}: ContactEmailListProps) {
+  const update = (i: number, key: keyof ContactEmailItem, value: string) => {
+    const next = [...items];
+    next[i] = { ...next[i], [key]: value };
+    onChange(next);
+  };
+  const remove = (i: number) => onChange(items.filter((_, j) => j !== i));
+  const add = () => onChange([...items, { label: "", email: "" }]);
+
+  return (
+    <div className="space-y-3">
+      {items.map((entry, i) => (
+        <div key={i} className="grid grid-cols-1 gap-2.5 md:grid-cols-[1fr_1.25fr_auto]">
+          <input
+            type="text"
+            value={entry.label}
+            onChange={(e) => update(i, "label", e.target.value)}
+            placeholder={labelPlaceholder}
+            className="admin-input min-h-[2.75rem] flex-1 py-3 px-4 text-sm"
+          />
+          <input
+            type="email"
+            value={entry.email}
+            onChange={(e) => update(i, "email", e.target.value)}
+            placeholder={emailPlaceholder}
+            className="admin-input min-h-[2.75rem] flex-1 py-3 px-4 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => remove(i)}
+            className="shrink-0 rounded-lg p-3 text-text-primary/35 transition-colors hover:bg-red-500/10 hover:text-red-400 touch-manipulation md:self-stretch"
+            aria-label="Supprimer l'email"
           >
             <Trash2 size={16} aria-hidden />
           </button>
@@ -253,7 +318,7 @@ export function SettingsView() {
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>E-mail de contact</label>
+                  <label className={labelClass}>E-mail principal</label>
                   <div className={inputIconLeft}>
                     <Mail className="pointer-events-none absolute left-4 top-1/2 z-[1] -translate-y-1/2 text-text-primary/35" size={18} />
                     <input
@@ -263,6 +328,20 @@ export function SettingsView() {
                       className={inputWithIcon}
                     />
                   </div>
+                  <p className="mt-1 text-[10px] text-text-primary/35">Ce mail reste le contact principal utilisé par défaut.</p>
+                </div>
+                <div className="md:col-span-2">
+                  <label className={labelClass}>Emails de contact additionnels</label>
+                  <ContactEmailListEditor
+                    items={formData.contactEmails}
+                    onChange={(contactEmails) => setFormData({ ...formData, contactEmails })}
+                    labelPlaceholder="Ex. Réservations / Presse / Support"
+                    emailPlaceholder="email@casaprivilege.com"
+                    addLabel="Ajouter un email"
+                  />
+                  <p className="mt-2 text-[10px] text-text-primary/35">
+                    Indiquez le rôle ou le service pour chaque adresse afin qu’elle soit affichée proprement dans le footer et les pages contact.
+                  </p>
                 </div>
                 <div className="md:col-span-2">
                   <label className={labelClass}>Téléphones</label>
@@ -848,6 +927,36 @@ export function SettingsView() {
                 <p className="text-xs text-text-primary/45">
                   État actuel : <span className="font-semibold">{rememberWorkspace ? "Activé" : "Désactivé"}</span>
                 </p>
+              </div>
+
+              <div className="admin-card p-4 sm:p-6 md:p-8 lg:p-10 space-y-6">
+                <div className="flex items-center gap-4 pb-4 border-b border-border-primary/40">
+                  <div className="flex size-11 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-gold">
+                    <Ticket size={22} strokeWidth={1.25} aria-hidden />
+                  </div>
+                  <div>
+                    <h3 className="text-xl md:text-2xl font-serif">Accès Privilège</h3>
+                    <p className="mt-1 text-xs text-text-primary/45">Activer ou désactiver la zone de tickets / concierge visible sur la page Contact.</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Activer l'accès Privilege (tickets)</p>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={formData.enablePrivateAccess}
+                    onClick={() => setFormData({ ...formData, enablePrivateAccess: !formData.enablePrivateAccess })}
+                    className={`relative h-9 w-16 shrink-0 rounded-full transition-all ${
+                      formData.enablePrivateAccess ? "bg-brand-gold shadow-[0_0_20px_rgba(229,169,58,0.25)]" : "bg-text-primary/15"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-1.5 size-6 rounded-full bg-white shadow transition-all ${
+                        formData.enablePrivateAccess ? "left-9" : "left-1.5"
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
 
               <div className="admin-card p-4 sm:p-6 md:p-8 lg:p-10 space-y-6">

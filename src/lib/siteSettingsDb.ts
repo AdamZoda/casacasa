@@ -1,4 +1,8 @@
 export type SiteFontStyle = "original" | "playfair" | "kiona" | "riona";
+export type ContactEmailItem = {
+  label: string;
+  email: string;
+};
 export type AboutVisibility = {
   showStory: boolean;
   showMission: boolean;
@@ -22,6 +26,7 @@ export type AboutSettings = {
 export interface SiteSettings {
   siteName: string;
   contactEmail: string;
+  contactEmails: ContactEmailItem[];
   /** Numéros affichés (téléphone / tel:) — plusieurs possibles */
   phones: string[];
   address: string;
@@ -48,6 +53,8 @@ export interface SiteSettings {
   hiddenPages: string[];
   fontStyle: SiteFontStyle;
   about: AboutSettings;
+  /** Activer / désactiver la zone "Accès Privilège" (tickets / concierge). */
+  enablePrivateAccess?: boolean;
 }
 
 /** Ligne `site_settings` telle que PostgREST / Postgres (snake_case). */
@@ -55,6 +62,7 @@ export type SiteSettingsRow = {
   id: number;
   site_name?: string | null;
   contact_email?: string | null;
+  contact_emails?: unknown;
   phone?: string | null;
   phones?: unknown;
   address?: string | null;
@@ -75,11 +83,32 @@ export type SiteSettingsRow = {
   bank_rib?: string | null;
   hidden_pages?: string[] | null;
   font_style?: string | null;
+  enable_private_access?: boolean | null;
 };
 
 function parseJsonStringArray(v: unknown): string[] {
   if (!Array.isArray(v)) return [];
   return v.map((x) => String(x).trim()).filter(Boolean);
+}
+
+function normalizeContactEmailList(raw: unknown, prev: SiteSettings["contactEmails"]): ContactEmailItem[] {
+  if (!Array.isArray(raw)) return prev;
+
+  return raw
+    .map((item) => {
+      if (typeof item === "string") {
+        const email = item.trim();
+        return email ? { label: "Contact", email } : null;
+      }
+
+      if (!item || typeof item !== "object") return null;
+      const o = item as Record<string, unknown>;
+      const email = String(o.email ?? o.value ?? o.address ?? "").trim();
+      if (!email) return null;
+      const label = String(o.label ?? o.role ?? o.name ?? o.purpose ?? "Contact").trim() || "Contact";
+      return { label, email };
+    })
+    .filter((item): item is ContactEmailItem => Boolean(item.email));
 }
 
 function normalizeSocialFromRow(raw: unknown, prev: SiteSettings["socialLinks"]): SiteSettings["socialLinks"] {
@@ -154,6 +183,9 @@ export function primaryWhatsappDigits(settings: SiteSettings): string {
 export function siteSettingsToDbRow(s: SiteSettings, id = 1): SiteSettingsRow {
   const cleanPhones = s.phones.map((p) => p.trim()).filter(Boolean);
   const cleanWa = s.whatsappNumbers.map((n) => n.replace(/\D/g, "")).filter(Boolean);
+  const cleanContactEmails = s.contactEmails
+    .map((entry) => ({ label: entry.label.trim(), email: entry.email.trim().toLowerCase() }))
+    .filter((entry) => entry.label && entry.email);
   const social = {
     instagram: s.socialLinks.instagram.map((u) => u.trim()).filter(Boolean),
     facebook: s.socialLinks.facebook.map((u) => u.trim()).filter(Boolean),
@@ -166,6 +198,7 @@ export function siteSettingsToDbRow(s: SiteSettings, id = 1): SiteSettingsRow {
     id,
     site_name: s.siteName,
     contact_email: s.contactEmail,
+    contact_emails: cleanContactEmails,
     phone: cleanPhones[0] ?? "",
     phones: cleanPhones,
     address: s.address,
@@ -186,6 +219,7 @@ export function siteSettingsToDbRow(s: SiteSettings, id = 1): SiteSettingsRow {
     bank_rib: s.bankRib,
     hidden_pages: s.hiddenPages,
     font_style: s.fontStyle ?? "original",
+    enable_private_access: typeof s.enablePrivateAccess === 'boolean' ? s.enablePrivateAccess : true,
   };
 }
 
@@ -202,6 +236,7 @@ export function dbRowToSiteSettings(row: SiteSettingsRow, prev: SiteSettings): S
   return {
     siteName: String(row.site_name ?? prev.siteName),
     contactEmail: String(row.contact_email ?? prev.contactEmail),
+    contactEmails: normalizeContactEmailList(row.contact_emails, prev.contactEmails),
     phones: phonesFromRow(row, prev),
     address: String(row.address ?? prev.address),
     socialLinks: normalizeSocialFromRow(row.social_links, prev.socialLinks),
@@ -221,5 +256,6 @@ export function dbRowToSiteSettings(row: SiteSettingsRow, prev: SiteSettings): S
     bankRib: String(row.bank_rib ?? prev.bankRib),
     hiddenPages: arr(row.hidden_pages, prev.hiddenPages),
     fontStyle: fontStyle(row.font_style ?? prev.fontStyle),
+    enablePrivateAccess: Boolean(row.enable_private_access ?? prev.enablePrivateAccess ?? true),
   };
 }

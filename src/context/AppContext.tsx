@@ -339,6 +339,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SiteSettings>({
     siteName: 'Casa Privilege',
     contactEmail: 'contact@casaprivilege.com',
+    contactEmails: [
+      { label: 'Général', email: 'contact@casaprivilege.com' },
+      { label: 'Partenariats', email: 'partnerships@casaprivilege.com' },
+      { label: 'Invités / Séjours', email: 'guest@casaprivilege.com' },
+      { label: 'Service Privé', email: 'privilege@casaprivilege.com' },
+    ],
     phones: [],
     address: 'Marrakech, Maroc',
     socialLinks: { instagram: [], facebook: [], linkedin: [], youtube: [] },
@@ -368,6 +374,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         showYoutube: true,
       },
     }
+    ,
+    // Feature toggle: accès privé (tickets / concierge)
+    enablePrivateAccess: true,
   });
   const [settingsRowId, setSettingsRowId] = useState<number | null>(null);
   const [currency, setCurrency] = useState<Currency>('MAD');
@@ -1014,11 +1023,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let { error } = await supabase.from('site_settings').upsert(row, { onConflict: 'id' });
 
     if (error) {
-      const missingColumn = /Could not find the 'block_weekends' column/i.test(error.message);
-      if (missingColumn) {
-        const retryRow = { ...row };
-        delete (retryRow as any).block_weekends;
-        console.warn('[Supabase] block_weekends column missing, retrying without it.');
+      const retryRow = { ...row } as Record<string, unknown>;
+      let shouldRetry = false;
+
+      if (/Could not find the 'block_weekends' column/i.test(error.message)) {
+        delete retryRow.block_weekends;
+        shouldRetry = true;
+      }
+
+      if (/Could not find the 'contact_emails' column/i.test(error.message)) {
+        delete retryRow.contact_emails;
+        shouldRetry = true;
+      }
+
+      if (/Could not find the 'enable_private_access' column/i.test(error.message)) {
+        delete retryRow.enable_private_access;
+        shouldRetry = true;
+      }
+
+      if (shouldRetry) {
+        console.warn('[Supabase] Optional `site_settings` column missing, retrying without unsupported fields.');
         const retry = await supabase.from('site_settings').upsert(retryRow, { onConflict: 'id' });
         error = retry.error;
       }

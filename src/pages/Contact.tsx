@@ -111,15 +111,27 @@ export function Contact() {
       link: `https://wa.me/${d}`,
       gold: true,
     }));
+  const emailRows = [
+    settings.contactEmail
+      ? {
+          icon: Mail,
+          label: "Email principal",
+          value: settings.contactEmail,
+          link: `mailto:${settings.contactEmail}`,
+          gold: false,
+        }
+      : null,
+    ...(settings.contactEmails ?? []).map((entry) => ({
+      icon: Mail,
+      label: entry.label.trim() || "Email",
+      value: entry.email,
+      link: `mailto:${entry.email}`,
+      gold: false,
+    })),
+  ].filter((entry): entry is { icon: typeof Mail; label: string; value: string; link: string; gold: boolean } => Boolean(entry?.value));
   const contactOptions = [
     ...phoneRows,
-    {
-      icon: Mail,
-      label: "E-mail",
-      value: settings.contactEmail,
-      link: `mailto:${settings.contactEmail}`,
-      gold: false,
-    },
+    ...emailRows,
     ...waRows,
   ];
 
@@ -196,12 +208,13 @@ export function Contact() {
         </div>
 
         {/* Right: Interactive Desk */}
-        <motion.div
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-bg-primary/80 backdrop-blur-2xl border border-border-primary shadow-[0_60px_150px_-40px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden min-h-[620px] md:min-h-[750px] rounded-sm relative"
-        >
+        {settings.enablePrivateAccess ? (
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="bg-bg-primary/80 backdrop-blur-2xl border border-border-primary shadow-[0_60px_150px_-40px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden min-h-[620px] md:min-h-[750px] rounded-sm relative"
+          >
           {/* Subtle line decoration */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-gold/30 to-transparent" />
           
@@ -371,7 +384,15 @@ export function Contact() {
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.div>
+          </motion.div>
+        ) : (
+          <div className="bg-bg-primary/80 backdrop-blur-2xl border border-border-primary shadow-[0_60px_150px_-40px_rgba(0,0,0,0.5)] flex items-center justify-center min-h-[420px] md:min-h-[520px] rounded-sm p-8">
+            <div className="text-center">
+              <h3 className="font-serif text-2xl mb-2">Contactez-nous</h3>
+              <p className="text-text-primary/60 max-w-md mx-auto">La messagerie privée (Accès Privilège) est désactivée sur ce site. Pour toute demande, utilisez les coordonnées à gauche (email, téléphone ou WhatsApp).</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

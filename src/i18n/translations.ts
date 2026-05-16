@@ -43,7 +43,7 @@ export const translations = {
       cta: "Explorer les Expériences"
     },
     brands: {
-      title: "Notre Collection Globale",
+      title: "Nos Collections",
       subtitle: "Expertise locale, standards internationaux."
     },
     services: {
