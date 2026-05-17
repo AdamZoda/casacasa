@@ -353,6 +353,40 @@ export function SettingsView() {
                   />
                 </div>
                 <div>
+                  <label className={labelClass}>Devise affichée</label>
+                  <select
+                    value={formData.currency || 'EUR'}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value as 'MAD' | 'EUR' | 'USD' })}
+                    className="admin-input w-full py-3.5 px-4 text-sm min-h-[3rem]"
+                  >
+                    <option value="EUR">EUR — Euro (€)</option>
+                    <option value="MAD">MAD — Dirham (MAD)</option>
+                    <option value="USD">USD — Dollar ($)</option>
+                  </select>
+                  <p className="mt-1 text-[10px] text-text-primary/35">Devise utilisée par défaut dans l’interface de vente.</p>
+                </div>
+                <div>
+                  <label className={labelClass}>Paiements sur site</label>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm">Désactiver les paiements sur site (tout passe par WhatsApp)</p>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={Boolean(formData.paymentsViaWhatsappOnly)}
+                      onClick={() => setFormData({ ...formData, paymentsViaWhatsappOnly: !formData.paymentsViaWhatsappOnly })}
+                      className={`relative h-9 w-16 shrink-0 rounded-full transition-all ${
+                        formData.paymentsViaWhatsappOnly ? "bg-brand-gold shadow-[0_0_20px_rgba(229,169,58,0.25)]" : "bg-text-primary/15"
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-1.5 size-6 rounded-full bg-white shadow transition-all ${
+                          formData.paymentsViaWhatsappOnly ? "left-9" : "left-1.5"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+                <div>
                   <label className={labelClass}>Siège social</label>
                   <div className={inputIconLeft}>
                     <MapPin className="pointer-events-none absolute left-4 top-1/2 z-[1] -translate-y-1/2 text-text-primary/35" size={18} />

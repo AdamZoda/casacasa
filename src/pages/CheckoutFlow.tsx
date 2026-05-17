@@ -6,7 +6,7 @@ import { useShopping } from "../context/ShoppingContext";
 import { formatMoney } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
-import { CheckCircle2, MessageCircle, Globe, ChevronLeft, Upload, FileText, ShieldCheck } from "lucide-react";
+import { CheckCircle2, MessageCircle, Globe, ChevronLeft, ShieldCheck } from "lucide-react";
 // ✅ SÉCURITÉ - Importation des fonctions de sanitization
 import { 
   sanitizeName, 
@@ -41,7 +41,7 @@ export function CheckoutFlow() {
   const { cart } = useShopping();
   const { addOrder, settings, currency, exchangeRates } = useAppContext();
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -129,11 +129,9 @@ export function CheckoutFlow() {
     setStep(prev => (prev + 1) as any);
   };
 
-  const handlePaymentChoice = (channel: 'whatsapp' | 'virement') => {
+  const handlePaymentChoice = (channel: 'whatsapp') => {
     if (channel === 'whatsapp') {
       handleWhatsAppPayment();
-    } else {
-      setStep(3);
     }
   };
 
@@ -176,62 +174,12 @@ export function CheckoutFlow() {
       country: formData.country
     });
 
-    setStep(4);
+    setStep(3);
   };
 
-  const handleVirementSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  // on-site bank transfer / upload flow removed: payments handled via WhatsApp only
 
-    // ✅ SÉCURITÉ: Valider le téléphone
-    if (!validatePhoneForCountry(formData.phone, formData.country)) {
-      alert('Téléphone invalide pour ' + formData.country);
-      return;
-    }
-
-    // ✅ SÉCURITÉ: Sanitizer les données
-    const safeName = sanitizeName(formData.name);
-    const safeEmail = sanitizeEmail(formData.email);
-    const safePhone = sanitizePhone(formData.phone);
-
-    await addOrder({
-      customer_name: safeName,
-      customer_email: safeEmail,
-      total: validatePrice(total),
-      items: cart,
-      receipt_base64: formData.receipt_base64 || undefined,
-      user_phone: safePhone,
-      phone_code: getCountryCode(formData.country),
-      country: formData.country
-    });
-
-    setStep(4);
-  };
-
-  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // ✅ SÉCURITÉ: Valider le fichier (taille seulement, accepter tous les fichiers image/PDF)
-      const validation = validateFile(file, { maxSizeMB: 5 });
-
-      if (!validation.valid) {
-        alert(validation.error || 'Fichier invalide');
-        return;
-      }
-
-      // ✅ Charger le fichier en base64 (stocké sécurisé en base de données)
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string;
-        setFormData(prev => ({ ...prev, receipt_base64: base64 }));
-        // Feedback utilisateur
-        console.log('Reçu chargé avec succès:', file.name);
-      };
-      reader.onerror = () => {
-        alert('Erreur lors de la lecture du fichier');
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // receipt upload removed
 
   const getCountryCode = (name: string) => COUNTRIES.find(c => c.name === formData.country)?.code || '+212';
   const currentCountry = COUNTRIES.find(c => c.name === formData.country);
@@ -240,8 +188,8 @@ export function CheckoutFlow() {
     <div className="pt-32 pb-32 px-6 max-w-2xl mx-auto min-h-screen">
       {/* Step Indicator */}
       <div className="flex justify-between items-center mb-20 pb-8 border-b border-border-primary">
-        {[1, 2, 3, 4].map((num) => (
-          <motion.div 
+        {[1, 2, 3].map((num) => (
+          <motion.div
             key={num}
             className={`flex flex-col items-center gap-3 ${step >= num ? 'opacity-100' : 'opacity-30'}`}
             animate={{ scale: step === num ? 1.1 : 1 }}
@@ -252,7 +200,7 @@ export function CheckoutFlow() {
               {step > num ? '✓' : num}
             </div>
             <span className="text-[10px] uppercase tracking-widest font-black">
-              {num === 1 ? 'Infos' : num === 2 ? 'Paiement' : num === 3 ? 'Pièce' : 'Confirm'}
+              {num === 1 ? 'Infos' : num === 2 ? 'Paiement' : 'Confirm'}
             </span>
           </motion.div>
         ))}
@@ -380,7 +328,7 @@ export function CheckoutFlow() {
             className="space-y-12"
           >
             <div className="text-center mb-16">
-              <p className="text-[10px] tracking-[0.5em] font-black text-brand-gold uppercase mb-4 italic">ÉTAPE 2 / 4</p>
+              <p className="text-[10px] tracking-[0.5em] font-black text-brand-gold uppercase mb-4 italic">ÉTAPE 2 / 3</p>
               <h2 className="text-5xl font-serif mb-4">Règlement Prestige</h2>
               <p className="text-text-primary/40 font-light text-sm italic">Choisissez votre canal de paiement privilégié</p>
             </div>
@@ -415,29 +363,15 @@ export function CheckoutFlow() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <button
-                onClick={() => handlePaymentChoice('whatsapp')}
-                className="w-full flex items-center justify-center gap-4 py-8 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-500 uppercase tracking-[0.3em] text-[11px] font-black shadow-xl"
-              >
-                <MessageCircle size={22} strokeWidth={1.5} />
-                Payer via Concierge WhatsApp
-              </button>
-
-              <div className="relative flex items-center py-4">
-                <div className="flex-grow border-t border-border-primary/50"></div>
-                <span className="flex-shrink-0 mx-6 text-text-primary/20 text-[10px] uppercase tracking-widest font-black italic">Ou par virement</span>
-                <div className="flex-grow border-t border-border-primary/50"></div>
+              <div className="space-y-4">
+                <button
+                  onClick={() => handlePaymentChoice('whatsapp')}
+                  className="w-full flex items-center justify-center gap-4 py-8 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-500 uppercase tracking-[0.3em] text-[11px] font-black shadow-xl"
+                >
+                  <MessageCircle size={22} strokeWidth={1.5} />
+                  Payer via Concierge WhatsApp
+                </button>
               </div>
-
-              <button
-                onClick={() => handlePaymentChoice('virement')}
-                className="w-full flex items-center justify-center gap-4 py-8 border-2 border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-black transition-all duration-500 uppercase tracking-[0.3em] text-[11px] font-black"
-              >
-                <Upload size={22} strokeWidth={1} />
-                Envoyer le Reçu
-              </button>
-            </div>
 
             <button
               onClick={() => setStep(1)}
@@ -448,95 +382,10 @@ export function CheckoutFlow() {
           </motion.div>
         )}
 
-        {/* STEP 3: Transfer Receipt Upload */}
+        {/* STEP 3: Confirmation */}
         {step === 3 && (
           <motion.div
             key="step3"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-12"
-          >
-            <div className="text-center mb-16">
-              <p className="text-[10px] tracking-[0.5em] font-black text-brand-gold uppercase mb-4 italic">ÉTAPE 3 / 4</p>
-              <h2 className="text-5xl font-serif mb-4">Confirmation de Transfert</h2>
-              <p className="text-text-primary/40 font-light text-sm italic">Joignez le reçu de votre virement</p>
-            </div>
-
-            {/* Bank Details */}
-            <div className="space-y-4 p-8 bg-text-primary/[0.02] border border-border-primary/50 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-text-primary/60">Bénéficiaire</span>
-                <span className="font-black">{settings.bankBeneficiary || 'COMANE EXCELLENCE SARL'}</span>
-              </div>
-              {settings.bankRib && (
-                <div className="flex justify-between items-center pt-4 border-t border-border-primary/50">
-                  <span className="text-[10px] uppercase tracking-[0.2em] font-black text-text-primary/60">RIB</span>
-                  <span className="font-mono text-sm">{settings.bankRib}</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center pt-4 border-t border-border-primary/50">
-                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-text-primary/60">Montant</span>
-                <span className="text-2xl font-black text-brand-gold">{formatMoney(total, currency, exchangeRates)}</span>
-              </div>
-            </div>
-
-            {/* Résumé Articles Étape 3 */}
-            <div className="space-y-4 p-8 bg-text-primary/[0.02] border border-border-primary/50 rounded-lg">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-text-primary/60">Résumé Commande</p>
-              <div className="space-y-2">
-                {cart.map((item, idx) => (
-                  <div key={`${item.id}-${idx}`} className="flex justify-between text-sm">
-                    <span className="font-light">{item.title}</span>
-                    <span className="text-brand-gold font-black">{formatMoney(item.price, currency, exchangeRates)}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="pt-4 border-t border-border-primary/50 flex justify-between font-black">
-                <span>TOTAL</span>
-                <span className="text-lg text-brand-gold">{formatMoney(total, currency, exchangeRates)}</span>
-              </div>
-            </div>
-
-            <form onSubmit={handleVirementSubmit} className="space-y-8">
-              {/* Receipt Upload */}
-              <label className="relative block border-2 border-dashed border-border-primary py-12 text-center hover:border-brand-gold transition-colors cursor-pointer group bg-text-primary/[0.02] rounded-lg">
-                <input 
-                  type="file" 
-                  accept="image/jpeg,image/png,application/pdf"
-                  onChange={handleFileUpload}
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                />
-                <Upload size={32} strokeWidth={0.5} className="mx-auto mb-4 text-text-primary/20 group-hover:text-brand-gold transition-colors" />
-                <span className="text-[10px] uppercase tracking-[0.2em] text-text-primary/30 group-hover:text-text-primary transition-colors italic font-black block">
-                  {formData.receipt_base64 ? '✓ Reçu chargé' : 'Cliquez pour charger le reçu (optionnel)'}
-                </span>
-                <span className="text-[9px] uppercase tracking-[0.1em] text-text-primary/20 block mt-2">(Image/PDF - Max 5MB)</span>
-              </label>
-
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="flex-1 py-6 border border-text-primary text-text-primary hover:bg-text-primary/10 transition-all duration-500 uppercase tracking-[0.3em] text-[11px] font-black"
-                >
-                  Retour
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-6 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-500 uppercase tracking-[0.3em] text-[11px] font-black"
-                >
-                  Valider la Commande
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        )}
-
-        {/* STEP 4: Confirmation */}
-        {step === 4 && (
-          <motion.div
-            key="step4"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="text-center space-y-12 py-20"
@@ -551,22 +400,11 @@ export function CheckoutFlow() {
 
             <div>
               <h2 className="text-6xl font-serif mb-4">Commande Confirmée!</h2>
-              <p className="text-text-primary/60 font-light text-lg">Nous avons reçu votre paiement avec succès</p>
-            </div>
-
-            <div className="space-y-3 py-8 px-6 bg-text-primary/[0.02] border border-border-primary rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="text-text-primary/60 text-[11px] uppercase tracking-[0.2em] font-black">Montant Payé</span>
-                <span className="text-2xl font-black text-brand-gold">{formatMoney(total, currency, exchangeRates)}</span>
-              </div>
-              <div className="flex justify-between items-center pt-4 border-t border-border-primary/50">
-                <span className="text-text-primary/60 text-[11px] uppercase tracking-[0.2em] font-black">Email</span>
-                <span className="font-light">{formData.email}</span>
-              </div>
+              <p className="text-text-primary/60 font-light text-lg">Nous avons reçu votre demande — vous serez contacté via WhatsApp.</p>
             </div>
 
             <div className="space-y-4 text-center">
-              <p className="text-text-primary/60 text-sm font-light">Un email de confirmation a été envoyé à <span className="font-black text-text-primary">{formData.email}</span></p>
+              <p className="text-text-primary/60 text-sm font-light">Un message WhatsApp a été ouvert pour finaliser le paiement.</p>
               <p className="text-text-primary/40 text-[11px] uppercase tracking-[0.2em]">Vous serez contacté très bientôt par notre équipe</p>
             </div>
 
@@ -578,6 +416,8 @@ export function CheckoutFlow() {
             </button>
           </motion.div>
         )}
+
+
       </AnimatePresence>
     </div>
   );

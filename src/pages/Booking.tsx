@@ -7,7 +7,7 @@ import { useAppContext } from "../context/AppContext";
 import { formatMoney } from "../lib/utils";
 import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
 import { supabase } from "../lib/supabase";
-import { CheckCircle2, MessageCircle, Globe, ChevronLeft, ChevronRight, Users as UsersIcon, MapPin, Copy, Upload, FileText, ShieldCheck } from "lucide-react";
+import { CheckCircle2, MessageCircle, ChevronLeft, ChevronRight, Users as UsersIcon, MapPin } from "lucide-react";
 
 const COUNTRIES = [
   { name: "Maroc", code: "+212", flag: "🇲🇦", length: 9 },
@@ -38,7 +38,7 @@ export function Booking() {
   const minDays = activity?.minAdvanceDays || 0;
   const minDate = addDays(startOfDay(new Date()), minDays);
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 5>(1);
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(minDate));
   
   const [formData, setFormData] = useState({
@@ -183,7 +183,7 @@ export function Booking() {
     setStep(prev => (prev + 1) as any);
   };
 
-  const handleFinalSubmit = (channel: 'web' | 'whatsapp') => {
+  const handleFinalSubmit = (channel: 'whatsapp') => {
     if (channel === 'whatsapp') {
       addReservation({
         activity_id: activity.id,
@@ -222,79 +222,36 @@ export function Booking() {
       const activityImage = (article?.image || activity.image) ? `\n*Aperçu :* ${article?.image || activity.image}` : '';
       const articleDisplay = article ? `\n📦 *Article :* ${article.title}` : '';
       
-      const messageText = `✨ *DÉTAILS DE LA RÉSERVATION* ✨
----------------------------------------
-🏛️ *Activité :* ${activity.title}${articleDisplay}
-🌍 *Monde :* ${universe.name}${activityPrice}${activityImage}
+      // Simplified message to avoid characters that may not render correctly
+      // Uses simple ASCII separators and WhatsApp-supported markdown (*bold*, _italic_)
+      const messageText = `*DÉTAILS DE LA RÉSERVATION*
 
-🕒 *Séjour :* Du ${format(formData.startDate!, 'dd/MM/yyyy')} au ${format(formData.endDate!, 'dd/MM/yyyy')}
-⌛ *Durée :* ${durationInDays} ${durationInDays > 1 ? 'jours' : 'jour'}
-⏰ *Heure :* ${formData.time}
+----------------------------------------
+*Activité:* ${activity.title}${articleDisplay}
+*Monde:* ${universe.name}${activityPrice}${activityImage}
 
-👤 *Client :* ${formData.name}
-📍 *Pays :* ${formData.country}
-👥 *Pers :* ${formData.peopleCount}
-📧 *Email :* ${formData.email}
-📱 *Tel :* ${formData.phoneCode} ${formData.phone}
+*Séjour:* Du ${format(formData.startDate!, 'dd/MM/yyyy')} au ${format(formData.endDate!, 'dd/MM/yyyy')}
+*Durée:* ${durationInDays} ${durationInDays > 1 ? 'jours' : 'jour'}
+*Heure:* ${formData.time}
 
-💬 *Demande particulière :*
+*Client:* ${formData.name}
+*Pays:* ${formData.country}
+*Pers:* ${formData.peopleCount}
+*Email:* ${formData.email}
+*Tel:* ${formData.phoneCode} ${formData.phone}
+
+*Demande particulière:*
 ${formData.message || "_Aucune_"}
----------------------------------------
-_Demande générée via le Concierge Casa Privilege_`;
+----------------------------------------
+Demande générée via le Concierge Casa Privilege`;
 
       const encodedText = encodeURIComponent(messageText);
-      window.open(
-        `https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodedText}`,
-        "_blank",
-        "noopener,noreferrer"
-      );
+      window.open(`https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodedText}`, "_blank", "noopener,noreferrer");
       setStep(5);
-    } else {
-      // Pour le Web, on passe à l'étape du virement (Step 4)
-      setStep(4);
     }
   };
 
-  const handleTransferSubmit = async () => {
-    addReservation({
-      activity_id: activity.id,
-      activity_title: activity.title,
-      universe_id: universe.id,
-      date: format(formData.startDate!, 'yyyy-MM-dd'),
-      end_date: format(formData.endDate!, 'yyyy-MM-dd'),
-      time: formData.time,
-      name: formData.name,
-      country: formData.country,
-      phone_code: formData.phoneCode,
-      phone: formData.phone,
-      email: formData.email,
-      people_count: formData.peopleCount,
-      total_price: totalPrice,
-      contact: `${formData.phoneCode} ${formData.phone}`,
-      message: formData.message,
-      receipt_base64: formData.receipt_base64 || undefined,
-      channel: 'web',
-      article_id: article?.id,
-      article_title: article?.title,
-      price_type: priceType,
-    });
-
-    setStep(5);
-    setTimeout(() => {
-      navigate(`/universe/${universe.id}`);
-    }, 5000);
-  };
-
-  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, receipt_base64: reader.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // On-site transfer flow removed — tout passe par WhatsApp (paiement et confirmation via message)
 
   const handleDateClick = (day: Date) => {
     const clickedDay = startOfDay(day);
@@ -704,19 +661,7 @@ _Demande générée via le Concierge Casa Privilege_`;
                   <span className="uppercase tracking-[0.2em] md:tracking-widest text-[11px] md:text-sm font-medium">Finaliser via WhatsApp</span>
                 </button>
 
-                <div className="relative flex items-center py-2">
-                  <div className="flex-grow border-t border-border-primary"></div>
-                  <span className="flex-shrink-0 mx-6 text-text-primary/60 text-xs uppercase tracking-[0.2em]">Ou</span>
-                  <div className="flex-grow border-t border-border-primary"></div>
-                </div>
-
-                <button
-                  onClick={() => handleFinalSubmit('web')}
-                  className="flex items-center justify-center gap-3 md:gap-4 w-full min-h-12 py-3 md:py-5 border border-border-primary text-text-primary hover:border-brand-gold hover:text-brand-gold transition-colors duration-500 group"
-                >
-                  <Globe size={20} strokeWidth={1} className="group-hover:-translate-y-1 transition-transform duration-500" />
-                  <span className="uppercase tracking-[0.2em] md:tracking-widest text-[11px] md:text-sm font-light">Finaliser sur le site</span>
-                </button>
+                <p className="text-xs text-text-primary/60 text-center">Paiement et confirmation uniquement via WhatsApp — le paiement sur le site a été désactivé.</p>
               </div>
 
               <button type="button" onClick={() => setStep(2)} className="mt-4 text-text-primary/60 text-xs uppercase tracking-[0.2em] hover:text-text-primary transition-colors text-center py-4">
@@ -725,91 +670,7 @@ _Demande générée via le Concierge Casa Privilege_`;
             </motion.div>
           )}
 
-          {step === 4 && (
-            <motion.div 
-              key="step4"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.4 }}
-              className="flex flex-col gap-6 md:gap-8 max-w-2xl mx-auto w-full"
-            >
-              <h3 className="text-xl md:text-2xl font-serif mb-1 md:mb-2 text-center">Confirmation de Virement</h3>
-              <p className="text-text-primary/60 font-light text-sm mb-6 text-center italic">
-                Pour confirmer votre réservation, veuillez effectuer un virement de <span className="text-brand-gold font-bold">{formatMoney(totalPrice, currency, exchangeRates)}</span> et nous joindre le reçu ci-dessous.
-              </p>
 
-              <div className="bg-text-primary/[0.03] border border-brand-gold/30 p-4 sm:p-6 md:p-8 rounded-lg relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                   <ShieldCheck size={120} strokeWidth={0.5} />
-                </div>
-                <div className="relative z-10 space-y-6">
-                  <div>
-                    <span className="text-[10px] uppercase tracking-widest text-text-primary/40 block mb-1">Bénéficiaire</span>
-                    <p className="text-base md:text-lg font-serif">{settings.bankBeneficiary || "COMANE EXCELLENCE SARL"}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase tracking-widest text-text-primary/40 block mb-1">RIB ({settings.bankName || "Bank Of Africa"})</span>
-                    <div className="flex items-center justify-between gap-4 bg-bg-primary/50 p-3 border border-border-primary rounded cursor-pointer hover:border-brand-gold transition-colors"
-                         onClick={() => {
-                           navigator.clipboard.writeText(settings.bankRib || "011 780 0000000000000000 00");
-                           alert("RIB copié !");
-                         }}>
-                      <p className="text-xs md:text-sm font-mono tracking-tighter break-all">{settings.bankRib || "011 780 0000000000000000 00"}</p>
-                      <Copy size={16} className="text-brand-gold" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                 <div className="flex items-center gap-3 mb-2">
-                    <Upload size={16} className="text-brand-gold" />
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-text-primary/60">Dépôt du reçu de virement</span>
-                 </div>
-                 
-                 <label className="relative border-2 border-dashed border-border-primary hover:border-brand-gold transition-all duration-500 rounded-xl p-6 md:p-12 flex flex-col items-center justify-center gap-4 cursor-pointer group overflow-hidden">
-                    {formData.receipt_base64 ? (
-                      <div className="flex flex-col items-center gap-4">
-                        {formData.receipt_base64.startsWith('data:image') ? (
-                          <img src={formData.receipt_base64} alt="Preuve" className="max-h-40 rounded shadow-2xl" />
-                        ) : (
-                          <div className="flex items-center gap-3 bg-text-primary/10 px-4 md:px-6 py-2.5 md:py-3 rounded-full">
-                            <FileText size={20} className="text-brand-gold" />
-                            <span className="text-sm font-medium">Fichier reçu chargé</span>
-                          </div>
-                        )}
-                        <p className="text-xs text-brand-gold font-bold uppercase tracking-widest">Cliquer pour changer</p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="w-16 h-16 rounded-full bg-text-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                          <Upload size={24} className="text-brand-gold opacity-50 group-hover:opacity-100" />
-                        </div>
-                        <div className="text-center">
-                          <p className="text-sm font-medium mb-1 tracking-tight">Déposez votre reçu ici</p>
-                          <p className="text-[10px] text-text-primary/30 uppercase tracking-widest">Capture d'écran ou PDF (Max 10Mo)</p>
-                        </div>
-                      </>
-                    )}
-                    <input type="file" className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} />
-                 </label>
-              </div>
-
-              <div className="flex gap-4 mt-4">
-                <button type="button" onClick={() => setStep(3)} className="w-1/3 min-h-12 py-3 md:py-5 border border-border-primary text-text-primary hover:border-brand-gold hover:text-brand-gold transition-colors duration-500 uppercase tracking-[0.15em] md:tracking-widest text-[11px] md:text-sm">
-                  Retour
-                </button>
-                <button 
-                  onClick={handleTransferSubmit}
-                  disabled={!formData.receipt_base64}
-                  className="w-full min-h-12 py-3 md:py-6 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-700 uppercase tracking-[0.2em] md:tracking-[0.4em] text-[11px] md:text-xs font-bold shadow-2xl disabled:opacity-20 disabled:cursor-not-allowed"
-                >
-                  Confirmer ma réservation
-                </button>
-              </div>
-            </motion.div>
-          )}
 
           {step === 5 && (
             <motion.div 

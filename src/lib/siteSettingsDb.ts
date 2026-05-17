@@ -55,6 +55,10 @@ export interface SiteSettings {
   about: AboutSettings;
   /** Activer / désactiver la zone "Accès Privilège" (tickets / concierge). */
   enablePrivateAccess?: boolean;
+  /** Devise d'affichage (MAD | EUR | USD) */
+  currency?: 'MAD' | 'EUR' | 'USD';
+  /** Si true, le paiement sur le site est désactivé et tout passe par WhatsApp */
+  paymentsViaWhatsappOnly?: boolean;
 }
 
 /** Ligne `site_settings` telle que PostgREST / Postgres (snake_case). */
@@ -84,6 +88,8 @@ export type SiteSettingsRow = {
   hidden_pages?: string[] | null;
   font_style?: string | null;
   enable_private_access?: boolean | null;
+  currency?: string | null;
+  payments_via_whatsapp_only?: boolean | null;
 };
 
 function parseJsonStringArray(v: unknown): string[] {
@@ -220,6 +226,8 @@ export function siteSettingsToDbRow(s: SiteSettings, id = 1): SiteSettingsRow {
     hidden_pages: s.hiddenPages,
     font_style: s.fontStyle ?? "original",
     enable_private_access: typeof s.enablePrivateAccess === 'boolean' ? s.enablePrivateAccess : true,
+    currency: s.currency ?? 'MAD',
+    payments_via_whatsapp_only: typeof s.paymentsViaWhatsappOnly === 'boolean' ? s.paymentsViaWhatsappOnly : false,
   };
 }
 
@@ -257,5 +265,7 @@ export function dbRowToSiteSettings(row: SiteSettingsRow, prev: SiteSettings): S
     hiddenPages: arr(row.hidden_pages, prev.hiddenPages),
     fontStyle: fontStyle(row.font_style ?? prev.fontStyle),
     enablePrivateAccess: Boolean(row.enable_private_access ?? prev.enablePrivateAccess ?? true),
+    currency: (typeof row.currency === 'string' ? (row.currency as 'MAD' | 'EUR' | 'USD') : prev.currency) ?? 'MAD',
+    paymentsViaWhatsappOnly: Boolean(row.payments_via_whatsapp_only ?? prev.paymentsViaWhatsappOnly ?? false),
   };
 }

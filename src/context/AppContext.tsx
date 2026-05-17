@@ -377,9 +377,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ,
     // Feature toggle: accès privé (tickets / concierge)
     enablePrivateAccess: true,
+    // Nouvelle configuration : devise et paiement
+    currency: 'EUR',
+    paymentsViaWhatsappOnly: true,
   });
   const [settingsRowId, setSettingsRowId] = useState<number | null>(null);
-  const [currency, setCurrency] = useState<Currency>('MAD');
+  const [currency, setCurrency] = useState<Currency>('EUR');
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates>(DEFAULT_EXCHANGE_RATES);
   const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState<Theme>('dark');
@@ -443,6 +446,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setCurrency(storedCurrency);
     }
   }, []);
+
+  // Si les settings chargés depuis la base contiennent une devise, l'appliquer
+  useEffect(() => {
+    if (settings && typeof settings.currency === 'string') {
+      const s = settings.currency as Currency;
+      if (s === 'MAD' || s === 'EUR' || s === 'USD') setCurrency(s);
+    }
+  }, [settings]);
 
   useEffect(() => {
     localStorage.setItem('currency', currency);

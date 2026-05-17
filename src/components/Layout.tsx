@@ -80,6 +80,11 @@ export function Layout() {
   }, [location.pathname, fullPath, navigate, rememberEnabled]);
 
   useEffect(() => {
+    // Restore previous scroll position for this path, but only when it's
+    // actually available in the DOM. Some pages (especially with async
+    // content) may not have enough height yet which causes a jump to the
+    // bottom. We poll a few times and only restore when the document
+    // height is large enough to accommodate the saved Y.
     if (!rememberEnabled) return;
     const scrollKey = `cp:scroll:${fullPath}`;
     if (lastScrollRestoreKeyRef.current === scrollKey) return;
@@ -87,9 +92,41 @@ export function Layout() {
     const raw = localStorage.getItem(scrollKey);
     const y = raw ? Number(raw) : NaN;
     if (!Number.isFinite(y)) return;
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: Math.max(0, y), left: 0, behavior: "auto" });
-    });
+
+    let attempts = 0;
+    const maxAttempts = 30; // ~1s of retries with rAF
+
+    const tryRestore = () => {
+      attempts += 1;
+      const docHeight = document.documentElement.scrollHeight || document.body.scrollHeight || 0;
+      const viewport = window.innerHeight || document.documentElement.clientHeight || 0;
+
+      // If the document is tall enough to contain the requested scroll
+      // position, restore it. If not tall enough yet, keep retrying for a
+      // short while. Do NOT force a restore when retries are exhausted —
+      // it's safer to skip restoring than to jump the user to the footer.
+      if (docHeight >= y + viewport + 40) {
+        window.scrollTo({ top: Math.max(0, y), left: 0, behavior: "auto" });
+        return;
+      }
+
+      if (attempts >= maxAttempts) {
+        // Abort restore to avoid jumping to bottom-of-page when content is
+        // still loading or when the stored position is larger than current
+        // document height. Also remove the stored key to avoid repeating the
+        // same bad restore on subsequent navigations.
+        try {
+          localStorage.removeItem(scrollKey);
+        } catch (e) {
+          // ignore
+        }
+        return;
+      }
+
+      requestAnimationFrame(tryRestore);
+    };
+
+    requestAnimationFrame(tryRestore);
   }, [fullPath, rememberEnabled]);
 
   useEffect(() => {

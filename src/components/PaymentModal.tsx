@@ -1,6 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, MessageCircle, Upload, CheckCircle2 } from "lucide-react";
+import { X, MessageCircle, CheckCircle2 } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import { formatMoney } from "../lib/utils";
 import { supabase } from "../lib/supabase";
@@ -15,7 +15,7 @@ interface PaymentModalProps {
 
 export function PaymentModal({ isOpen, onClose, items, total }: PaymentModalProps) {
   const { addOrder, settings, currency, exchangeRates } = useAppContext();
-  const [method, setMethod] = useState<'selection' | 'upload' | 'success'>('selection');
+  const [method, setMethod] = useState<'selection' | 'success'>('selection');
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
 
   // Charger les infos du profil utilisateur loggé quando abre le modal
@@ -58,24 +58,7 @@ export function PaymentModal({ isOpen, onClose, items, total }: PaymentModalProp
     onClose();
   };
 
-  const handleUploadSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    
-    if (items && total) {
-      await addOrder({
-        customer_name: formData.name,
-        customer_email: formData.email,
-        total: total,
-        items: items
-      });
-    }
-    
-    setMethod('success');
-    setTimeout(() => {
-      onClose();
-      setTimeout(() => setMethod('selection'), 500);
-    }, 2500);
-  };
+  // On purpose: upload / on-site payment flow removed — payments handled via WhatsApp only.
 
   return (
     <AnimatePresence>
@@ -115,74 +98,13 @@ export function PaymentModal({ isOpen, onClose, items, total }: PaymentModalProp
                     className="flex items-center justify-center gap-6 w-full py-6 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-500 rounded-full"
                   >
                     <MessageCircle size={22} strokeWidth={1.5} />
-                    <span className="uppercase tracking-[0.3em] text-[11px] font-black">Payer via Concierge</span>
-                  </button>
-
-                  <div className="relative flex items-center py-4">
-                    <div className="flex-grow border-t border-border-primary/50"></div>
-                    <span className="flex-shrink-0 mx-6 text-text-primary/20 text-[10px] uppercase tracking-widest font-black italic">Ou par virement</span>
-                    <div className="flex-grow border-t border-border-primary/50"></div>
-                  </div>
-
-                  <button
-                    onClick={() => setMethod('upload')}
-                    className="flex items-center justify-center gap-6 w-full py-6 border border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-black transition-all duration-500 rounded-full"
-                  >
-                    <Upload size={22} strokeWidth={1} />
-                    <span className="uppercase tracking-[0.3em] text-[11px] font-black">Envoyer le Reçu</span>
+                    <span className="uppercase tracking-[0.3em] text-[11px] font-black">Payer via WhatsApp</span>
                   </button>
                 </div>
               </div>
             )}
 
-            {method === 'upload' && (
-              <form onSubmit={handleUploadSubmit} className="flex flex-col gap-8">
-                <div className="text-center">
-                   <p className="text-[10px] tracking-[0.5em] font-black text-brand-gold uppercase mb-4 italic">CONFIRMATION DE TRANSFERT</p>
-                   <h3 className="text-4xl font-serif">Valider la Vente</h3>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="relative group">
-                    <input 
-                      type="text" placeholder="NOM COMPLET" required
-                      value={formData.name}
-                      onChange={e => setFormData({...formData, name: e.target.value})}
-                      className="w-full bg-transparent border-b border-border-primary py-4 text-text-primary focus:outline-none focus:border-brand-gold transition-colors font-light text-lg tracking-widest"
-                    />
-                  </div>
-                  <div className="relative group">
-                    <input 
-                      type="email" placeholder="EMAIL DE CONTACT" required
-                      value={formData.email}
-                      onChange={e => setFormData({...formData, email: e.target.value})}
-                      className="w-full bg-transparent border-b border-border-primary py-4 text-text-primary focus:outline-none focus:border-brand-gold transition-colors font-light text-lg tracking-widest"
-                    />
-                  </div>
-                  
-                  <div className="relative border border-dashed border-border-primary py-12 text-center hover:border-brand-gold transition-colors cursor-pointer group bg-text-primary/[0.02]">
-                    <input type="file" required className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                    <Upload size={32} strokeWidth={0.5} className="mx-auto mb-4 text-text-primary/20 group-hover:text-brand-gold transition-colors" />
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-text-primary/30 group-hover:text-text-primary transition-colors italic">Télécharger le Reçu (Image/PDF)</span>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-8 mt-4 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-700 uppercase tracking-[0.5em] text-[11px] font-black shadow-2xl"
-                >
-                  Finaliser la Commande
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setMethod('selection')}
-                  className="text-text-primary/20 text-[10px] uppercase tracking-widest hover:text-brand-gold transition-colors text-center font-black"
-                >
-                  Retour
-                </button>
-              </form>
-            )}
+            {/* upload/on-site payment removed — only WhatsApp payments supported */}
 
             {method === 'success' && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
