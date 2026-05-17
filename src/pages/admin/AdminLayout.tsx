@@ -127,6 +127,88 @@ export function AdminLayout() {
     };
   }, [mobileOpen]);
 
+  // Autosave admin form fields to sessionStorage to avoid data loss when
+  // the user switches tabs or navigates away temporarily. We save inputs
+  // (by name) under a key specific to the current admin path.
+  useEffect(() => {
+    const main = document.getElementById('admin-main');
+    if (!main) return;
+    const storageKey = `admin:draft:${path}`;
+
+    // Restore saved values first
+    try {
+      const raw = sessionStorage.getItem(storageKey);
+      if (raw) {
+        const saved = JSON.parse(raw) as Record<string, any>;
+        Object.keys(saved).forEach((name) => {
+          const el = main.querySelector(`[name="${name}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
+          if (!el) return;
+          if (el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio')) {
+            (el as HTMLInputElement).checked = Boolean(saved[name]);
+          } else {
+            (el as any).value = saved[name];
+            // dispatch input event so React-controlled inputs update if needed
+            try {
+              el.dispatchEvent(new Event('input', { bubbles: true }));
+              el.dispatchEvent(new Event('change', { bubbles: true }));
+            } catch (e) {
+              // ignore
+            }
+          }
+        });
+      }
+    } catch (e) {
+      // ignore JSON errors
+    }
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const save = () => {
+      try {
+        const data: Record<string, any> = {};
+        const inputs = main.querySelectorAll('input[name], textarea[name], select[name]');
+        inputs.forEach((node) => {
+          const name = (node as Element).getAttribute('name');
+          if (!name) return;
+          if (node instanceof HTMLInputElement && (node.type === 'checkbox' || node.type === 'radio')) {
+            data[name] = node.checked;
+          } else {
+            data[name] = (node as HTMLInputElement).value;
+          }
+        });
+        sessionStorage.setItem(storageKey, JSON.stringify(data));
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    const scheduleSave = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        save();
+        timer = null;
+      }, 300);
+    };
+
+    const onInput = (e: Event) => scheduleSave();
+    const onChange = (e: Event) => scheduleSave();
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') save();
+    };
+
+    main.addEventListener('input', onInput, { passive: true });
+    main.addEventListener('change', onChange);
+    window.addEventListener('pagehide', save);
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      if (timer) clearTimeout(timer as any);
+      main.removeEventListener('input', onInput as any);
+      main.removeEventListener('change', onChange as any);
+      window.removeEventListener('pagehide', save);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [path]);
+
   const closeMobile = () => setMobileOpen(false);
 
   return (

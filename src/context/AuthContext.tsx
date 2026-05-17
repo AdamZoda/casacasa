@@ -21,6 +21,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.debug('[Auth] initial session', session);
+      }
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -28,7 +32,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        if (process.env.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.debug('[Auth] onAuthStateChange', event, session);
+        }
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);

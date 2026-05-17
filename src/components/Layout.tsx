@@ -68,16 +68,17 @@ export function Layout() {
     localStorage.setItem("cp:last-path", fullPath);
   }, [fullPath, rememberEnabled]);
 
+  // NOTE: automatic restoration of the last visited path caused navigation
+  // and refresh issues (user returning from another site / tab would get
+  // redirected and lose in-progress form state). To avoid unexpected
+  // navigations we *disable* the automatic path restore by default. If you
+  // want to re-enable it you can set `cp:remember-work` in localStorage to
+  // '2' (or implement a user setting) and adapt the logic below.
   useEffect(() => {
-    if (!rememberEnabled) return;
-    if (lastPathRestoredRef.current) return;
-    lastPathRestoredRef.current = true;
-    const savedPath = localStorage.getItem("cp:last-path");
-    if (!savedPath || savedPath === "/" || savedPath === fullPath) return;
-    if (location.pathname === "/") {
-      navigate(savedPath, { replace: true });
-    }
-  }, [location.pathname, fullPath, navigate, rememberEnabled]);
+    // Intentionally empty — path auto-restore disabled to avoid losing user data.
+    // Keeping this effect here as a reminder and a single place to reintroduce
+    // the feature behind an explicit opt-in flag if desired.
+  }, [location.pathname, fullPath]);
 
   useEffect(() => {
     // Restore previous scroll position for this path, but only when it's
@@ -132,6 +133,29 @@ export function Layout() {
   useEffect(() => {
     if (!rememberEnabled) return;
     const saveScroll = () => {
+      // Do not overwrite saved scroll while the user is actively typing or
+      // interacting with form controls (avoids recording a scroll position
+      // that corresponds to a focused input when the user navigates away).
+      try {
+        const active = document.activeElement as HTMLElement | null;
+        if (active) {
+          const tag = active.tagName;
+          if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || active.isContentEditable) {
+            return;
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      // Avoid saving scroll for admin routes (so that editing workflows are not
+      // disrupted by automatic scroll restoration).
+      try {
+        if (location.pathname.startsWith('/admin')) return;
+      } catch (e) {
+        // ignore
+      }
+
       localStorage.setItem(`cp:scroll:${fullPath}`, String(window.scrollY || 0));
     };
     const onVisibilityChange = () => {
@@ -154,6 +178,31 @@ export function Layout() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Prevent accidental navigation/refresh when the user is actively
+  // interacting with form fields (helps avoid losing unsaved admin edits).
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      try {
+        const active = document.activeElement as HTMLElement | null;
+        if (active) {
+          const tag = active.tagName;
+          if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || active.isContentEditable) {
+            // Standard prompt signal — browser will show a confirmation dialog.
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+      return undefined;
+    };
+
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, []);
 
   // Prevent scrolling when mobile menu is open
