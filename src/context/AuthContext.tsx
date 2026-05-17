@@ -20,13 +20,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.warn('[Auth] getSession error, cleaning stale storage session:', error.message);
+        // Force sign out to clean localStorage / stale session keys
+        supabase.auth.signOut().finally(() => {
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+        });
+        return;
+      }
       if (process.env.NODE_ENV !== 'production') {
         // eslint-disable-next-line no-console
         console.debug('[Auth] initial session', session);
       }
       setSession(session);
       setUser(session?.user ?? null);
+      setLoading(false);
+    }).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error('[Auth] unexpected error during getSession:', err);
       setLoading(false);
     });
 

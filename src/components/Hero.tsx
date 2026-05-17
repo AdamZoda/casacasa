@@ -44,6 +44,7 @@ export function Hero() {
   const { language, settings } = useAppContext();
   const t = translations[language];
   const [videoError, setVideoError] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const bgUrl = heroBackgroundVideo;
   const title = settings.heroTitle || t.hero.title;
@@ -51,12 +52,13 @@ export function Hero() {
   const cta = settings.heroCta || t.hero.cta;
 
   // Decide whether to actually load the heavy background video:
-  // - only on wide screens, when connection seems fast (4g), and if user didn't prefer reduced motion
+  // - only when connection seems fast (4g), and if user didn't prefer reduced motion
   const canUseConnectionApi = typeof navigator !== 'undefined' && (navigator as any).connection;
   const effectiveType = canUseConnectionApi ? (navigator as any).connection.effectiveType : '4g';
   const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const shouldLoadVideo = !videoError && !prefersReducedMotion && typeof window !== 'undefined' && window.innerWidth > 768 && effectiveType === '4g' && isVideoUrl(bgUrl);
+  // Enabled on mobile/tablet screen sizes as requested by the user, only disabled if user prefers reduced motion
+  const shouldLoadVideo = !videoError && !prefersReducedMotion && typeof window !== 'undefined' && isVideoUrl(bgUrl);
 
   const normalizedBgUrl = bgUrl?.toLowerCase() || '';
   const isYouTube = normalizedBgUrl.includes('youtube.com') || normalizedBgUrl.includes('youtu.be');
@@ -96,7 +98,7 @@ export function Hero() {
             muted
             loop
             playsInline
-            preload="none"
+            preload="auto"
             className="absolute top-0 left-0 w-full h-full object-cover"
             style={{width: '100%', height: '100%'}}
             onError={() => {
@@ -105,7 +107,7 @@ export function Hero() {
           >
             <source src={bgUrl} type={getVideoMimeType(bgUrl)} />
           </video>
-        ) : (
+        ) : !imageError ? (
           <img
             src={'https://images.unsplash.com/photo-1540998145320-f5139c824c62?q=80&w=2940&auto=format&fit=crop'}
             alt="Hero Background"
@@ -113,8 +115,9 @@ export function Hero() {
             decoding="async"
             className="absolute top-0 left-0 w-full h-full object-cover"
             style={{width: '100%', height: '100%'}}
+            onError={() => setImageError(true)}
           />
-        )}
+        ) : null}
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg-primary"></div>
       </motion.div>
