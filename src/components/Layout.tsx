@@ -25,7 +25,9 @@ export function Layout() {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const lastPathRestoredRef = useRef(false);
   const lastScrollRestoreKeyRef = useRef<string | null>(null);
-  const rememberEnabled = typeof window !== "undefined" ? localStorage.getItem("cp:remember-work") !== "0" : true;
+  // IMPORTANT: persistence disabled to prevent jumps to footer / unexpected
+  // route restores while navigating.
+  const rememberEnabled = false;
   const t = translations[language];
   const hp = settings.hiddenPages ?? [];
   const fullPath = location.pathname + location.search + location.hash;
@@ -67,6 +69,26 @@ export function Layout() {
     if (!rememberEnabled) return;
     localStorage.setItem("cp:last-path", fullPath);
   }, [fullPath, rememberEnabled]);
+
+  // Cleanup legacy persisted scroll/path keys when persistence is disabled.
+  useEffect(() => {
+    if (rememberEnabled) return;
+    try {
+      localStorage.removeItem("cp:last-path");
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("cp:scroll:"))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {
+      // ignore storage access errors
+    }
+  }, [rememberEnabled]);
+
+  // Default navigation behavior: open each page at top unless URL contains a hash.
+  // This prevents accidental landing near the footer after route changes.
+  useEffect(() => {
+    if (location.hash) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.search, location.hash]);
 
   // NOTE: automatic restoration of the last visited path caused navigation
   // and refresh issues (user returning from another site / tab would get
