@@ -37,12 +37,12 @@ export type LayoutNavLabelKey = "home" | "universes" | "collection" | "services"
 /** Liens texte de la barre de navigation (desktop + menu mobile) — même logique que `isPathHidden`. */
 export const LAYOUT_NAV_LINKS: { path: string; to: string; labelKey: LayoutNavLabelKey }[] = [
   { path: "/", to: "/", labelKey: "home" },
-  { path: "/brands", to: "/brands", labelKey: "universes" },
+  { path: "/about", to: "/about", labelKey: "about" },
   { path: "/store", to: "/store", labelKey: "collection" },
   { path: "/services", to: "/services", labelKey: "services" },
-  { path: "/journal", to: "/journal", labelKey: "journal" },
   { path: "/contact", to: "/contact", labelKey: "contact" },
-  { path: "/about", to: "/about", labelKey: "about" },
+  { path: "/brands", to: "/brands", labelKey: "universes" },
+  { path: "/journal", to: "/journal", labelKey: "journal" },
 ];
 
 /** Canonical paths stored in `SiteSettings.hiddenPages` when a section is disabled. */

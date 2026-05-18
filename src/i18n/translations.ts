@@ -3,11 +3,11 @@ export const translations = {
     nav: {
       home: "Accueil",
       universes: "Univers",
-      collection: "Stores",
-      services: "Services",
+      collection: "Nos collections",
+      services: "Privilege",
       journal: "Journal",
       contact: "Contact",
-      about: "About Us"
+      about: "About us"
     },
     user: {
       account: "Mon Compte",
@@ -83,11 +83,11 @@ export const translations = {
     nav: {
       home: "Home",
       universes: "Universes",
-      collection: "Stores",
-      services: "Services",
+      collection: "Our Collections",
+      services: "Privilege",
       journal: "Journal",
       contact: "Contact",
-      about: "About Us"
+      about: "About us"
     },
     user: {
       account: "My Account",
