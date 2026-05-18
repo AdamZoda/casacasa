@@ -1031,31 +1031,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateSettings = useCallback(async (s: SiteSettings) => {
     const rowId = settingsRowId ?? 1;
     const row = siteSettingsToDbRow(s, rowId);
-    let { error } = await supabase.from('site_settings').upsert(row, { onConflict: 'id' });
+    const payload = { ...row } as any;
+    let { error } = await supabase.from('site_settings').upsert(payload, { onConflict: 'id' });
 
     if (error) {
-      const retryRow = { ...row } as Record<string, unknown>;
-      let shouldRetry = false;
-
-      if (/Could not find the 'block_weekends' column/i.test(error.message)) {
-        delete retryRow.block_weekends;
-        shouldRetry = true;
-      }
-
-      if (/Could not find the 'contact_emails' column/i.test(error.message)) {
-        delete retryRow.contact_emails;
-        shouldRetry = true;
-      }
-
-      if (/Could not find the 'enable_private_access' column/i.test(error.message)) {
-        delete retryRow.enable_private_access;
-        shouldRetry = true;
-      }
-
-      if (shouldRetry) {
-        console.warn('[Supabase] Optional `site_settings` column missing, retrying without unsupported fields.');
-        const retry = await supabase.from('site_settings').upsert(retryRow, { onConflict: 'id' });
-        error = retry.error;
+      let attempts = 0;
+      while (error && attempts < 5) {
+        const match = error.message.match(/Could not find the '([^']+)' column/i) ||
+                      error.message.match(/column "([^"]+)"/i);
+        if (match) {
+          const col = match[1];
+          console.warn(`[Supabase] Optional column '${col}' is missing in DB. Omitting and retrying...`);
+          delete payload[col];
+          attempts++;
+          const retry = await supabase.from('site_settings').upsert(payload, { onConflict: 'id' });
+          error = retry.error;
+        } else {
+          break;
+        }
       }
     }
 

@@ -17,17 +17,13 @@ async function run() {
   const { data, error } = await supabase
     .from('site_settings')
     .select('*')
-    .order('id', { ascending: false });
+    .limit(1);
     
   if (error) {
     console.error('Error fetching settings:', error);
   } else {
-    console.log(`Found ${data.length} rows in site_settings`);
-    data.forEach((row, i) => {
-      console.log(`\n--- Row ${i} (ID: ${row.id}) ---`);
-      console.log('hero_title:', JSON.stringify(row.hero_title));
-      console.log('hero_subtitle:', JSON.stringify(row.hero_subtitle));
-    });
+    console.log('Site settings columns in DB:', Object.keys(data[0]));
+    console.log('\nFull row data:', JSON.stringify(data[0], null, 2));
   }
 }
 
