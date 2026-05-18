@@ -77,10 +77,7 @@ export function Brands() {
                 
                 {/* Content */}
                 <div className="absolute inset-0 p-4 md:p-10 flex flex-col justify-between z-10">
-                  <div className="flex justify-between items-start">
-                    <span className="text-2xl md:text-4xl drop-shadow-lg">
-                      <CountryFlag id={brand.id} flag={brand.flag} className="w-8 h-5 md:w-12 md:h-8" />
-                    </span>
+                  <div className="flex justify-end items-start">
                     <span className="text-white/90 text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-medium drop-shadow-md">
                       {brand.location}
                     </span>

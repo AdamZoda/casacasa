@@ -322,7 +322,7 @@ export function Layout() {
           </div>
           
           <div className="hidden lg:flex items-center gap-10 text-[11px] uppercase tracking-[0.2em] font-medium">
-            {LAYOUT_NAV_LINKS.map((item) => (
+            {LAYOUT_NAV_LINKS.filter((item) => !isPathHidden(item.path, hp)).map((item) => (
               <Link key={item.to} to={item.to} className="hover:text-brand-gold transition-colors">
                 {t.nav[item.labelKey]}
               </Link>
@@ -508,7 +508,7 @@ export function Layout() {
               {/* Navigation Links */}
               <div className="flex-grow px-3 py-5 sm:px-6">
                 <div className="space-y-1 mb-8">
-                  {LAYOUT_NAV_LINKS.map((item) => (
+                  {LAYOUT_NAV_LINKS.filter((item) => !isPathHidden(item.path, hp)).map((item) => (
                     <Link
                       key={item.to}
                       to={item.to}
