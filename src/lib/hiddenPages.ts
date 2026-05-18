@@ -38,10 +38,10 @@ export type LayoutNavLabelKey = "home" | "universes" | "collection" | "services"
 export const LAYOUT_NAV_LINKS: { path: string; to: string; labelKey: LayoutNavLabelKey }[] = [
   { path: "/", to: "/", labelKey: "home" },
   { path: "/about", to: "/about", labelKey: "about" },
-  { path: "/store", to: "/store", labelKey: "collection" },
+  { path: "/brands", to: "/brands", labelKey: "universes" },
   { path: "/services", to: "/services", labelKey: "services" },
   { path: "/contact", to: "/contact", labelKey: "contact" },
-  { path: "/brands", to: "/brands", labelKey: "universes" },
+  { path: "/store", to: "/store", labelKey: "collection" },
   { path: "/journal", to: "/journal", labelKey: "journal" },
 ];
 

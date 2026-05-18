@@ -2,8 +2,8 @@ export const translations = {
   fr: {
     nav: {
       home: "Accueil",
-      universes: "Univers",
-      collection: "Nos collections",
+      universes: "Collection",
+      collection: "Store",
       services: "Privilege",
       journal: "Journal",
       contact: "Contact",
@@ -82,8 +82,8 @@ export const translations = {
   en: {
     nav: {
       home: "Home",
-      universes: "Universes",
-      collection: "Our Collections",
+      universes: "Collection",
+      collection: "Store",
       services: "Privilege",
       journal: "Journal",
       contact: "Contact",
