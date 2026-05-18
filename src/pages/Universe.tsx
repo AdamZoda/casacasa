@@ -4,6 +4,7 @@ import { useAppContext } from "../context/AppContext";
 import { useShopping } from "../context/ShoppingContext";
 import { Heart } from "lucide-react";
 import { LazyImg } from "../components/LazyImg";
+import { CountryFlag } from "../components/CountryFlag";
 
 export function Universe() {
   const { id } = useParams<{ id: string }>();
@@ -42,9 +43,9 @@ export function Universe() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-6xl mb-8 grayscale opacity-80"
+            className="mb-8 opacity-95"
           >
-            {universe.flag}
+            <CountryFlag id={universe.id} flag={universe.flag} className="w-20 h-13 md:w-24 md:h-16" />
           </motion.span>
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}

@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { translations } from "../i18n/translations";
+import { CountryFlag } from "../components/CountryFlag";
 
 export function BrandsPage() {
   const { universes, activities, articles, language } = useAppContext();
@@ -137,7 +138,9 @@ export function BrandsPage() {
                     {/* Content */}
                     <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 sm:p-8 xl:p-10">
                       <div className="flex justify-between items-start">
-                        <span className="text-3xl sm:text-4xl drop-shadow-lg filter grayscale group-hover:grayscale-0 transition-all duration-700">{brand.flag}</span>
+                        <span className="text-3xl sm:text-4xl drop-shadow-lg">
+                          <CountryFlag id={brand.id} flag={brand.flag} className="w-9 h-6 sm:w-14 sm:h-9" />
+                        </span>
                         <span className="text-right text-white/90 text-[9px] uppercase tracking-[0.18em] sm:tracking-[0.25em] font-medium drop-shadow-md">
                           {brand.location}
                         </span>

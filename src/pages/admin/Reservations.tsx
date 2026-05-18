@@ -3,6 +3,7 @@ import { useAppContext } from "../../context/AppContext";
 import { digitsOnlyForWaMe } from "../../lib/security";
 import { Check, X, MessageCircle, Trash2, Calendar, User, Users, Phone, Mail, ArrowRight, ShieldCheck, Clock, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { CountryFlag } from "../../components/CountryFlag";
 
 const COUNTRIES = [
   { name: "Maroc", code: "+212", flag: "🇲🇦", length: 9 },
@@ -181,7 +182,7 @@ export function Reservations() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-serif group-hover:text-brand-gold transition-colors">{res.name ?? "—"}</p>
-                          <span className="text-lg" title={res.country}>{country?.flag || '🇲🇦'}</span>
+                          <CountryFlag flag={country?.flag || '🇲🇦'} className="w-5 h-3.5" />
                         </div>
                         <p className="text-[10px] text-text-primary/30 uppercase tracking-tighter mt-1">{res.contact ?? "—"}</p>
                       </div>
