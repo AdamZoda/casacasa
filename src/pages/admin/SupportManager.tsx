@@ -13,7 +13,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 
 const POLL_TICKETS_MS = 12_000;
-const POLL_MESSAGES_MS = 8_000;
+const POLL_MESSAGES_MS = 3_000;
 
 function ticketSort(a: Ticket, b: Ticket): number {
   if (a.status === "open" && b.status !== "open") return -1;
@@ -83,8 +83,13 @@ export function SupportManager() {
     return () => clearInterval(interval);
   }, [activeTicket?.id, tickets, fetchTicketMessages]);
 
+  const prevMessagesLengthRef = useRef(0);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > prevMessagesLengthRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: 'nearest' });
+      prevMessagesLengthRef.current = messages.length;
+    }
   }, [messages]);
 
   const handleSendMessage = async (e: FormEvent) => {

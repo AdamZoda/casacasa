@@ -25,12 +25,24 @@ export function Contact() {
       setMessages(data);
     };
     loadMessages();
-    const interval = setInterval(loadMessages, 10000);
-    return () => clearInterval(interval);
-  }, [ticketId]);
+
+    const interval = setInterval(async () => {
+      const data = await fetchTicketMessages(ticketId);
+      setMessages(data);
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [ticketId, fetchTicketMessages]);
+
+  const prevMessagesLengthRef = useRef(0);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > prevMessagesLengthRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      prevMessagesLengthRef.current = messages.length;
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -45,6 +57,26 @@ export function Contact() {
       setStep("auth");
       setTicketId(null);
       setMessages([]);
+      return;
+    }
+
+    if (user?.email && step === "auth") {
+      const checkExistingTicket = async () => {
+        const { data: existing } = await supabase
+          .from("tickets")
+          .select("*")
+          .eq("user_email", user.email)
+          .eq("status", "open")
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+          
+        if (existing) {
+          setTicketId(existing.id);
+          setStep("chat");
+        }
+      };
+      checkExistingTicket();
     }
   }, [user, step]);
 
@@ -164,7 +196,7 @@ export function Contact() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 + i * 0.05, duration: 0.45 }}
-                className={`flex items-center gap-4 p-3 md:p-4 border rounded-lg transition-colors ${opt.gold ? 'bg-brand-gold/5 border-brand-gold text-brand-black' : 'bg-transparent border-border-primary hover:border-brand-gold/40'}`}
+                className={`flex items-center gap-4 p-3 md:p-4 border rounded-lg transition-colors ${opt.gold ? 'bg-brand-gold/5 border-brand-gold text-brand-gold' : 'bg-transparent border-border-primary hover:border-brand-gold/40 text-text-primary'}`}
               >
                 <div className={`p-2 md:p-3 rounded-full ${opt.gold ? 'bg-brand-black/05' : 'bg-brand-gold/5 text-brand-gold'}`}>
                   <opt.icon size={18} strokeWidth={1} />
