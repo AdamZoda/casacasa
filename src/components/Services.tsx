@@ -41,7 +41,7 @@ export function Services() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 md:gap-x-16 lg:gap-x-24 gap-y-14 sm:gap-y-20 md:gap-y-32">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 md:gap-x-12 lg:gap-x-8 gap-y-14 sm:gap-y-20 lg:gap-y-24">
         {globalServices?.map((service, index) => {
           const Icon = getIcon(service.title);
           return (
@@ -50,10 +50,10 @@ export function Services() {
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-                className={`group cursor-pointer flex items-start gap-4 md:block md:gap-0 ${index % 2 !== 0 ? 'flex-row-reverse md:mt-32' : ''}`}
+                transition={{ duration: 0.8, delay: index * 0.1, ease: "easeOut" }}
+                className={`group cursor-pointer flex items-start gap-4 md:block md:gap-0 ${index % 2 !== 0 ? 'flex-row-reverse md:mt-16 lg:mt-20' : ''}`}
               >
-                <div className={`relative shrink-0 w-[42%] overflow-hidden rounded-sm md:rounded-none mb-0 md:mb-8 md:w-full ${index % 2 === 0 ? 'h-[170px] sm:h-[220px] md:h-[60vh]' : 'h-[170px] sm:h-[220px] md:h-[70vh]'}`}>
+                <div className={`relative shrink-0 w-[42%] overflow-hidden rounded-sm md:rounded-none mb-0 md:mb-6 lg:mb-8 md:w-full ${index % 2 === 0 ? 'h-[170px] sm:h-[220px] md:h-[45vh] lg:h-[40vh]' : 'h-[170px] sm:h-[220px] md:h-[55vh] lg:h-[50vh]'}`}>
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10" />
                   <LazyImg 
                     src={service.image} 

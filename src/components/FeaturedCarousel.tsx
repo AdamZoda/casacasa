@@ -1,15 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
   ShoppingCart,
   Heart,
-  Shield,
-  Package,
   Star,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "motion/react";
 import { useAppContext } from "../context/AppContext";
 import { useShopping } from "../context/ShoppingContext";
 import { formatMoney } from "../lib/utils";
@@ -29,11 +24,19 @@ type FeaturedRow = {
   categoryLabel: string;
 };
 
+function shuffle<T>(items: T[]): T[] {
+  const next = [...items];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
+
 export function FeaturedCarousel() {
   const { activities, articles, currency, exchangeRates } = useAppContext();
   const { favorites, toggleFavorite } = useShopping();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [autoRotate, setAutoRotate] = useState(true);
+  const [displayedItems, setDisplayedItems] = useState<FeaturedRow[]>([]);
 
   const featuredItems: FeaturedRow[] = useMemo(() => {
     const fromActivities = activities
@@ -74,46 +77,19 @@ export function FeaturedCarousel() {
   }, [activities, articles]);
 
   useEffect(() => {
-    if (featuredItems.length === 0 || !autoRotate) return;
+    if (featuredItems.length === 0) return;
 
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => {
-        if (featuredItems.length <= 1) return prev;
-        const randomOffset = Math.floor(Math.random() * (featuredItems.length - 1)) + 1;
-        return (prev + randomOffset) % featuredItems.length;
-      });
-    }, 10000);
+    const updateItems = () => {
+      setDisplayedItems(shuffle([...featuredItems]).slice(0, 6));
+    };
+
+    updateItems();
+    const timer = setInterval(updateItems, 5000);
 
     return () => clearInterval(timer);
-  }, [autoRotate, featuredItems.length]);
+  }, [featuredItems]);
 
-  const goToPrevious = () => {
-    setAutoRotate(false);
-    setCurrentIndex((prev) => (prev - 1 + featuredItems.length) % featuredItems.length);
-    setTimeout(() => setAutoRotate(true), 5000);
-  };
-
-  const goToNext = () => {
-    setAutoRotate(false);
-    setCurrentIndex((prev) => (prev + 1) % featuredItems.length);
-    setTimeout(() => setAutoRotate(true), 5000);
-  };
-
-  if (featuredItems.length === 0) return null;
-
-  const currentItem = featuredItems[currentIndex];
-
-  const itemHref = (() => {
-    const u = currentItem.universeId;
-    if (!u) return "/services";
-    if (currentItem.type === "activity") {
-      return `/activity/${u}/${currentItem.activityId}/articles`;
-    }
-    return `/article/${u}/${currentItem.activityId}/${currentItem.id}/detail`;
-  })();
-
-  const favoriteKey = `${currentItem.type}-${currentItem.id}`;
-  const isFav = favorites.includes(favoriteKey);
+  if (displayedItems.length === 0) return null;
 
   const renderPrice = (raw: string) => {
     const t = raw.trim().replace(/\b(à\s*partir\s+de\s*){2,}/gi, "À partir de ");
@@ -143,7 +119,7 @@ export function FeaturedCarousel() {
     if (hasAmount) {
       const converted = `${formatMoney(extractedAmount, currency, exchangeRates)}${unitSuffix}`;
       return (
-        <p className="text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-neutral-50">
+        <p className="text-lg font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-neutral-50">
           {startsFrom ? "À partir de " : ""}
           {converted}
         </p>
@@ -151,16 +127,16 @@ export function FeaturedCarousel() {
     }
     if (looksComplete) {
       return (
-        <p className="text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-neutral-50">
+        <p className="text-lg font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-neutral-50">
           {t}
         </p>
       );
     }
     return (
-      <p className="text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-neutral-50">
-        <span className="text-base font-normal text-neutral-500 dark:text-neutral-400">À partir de </span>
+      <p className="text-lg font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-neutral-50">
+        <span className="text-xs font-normal text-neutral-500 dark:text-neutral-400">À partir de </span>
         {t}
-        <span className="text-base font-normal text-neutral-500 dark:text-neutral-400"> MAD</span>
+        <span className="text-xs font-normal text-neutral-500 dark:text-neutral-400"> MAD</span>
       </p>
     );
   };
@@ -186,131 +162,88 @@ export function FeaturedCarousel() {
           </Link>
         </div>
 
-        {/* Carte produit — image en haut, info en bas, cadre fixe */}
-        <article className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)] dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
-          <div className="flex flex-col h-full">
-            {/* Image — en haut, avec plus de présence dans la carte */}
-            <motion.div
-              className="relative h-[430px] w-full shrink-0 overflow-hidden sm:h-[520px] lg:h-[620px]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.35 }}
-            >
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={currentItem.id}
-                  src={currentItem.image}
-                  alt={currentItem.title}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover object-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.35 }}
-                />
-              </AnimatePresence>
-              <span className="absolute left-4 top-4 z-10 border border-neutral-900 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-900 dark:border-white dark:bg-neutral-900 dark:text-white">
-                Exclusif
-              </span>
-            </motion.div>
+        {/* Grille de 6 produits aléatoires */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          {displayedItems.map((currentItem) => {
+            const itemHref = (() => {
+              const u = currentItem.universeId;
+              if (!u) return "/services";
+              if (currentItem.type === "activity") {
+                return `/activity/${u}/${currentItem.activityId}/articles`;
+              }
+              return `/article/${u}/${currentItem.activityId}/${currentItem.id}/detail`;
+            })();
+            const favoriteKey = `${currentItem.type}-${currentItem.id}`;
+            const isFav = favorites.includes(favoriteKey);
 
-            {/* Contenu — en bas */}
-            <div className="flex w-full flex-col justify-between gap-6 p-6 sm:p-8 lg:p-10 flex-1">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F1A139]">
-                    Disponible
-                  </p>
-                  <div className="flex items-center gap-1.5 text-amber-500">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} size={12} className="fill-current" strokeWidth={0} aria-hidden />
-                    ))}
-                    <span className="text-xs text-neutral-400 ml-1">(1)</span>
+            return (
+              <article key={favoriteKey} className="overflow-hidden flex flex-col rounded-2xl border border-black/[0.06] bg-white shadow-[0_8px_30px_-12px_rgba(0,0,0,0.1)] dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:shadow-[0_15px_40px_-20px_rgba(0,0,0,0.4)] transition-transform duration-300 hover:-translate-y-1">
+                {/* Image */}
+                <div className="relative h-[320px] lg:h-[380px] w-full shrink-0 overflow-hidden">
+                  <img
+                    src={currentItem.image}
+                    alt={currentItem.title}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-700 hover:scale-105"
+                  />
+                  <span className="absolute left-4 top-4 z-10 border border-neutral-900 bg-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-900 dark:border-white dark:bg-neutral-900 dark:text-white">
+                    Exclusif
+                  </span>
+                </div>
+
+                {/* Contenu */}
+                <div className="flex flex-col flex-1 justify-between gap-4 p-5 sm:p-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#F1A139]">
+                        Disponible
+                      </p>
+                      <div className="flex items-center gap-1 text-amber-500">
+                        <Star size={11} className="fill-current" strokeWidth={0} aria-hidden />
+                        <span className="text-[10px] text-neutral-400 font-medium ml-0.5">5.0</span>
+                      </div>
+                    </div>
+                    <h3 className="font-serif text-xl font-semibold leading-snug tracking-tight text-neutral-900 dark:text-neutral-50 line-clamp-2" title={currentItem.title}>
+                      {currentItem.title}
+                    </h3>
+                    <div className="flex flex-col gap-1">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-neutral-500 dark:text-neutral-400">
+                        {currentItem.categoryLabel}
+                      </p>
+                      {currentItem.price ? renderPrice(currentItem.price) : null}
+                    </div>
+                    <p className="line-clamp-2 text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
+                      {currentItem.description}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3 pt-3 border-t border-black/5 dark:border-white/5 mt-auto">
+                    <div className="flex items-stretch gap-2">
+                      <Link
+                        to={itemHref}
+                        className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors ${CTA_ORANGE}`}
+                      >
+                        <ShoppingCart size={16} strokeWidth={2} aria-hidden />
+                        Découvrir
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => toggleFavorite(favoriteKey)}
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white transition-colors hover:border-[#F1A139] hover:text-[#F1A139] dark:border-white/15 dark:bg-transparent ${
+                          isFav ? "border-[#F1A139] text-[#F1A139]" : "text-neutral-700 dark:text-neutral-200"
+                        }`}
+                        aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                        aria-pressed={isFav}
+                      >
+                        <Heart size={18} className={isFav ? "fill-current" : ""} strokeWidth={1.5} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <motion.h3
-                  key={`title-${currentItem.id}`}
-                  className="font-serif text-2xl font-semibold leading-snug tracking-tight text-neutral-900 dark:text-neutral-50 md:text-3xl"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {currentItem.title}
-                </motion.h3>
-                <div className="flex items-center gap-4 flex-wrap">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-neutral-500 dark:text-neutral-400">
-                    {currentItem.categoryLabel}
-                  </p>
-                  {currentItem.price ? renderPrice(currentItem.price) : null}
-                </div>
-                <motion.p
-                  key={`desc-${currentItem.id}`}
-                  className="line-clamp-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.25, delay: 0.05 }}
-                >
-                  {currentItem.description}
-                </motion.p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-stretch gap-3">
-                  <Link
-                    to={itemHref}
-                    className={`inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl px-6 text-xs font-bold uppercase tracking-[0.2em] transition-colors ${CTA_ORANGE}`}
-                  >
-                    <ShoppingCart size={18} strokeWidth={2} aria-hidden />
-                    Découvrir
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => toggleFavorite(favoriteKey)}
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white transition-colors hover:border-[#F1A139] hover:text-[#F1A139] dark:border-white/15 dark:bg-transparent ${
-                      isFav ? "border-[#F1A139] text-[#F1A139]" : "text-neutral-700 dark:text-neutral-200"
-                    }`}
-                    aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
-                    aria-pressed={isFav}
-                  >
-                    <Heart size={20} className={isFav ? "fill-current" : ""} strokeWidth={1.5} />
-                  </button>
-                </div>
-                <div className="flex items-center gap-6 border-t border-neutral-200/80 pt-4 text-[11px] text-neutral-500 dark:border-white/10 dark:text-neutral-400">
-                  <p className="flex items-center gap-2">
-                    <Package size={14} strokeWidth={1.5} className="shrink-0 text-neutral-400" />
-                    Paiement à la livraison disponible
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <Shield size={14} strokeWidth={1.5} className="shrink-0 text-neutral-400" />
-                    Satisfait ou remboursé sous 7 jours
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        {/* Navigation carrousel sous la carte */}
-        <div className="mt-8 flex items-center justify-center">
-          <div className="flex items-center justify-center gap-6">
-            <button
-              type="button"
-              onClick={goToPrevious}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-600 transition-colors hover:bg-neutral-100 dark:border-white/15 dark:text-neutral-300 dark:hover:bg-white/5"
-              aria-label="Précédent"
-            >
-              <ChevronLeft size={20} strokeWidth={1.5} />
-            </button>
-            <button
-              type="button"
-              onClick={goToNext}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-600 transition-colors hover:bg-neutral-100 dark:border-white/15 dark:text-neutral-300 dark:hover:bg-white/5"
-              aria-label="Suivant"
-            >
-              <ChevronRight size={20} strokeWidth={1.5} />
-            </button>
-          </div>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
