@@ -133,14 +133,14 @@ export function Contact() {
       link: `tel:${p.replace(/\s/g, "")}`,
       gold: false,
     }));
-  const waRows = settings.whatsappNumbers
-    .map((n) => n.replace(/\D/g, ""))
+  const tgRows = settings.whatsappNumbers
+    .map((n) => n.replace(/^@/, "").trim())
     .filter(Boolean)
-    .map((d) => ({
-      icon: MessageCircle,
-      label: "WhatsApp",
-      value: `+${d}`,
-      link: `https://wa.me/${d}`,
+    .map((username) => ({
+      icon: Send,
+      label: "Telegram",
+      value: `@${username}`,
+      link: `https://t.me/${username}`,
       gold: true,
     }));
   const emailRows = [
@@ -164,7 +164,7 @@ export function Contact() {
   const contactOptions = [
     ...phoneRows,
     ...emailRows,
-    ...waRows,
+    ...tgRows,
   ];
 
   return (
@@ -400,7 +400,7 @@ export function Contact() {
           <div className="bg-bg-primary/80 backdrop-blur-2xl border border-border-primary shadow-[0_60px_150px_-40px_rgba(0,0,0,0.5)] flex items-center justify-center min-h-[420px] md:min-h-[520px] rounded-sm p-8">
             <div className="text-center">
               <h3 className="font-serif text-2xl mb-2">Contactez-nous</h3>
-              <p className="text-text-primary/60 max-w-md mx-auto">La messagerie privée (Accès Privilège) est désactivée sur ce site. Pour toute demande, utilisez les coordonnées à gauche (email, téléphone ou WhatsApp).</p>
+              <p className="text-text-primary/60 max-w-md mx-auto">La messagerie privée (Accès Privilège) est désactivée sur ce site. Pour toute demande, utilisez les coordonnées à gauche (email, téléphone ou Telegram).</p>
             </div>
           </div>
         )}

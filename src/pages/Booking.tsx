@@ -5,9 +5,9 @@ import { format, addDays, getDaysInMonth, startOfMonth, getDay, isBefore, isAfte
 import { fr } from "date-fns/locale";
 import { useAppContext } from "../context/AppContext";
 import { formatMoney } from "../lib/utils";
-import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
+import { primaryWhatsappDigits, getTelegramLink } from "../lib/siteSettingsDb";
 import { supabase } from "../lib/supabase";
-import { CheckCircle2, MessageCircle, ChevronLeft, ChevronRight, Users as UsersIcon, MapPin } from "lucide-react";
+import { CheckCircle2, Send, ChevronLeft, ChevronRight, Users as UsersIcon, MapPin } from "lucide-react";
 
 const COUNTRIES = [
   { name: "Maroc", code: "+212", flag: "🇲🇦", length: 9 },
@@ -183,8 +183,8 @@ export function Booking() {
     setStep(prev => (prev + 1) as any);
   };
 
-  const handleFinalSubmit = (channel: 'whatsapp') => {
-    if (channel === 'whatsapp') {
+  const handleFinalSubmit = (channel: 'telegram') => {
+    if (channel === 'telegram') {
       addReservation({
         activity_id: activity.id,
         activity_title: activity.title,
@@ -207,8 +207,6 @@ export function Booking() {
         price_type: priceType,
       });
 
-      const whatsappNumber = primaryWhatsappDigits(settings) || "212661000000";
-      
       // Format price message based on article or activity
       let activityPrice = '';
       if (dailyPrice) {
@@ -223,7 +221,7 @@ export function Booking() {
       const articleDisplay = article ? `\n📦 *Article :* ${article.title}` : '';
       
       // Simplified message to avoid characters that may not render correctly
-      // Uses simple ASCII separators and WhatsApp-supported markdown (*bold*, _italic_)
+      // Uses simple ASCII separators and Telegram-supported markdown (*bold*, _italic_)
       const messageText = `*DÉTAILS DE LA RÉSERVATION*
 
 ----------------------------------------
@@ -245,13 +243,12 @@ ${formData.message || "_Aucune_"}
 ----------------------------------------
 Demande générée via le Concierge Casa Privilege`;
 
-      const encodedText = encodeURIComponent(messageText);
-      window.open(`https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodedText}`, "_blank", "noopener,noreferrer");
+      window.open(getTelegramLink(settings, messageText), "_blank", "noopener,noreferrer");
       setStep(5);
     }
   };
 
-  // On-site transfer flow removed — tout passe par WhatsApp (paiement et confirmation via message)
+  // On-site transfer flow removed — tout passe par Telegram (paiement et confirmation via message)
 
   const handleDateClick = (day: Date) => {
     const clickedDay = startOfDay(day);
@@ -654,14 +651,14 @@ Demande générée via le Concierge Casa Privilege`;
 
               <div className="flex flex-col gap-4">
                 <button
-                  onClick={() => handleFinalSubmit('whatsapp')}
+                  onClick={() => handleFinalSubmit('telegram')}
                   className="flex items-center justify-center gap-3 md:gap-4 w-full min-h-12 py-3 md:py-5 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-colors duration-500 group"
                 >
-                  <MessageCircle size={20} strokeWidth={1.5} className="group-hover:scale-110 transition-transform duration-500" />
-                  <span className="uppercase tracking-[0.2em] md:tracking-widest text-[11px] md:text-sm font-medium">Finaliser via WhatsApp</span>
+                  <Send size={20} strokeWidth={1.5} className="group-hover:scale-110 transition-transform duration-500" />
+                  <span className="uppercase tracking-[0.2em] md:tracking-widest text-[11px] md:text-sm font-medium">Finaliser via Telegram</span>
                 </button>
 
-                <p className="text-xs text-text-primary/60 text-center">Paiement et confirmation uniquement via WhatsApp — le paiement sur le site a été désactivé.</p>
+                <p className="text-xs text-text-primary/60 text-center">Paiement et confirmation uniquement via Telegram — le paiement sur le site a été désactivé.</p>
               </div>
 
               <button type="button" onClick={() => setStep(2)} className="mt-4 text-text-primary/60 text-xs uppercase tracking-[0.2em] hover:text-text-primary transition-colors text-center py-4">

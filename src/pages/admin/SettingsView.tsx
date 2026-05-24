@@ -15,6 +15,7 @@ import {
   Palette,
   Image as ImageIcon,
   MessageCircle,
+  Send,
   Ticket,
   Layout as LayoutIcon,
   RotateCcw,
@@ -368,7 +369,7 @@ export function SettingsView() {
                 <div>
                   <label className={labelClass}>Paiements sur site</label>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm">Désactiver les paiements sur site (tout passe par WhatsApp)</p>
+                    <p className="text-sm">Désactiver les paiements sur site (tout passe par Telegram)</p>
                     <button
                       type="button"
                       role="switch"
@@ -804,8 +805,8 @@ export function SettingsView() {
                 </div>
 
                 <div className="space-y-8 border-t border-border-primary/30 pt-8">
-                  <h4 className={subsectionClass}>3 · Réseaux &amp; WhatsApp</h4>
-                  <p className="text-[10px] text-text-primary/35">Plusieurs comptes par réseau. WhatsApp : chiffres sans + ; le 1er sert au bouton flottant.</p>
+                  <h4 className={subsectionClass}>3 · Réseaux &amp; Telegram</h4>
+                  <p className="text-[10px] text-text-primary/35">Plusieurs comptes par réseau. Telegram : pseudo sans @ ; le 1er sert au bouton flottant.</p>
                   {(
                     [
                       { key: "instagram" as const, Icon: Instagram, name: "Instagram" },
@@ -835,20 +836,21 @@ export function SettingsView() {
                   ))}
                   <div className="space-y-2">
                     <label className={`${labelClass} flex items-center gap-2`}>
-                      <MessageCircle size={14} className="text-[#25D366]" aria-hidden />
-                      WhatsApp
+                      <Send size={14} className="text-[#24A1DE]" aria-hidden />
+                      Telegram
                     </label>
                     <StringListEditor
                       items={formData.whatsappNumbers}
                       onChange={(whatsappNumbers) => setFormData({ ...formData, whatsappNumbers })}
-                      placeholder="2126…"
-                      addLabel="Ajouter un numéro"
+                      placeholder="Casaprivilege"
+                      addLabel="Ajouter un compte"
                     />
                     <p className="text-[10px] text-text-primary/35">
-                      wa.me :{" "}
+                      t.me :{" "}
                       {formData.whatsappNumbers
-                        .map((n) => n.replace(/\D/g, ""))
+                        .map((n) => n.replace(/^@/, "").trim())
                         .filter(Boolean)
+                        .map((u) => `@${u}`)
                         .join(", ") || "—"}
                     </p>
                   </div>

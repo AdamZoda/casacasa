@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAppContext } from "../../context/AppContext";
 import { digitsOnlyForWaMe } from "../../lib/security";
-import { Check, X, MessageCircle, Trash2, Calendar, User, Users, Phone, Mail, ArrowRight, ShieldCheck, Clock, FileText } from "lucide-react";
+import { Check, X, MessageCircle, Send, Trash2, Calendar, User, Users, Phone, Mail, ArrowRight, ShieldCheck, Clock, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { CountryFlag } from "../../components/CountryFlag";
 
@@ -196,11 +196,11 @@ export function Reservations() {
                           <span className="block text-xs text-text-primary/50 font-normal mt-1">via {res.activity_title}</span>
                         )}
                       </p>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5 opacity-60">
-                           <div className={`w-1.5 h-1.5 rounded-full ${res.channel === 'whatsapp' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-brand-gold shadow-[0_0_8px_rgba(229,169,58,0.5)]'}`} />
-                           <span className="text-[9px] uppercase tracking-widest font-bold">via {res.channel}</span>
-                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1.5 opacity-60">
+                             <div className={`w-1.5 h-1.5 rounded-full ${res.channel === 'telegram' ? 'bg-[#24A1DE] shadow-[0_0_8px_rgba(36,161,222,0.5)]' : res.channel === 'whatsapp' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-brand-gold shadow-[0_0_8px_rgba(229,169,58,0.5)]'}`} />
+                             <span className="text-[9px] uppercase tracking-widest font-bold">via {res.channel}</span>
+                          </div>
                         {res.receipt_base64 && (
                           <div className="flex items-center gap-1 bg-brand-gold/10 px-2 py-0.5 rounded border border-brand-gold/20 animate-pulse-slow">
                             <FileText size={10} className="text-brand-gold" />
@@ -567,15 +567,16 @@ export function Reservations() {
                   onClick={() => {
                     const activityPrice = selectedRes.total_price ? `\n*Budget :* ${selectedRes.total_price.toLocaleString()} DH` : '';
                     const msg = `✨ *Bonjour ${selectedRes.name ?? "Client"},* \n\nC'est la Conciergerie Casa Privilege.\nSuite à votre réservation pour *${displayTitle(selectedRes)}* prévue du ${selectedRes.date ?? "—"} au ${selectedRes.end_date || selectedRes.date || "—"}...\n${activityPrice}\n\nComment pouvons-nous vous assister ?`;
+                    const digits = digitsOnlyForWaMe(selectedRes.phone_code, selectedRes.phone, selectedRes.contact);
                     window.open(
-                      `https://wa.me/${digitsOnlyForWaMe(selectedRes.phone_code, selectedRes.phone, selectedRes.contact)}?text=${encodeURIComponent(msg)}`,
+                      `https://t.me/+${digits}?text=${encodeURIComponent(msg)}`,
                       "_blank",
                       "noopener,noreferrer"
                     );
                   }}
                   className="w-16 h-16 flex items-center justify-center border border-border-primary hover:border-brand-gold text-text-primary/40 hover:text-brand-gold transition-all"
                 >
-                  <MessageCircle size={20} />
+                  <Send size={20} />
                 </button>
               </div>
             </motion.div>

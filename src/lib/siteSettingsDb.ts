@@ -175,20 +175,36 @@ function phonesFromRow(row: SiteSettingsRow, prev: SiteSettings): string[] {
 
 function whatsappFromRow(row: SiteSettingsRow, prev: SiteSettings): string[] {
   const fromNew = parseJsonStringArray(row.whatsapp_numbers);
-  if (fromNew.length) return fromNew.map((s) => s.replace(/\D/g, "")).filter(Boolean);
-  const legacy = row.whatsapp_number != null ? String(row.whatsapp_number).replace(/\D/g, "") : "";
+  if (fromNew.length) return fromNew.map((s) => s.replace(/^@/, "").trim()).filter(Boolean);
+  const legacy = row.whatsapp_number != null ? String(row.whatsapp_number).replace(/^@/, "").trim() : "";
   if (legacy) return [legacy];
-  return prev.whatsappNumbers.map((s) => s.replace(/\D/g, "")).filter(Boolean);
+  return prev.whatsappNumbers.map((s) => s.replace(/^@/, "").trim()).filter(Boolean);
 }
 
-/** Premier numéro WhatsApp (chiffres) pour boutons flottants / paiement. */
+/** Premier pseudo Telegram pour boutons flottants / paiement. */
 export function primaryWhatsappDigits(settings: SiteSettings): string {
-  return settings.whatsappNumbers.map((n) => n.replace(/\D/g, "")).filter(Boolean)[0] || "";
+  return settings.whatsappNumbers.map((n) => n.replace(/^@/, "").trim()).filter(Boolean)[0] || "Casaprivilege";
+}
+
+/** Génère un lien Telegram correct (gère les pseudos et numéros de téléphone hérités, avec repli vers Casaprivilege). */
+export function getTelegramLink(settings: SiteSettings, text?: string): string {
+  const target = settings.whatsappNumbers.map((n) => n.trim()).filter(Boolean)[0] || "Casaprivilege";
+  const cleanTarget = target.replace(/^@/, "");
+  
+  // Si c'est un numéro de téléphone hérité (uniquement des chiffres)
+  const isPureNumber = /^\d+$/.test(cleanTarget);
+  const username = isPureNumber ? "Casaprivilege" : cleanTarget;
+  
+  let url = `https://t.me/${username}`;
+  if (text) {
+    url += `?text=${encodeURIComponent(text)}`;
+  }
+  return url;
 }
 
 export function siteSettingsToDbRow(s: SiteSettings, id = 1): SiteSettingsRow {
   const cleanPhones = s.phones.map((p) => p.trim()).filter(Boolean);
-  const cleanWa = s.whatsappNumbers.map((n) => n.replace(/\D/g, "")).filter(Boolean);
+  const cleanWa = s.whatsappNumbers.map((n) => n.replace(/^@/, "").trim()).filter(Boolean);
   const cleanContactEmails = s.contactEmails
     .map((entry) => ({ label: entry.label.trim(), email: entry.email.trim().toLowerCase() }))
     .filter((entry) => entry.label && entry.email);

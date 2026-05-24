@@ -5,8 +5,8 @@ import { useAppContext } from "../context/AppContext";
 import { useShopping } from "../context/ShoppingContext";
 import { formatMoney } from "../lib/utils";
 import { supabase } from "../lib/supabase";
-import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
-import { CheckCircle2, MessageCircle, Globe, ChevronLeft, ShieldCheck } from "lucide-react";
+import { primaryWhatsappDigits, getTelegramLink } from "../lib/siteSettingsDb";
+import { CheckCircle2, Send, Globe, ChevronLeft, ShieldCheck } from "lucide-react";
 // ✅ SÉCURITÉ - Importation des fonctions de sanitization
 import { 
   sanitizeName, 
@@ -129,35 +129,26 @@ export function CheckoutFlow() {
     setStep(prev => (prev + 1) as any);
   };
 
-  const handlePaymentChoice = (channel: 'whatsapp') => {
-    if (channel === 'whatsapp') {
-      handleWhatsAppPayment();
+  const handlePaymentChoice = (channel: 'telegram') => {
+    if (channel === 'telegram') {
+      handleTelegramPayment();
     }
   };
 
-  const handleWhatsAppPayment = () => {
+  const handleTelegramPayment = () => {
     // ✅ SÉCURITÉ: Valider avant d'envoyer
     if (!validatePhoneForCountry(formData.phone, formData.country)) {
       alert('Téléphone invalide pour ' + formData.country);
       return;
     }
 
-    const whatsappNumber = primaryWhatsappDigits(settings) || "212661000000";
-    const itemsList = cart.map(item => `• *${item.title}* - ${formatMoney(item.price, currency, exchangeRates)}`).join('\n');
-    
-    // ✅ SÉCURITÉ: Utiliser sanitizeName, sanitizeEmail, sanitizePhone
-    const safeName = sanitizeName(formData.name);
-    const safeEmail = sanitizeEmail(formData.email);
-    const safePhone = sanitizePhone(formData.phone);
-    
     let messageText = `Bonjour Casa Privilege,\n\n*Je souhaite régler ma commande*\n\n*Articles:*\n${itemsList}\n\n*Client:*\nNom: ${safeName}\nEmail: ${safeEmail}\nTéléphone: ${formData.phoneCode} ${safePhone}\nPays: ${formData.country}\n\n*Total: ${formatMoney(total, currency, exchangeRates)}*\n\n_Demande générée via Casa Privilege Store_`;
     
     // ✅ SÉCURITÉ: Nettoyer le message avant envoi
     messageText = sanitizeWhatsappMessage(messageText);
 
-    const encodedText = encodeURIComponent(messageText);
     window.open(
-      `https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodedText}`,
+      getTelegramLink(settings, messageText),
       "_blank",
       "noopener,noreferrer"
     );
@@ -365,11 +356,11 @@ export function CheckoutFlow() {
 
               <div className="space-y-4">
                 <button
-                  onClick={() => handlePaymentChoice('whatsapp')}
+                  onClick={() => handlePaymentChoice('telegram')}
                   className="w-full flex items-center justify-center gap-4 py-8 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-500 uppercase tracking-[0.3em] text-[11px] font-black shadow-xl"
                 >
-                  <MessageCircle size={22} strokeWidth={1.5} />
-                  Payer via Concierge WhatsApp
+                  <Send size={22} strokeWidth={1.5} />
+                  Payer via Concierge Telegram
                 </button>
               </div>
 
@@ -400,11 +391,11 @@ export function CheckoutFlow() {
 
             <div>
               <h2 className="text-6xl font-serif mb-4">Commande Confirmée!</h2>
-              <p className="text-text-primary/60 font-light text-lg">Nous avons reçu votre demande — vous serez contacté via WhatsApp.</p>
+              <p className="text-text-primary/60 font-light text-lg">Nous avons reçu votre demande — vous serez contacté via Telegram.</p>
             </div>
 
             <div className="space-y-4 text-center">
-              <p className="text-text-primary/60 text-sm font-light">Un message WhatsApp a été ouvert pour finaliser le paiement.</p>
+              <p className="text-text-primary/60 text-sm font-light">Un message Telegram a été ouvert pour finaliser le paiement.</p>
               <p className="text-text-primary/40 text-[11px] uppercase tracking-[0.2em]">Vous serez contacté très bientôt par notre équipe</p>
             </div>
 

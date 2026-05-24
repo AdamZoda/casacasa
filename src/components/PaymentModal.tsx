@@ -1,6 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, MessageCircle, CheckCircle2 } from "lucide-react";
+import { X, Send, CheckCircle2 } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import { formatMoney } from "../lib/utils";
 import { supabase } from "../lib/supabase";
@@ -48,10 +48,10 @@ export function PaymentModal({ isOpen, onClose, items, total }: PaymentModalProp
     loadUserProfile();
   }, [isOpen]);
 
-  const handleWhatsApp = () => {
+  const handleTelegram = () => {
     const text = encodeURIComponent(`Bonjour Casa Privilege, je souhaite régler ma commande de ${formatMoney(total ?? 0, currency, exchangeRates)}.`);
     window.open(
-      `https://wa.me/${primaryWhatsappDigits(settings) || "212600000000"}?text=${text}`,
+      `https://t.me/${primaryWhatsappDigits(settings) || "Casaprivilege"}?text=${text}`,
       "_blank",
       "noopener,noreferrer"
     );
@@ -94,11 +94,11 @@ export function PaymentModal({ isOpen, onClose, items, total }: PaymentModalProp
 
                 <div className="space-y-6">
                   <button
-                    onClick={handleWhatsApp}
+                    onClick={handleTelegram}
                     className="flex items-center justify-center gap-6 w-full py-6 bg-text-primary text-bg-primary hover:bg-brand-gold hover:text-brand-black transition-all duration-500 rounded-full"
                   >
-                    <MessageCircle size={22} strokeWidth={1.5} />
-                    <span className="uppercase tracking-[0.3em] text-[11px] font-black">Payer via WhatsApp</span>
+                    <Send size={22} strokeWidth={1.5} />
+                    <span className="uppercase tracking-[0.3em] text-[11px] font-black">Payer via Telegram</span>
                   </button>
                 </div>
               </div>

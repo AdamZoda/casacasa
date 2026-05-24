@@ -45,7 +45,7 @@ export interface Reservation {
   total_price?: number;
   receipt_base64?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
-  channel: 'web' | 'whatsapp';
+  channel: 'web' | 'whatsapp' | 'telegram';
   message?: string;
   article_id?: string;
   article_title?: string;

@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Moon, Sun, User, ShoppingBag, LogIn, LogOut, Menu, X, Heart, Settings, Shield, Search, Globe } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import { useShopping } from "../context/ShoppingContext";
-import { primaryWhatsappDigits } from "../lib/siteSettingsDb";
+import { primaryWhatsappDigits, getTelegramLink } from "../lib/siteSettingsDb";
 import { useAuth } from "../context/AuthContext";
 import { useAdminAccess } from "../hooks/useAdminAccess";
 import { translations } from "../i18n/translations";
@@ -712,15 +712,17 @@ export function Layout() {
 
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
-      {/* Floating WhatsApp Button */}
+      {/* Floating Telegram Button */}
       <a
-        href={`https://wa.me/${primaryWhatsappDigits(settings) || "1234567890"}`}
+        href={getTelegramLink(settings)}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-[max(1rem,env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] z-50 flex h-14 w-14 touch-manipulation items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl transition-transform hover:scale-105 active:scale-95 sm:bottom-[max(2rem,env(safe-area-inset-bottom,0px))] sm:right-[max(2rem,env(safe-area-inset-right,0px))] sm:h-[4.25rem] sm:w-[4.25rem]"
-        aria-label="WhatsApp"
+        className="fixed bottom-[max(1rem,env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] z-50 flex h-14 w-14 touch-manipulation items-center justify-center rounded-full bg-[#24A1DE] text-white shadow-2xl transition-transform hover:scale-105 active:scale-95 sm:bottom-[max(2rem,env(safe-area-inset-bottom,0px))] sm:right-[max(2rem,env(safe-area-inset-right,0px))] sm:h-[4.25rem] sm:w-[4.25rem]"
+        aria-label="Telegram"
       >
-        <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.022c.24-.213-.054-.33-.373-.12l-6.869 4.326-2.96-.924c-.643-.203-.658-.643.136-.953l11.57-4.458c.537-.203.996.124.816.924z" />
+        </svg>
       </a>
     </div>
   );
