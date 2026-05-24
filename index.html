@@ -2,7 +2,10 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="MobileOptimized" content="width" />
+    <meta name="format-detection" content="telephone=no" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="theme-color" content="#F9F8F6" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)" />
@@ -10,16 +13,39 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Casa Privilege" />
     <meta name="description" content="Casa Privilege delivers luxury concierge and lifestyle services for private travel, VIP events, and bespoke experiences across France and Europe." />
-    <meta property="og:title" content="Casa Privilege | Luxury Concierge Services in France & Europe" />
+    <link rel="canonical" href="https://casaprivilege.com/" />
+    <meta property="og:title" content="Casa Privilege — Conciergerie de Luxe & Expériences Sur Mesure en France et Europe" />
     <meta property="og:description" content="Casa Privilege delivers luxury concierge and lifestyle services for private travel, VIP events, and bespoke experiences across France and Europe." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://casaprivilege.com/" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="Casa Privilege" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Casa Privilege — Conciergerie de Luxe & Expériences Sur Mesure" />
+    <meta name="twitter:description" content="Services de conciergerie privée, voyages VIP et expériences sur mesure en France et Europe." />
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    <title>Casa Privilege | Luxury Concierge Services in France & Europe</title>
+    <title>Casa Privilege — Conciergerie de Luxe & Expériences Sur Mesure en France et Europe</title>
     <!-- Preload local fonts to improve first paint / LCP -->
     <link rel="preload" href="/src/lib/Kiona-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="/src/lib/Riona.otf" as="font" type="font/otf" crossorigin>
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Casa Privilege",
+      "url": "https://casaprivilege.com",
+      "description": "Services de conciergerie de luxe, voyages privés, événements VIP et expériences sur mesure en France et en Europe.",
+      "sameAs": [],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "availableLanguage": ["French", "English"]
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

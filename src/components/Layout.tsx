@@ -40,22 +40,24 @@ export function Layout() {
   // Update document title on route change
   useEffect(() => {
     const pageTitles: Record<string, string> = {
-      '/': 'Excellence Sur Mesure | Casa Privilege',
-      '/services': 'Services de Luxe | Casa Privilege',
-      '/store': 'La Boutique Exclusive | Casa Privilege',
-      '/journal': 'Le Journal du Luxe | Casa Privilege',
-      '/contact': 'Salon de Conciergerie | Casa Privilege',
-      '/cart': 'Votre Panier | Boutique Casa Privilege',
-      '/profile': 'Espace Membre | Casa Privilege',
-      '/auth': 'Accès Privé | Casa Privilege',
-      '/admin': 'Panneau de Commande | Casa Privilege Admin'
+      '/': 'Casa Privilege — Conciergerie de Luxe & Expériences Sur Mesure',
+      '/services': 'Services de Conciergerie Privée & Voyages VIP | Casa Privilege',
+      '/store': 'Boutique Exclusive — Sélection Luxe Raffinée | Casa Privilege',
+      '/journal': 'Le Journal — Récits & Inspirations Luxe | Casa Privilege',
+      '/contact': 'Contactez Notre Conciergerie Privée | Casa Privilege',
+      '/cart': 'Votre Panier — Boutique de Luxe | Casa Privilege',
+      '/profile': 'Espace Membre Privilège — Mon Compte | Casa Privilege',
+      '/auth': 'Connexion Membre — Accès Espace Privé | Casa Privilege',
+      '/admin': 'Administration & Gestion du Site | Casa Privilege Admin',
+      '/brands': 'Nos Marques Partenaires de Prestige | Casa Privilege',
+      '/about': 'À Propos — Notre Histoire & Vision | Casa Privilege',
     };
     
-    let title = pageTitles[location.pathname] || 'Casa Privilege | Excellence Sur Mesure';
+    let title = pageTitles[location.pathname] || 'Casa Privilege — Conciergerie de Luxe & Expériences Sur Mesure';
     
-    if (location.pathname.startsWith('/universe/')) title = 'Découvrir l\'Univers | Casa Privilege';
-    if (location.pathname.startsWith('/journal/')) title = 'Récit Exclusif | Casa Privilege';
-    if (location.pathname.startsWith('/admin')) title = 'Dashboard Admin | Casa Privilege';
+    if (location.pathname.startsWith('/universe/')) title = 'Découvrir l\'Univers — Expériences Exclusives | Casa Privilege';
+    if (location.pathname.startsWith('/journal/')) title = 'Récit Exclusif — Le Journal du Luxe | Casa Privilege';
+    if (location.pathname.startsWith('/admin')) title = 'Panneau d\'Administration du Site | Casa Privilege';
 
     document.title = title;
   }, [location.pathname]);
