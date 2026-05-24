@@ -141,6 +141,11 @@ export function CheckoutFlow() {
       alert('Téléphone invalide pour ' + formData.country);
       return;
     }
+    // Préparer la liste d'articles et les valeurs sécurisées
+    const itemsList = cart.map(item => `- ${item.title} — ${formatMoney(item.price, currency, exchangeRates)}`).join('\n');
+    const safeName = sanitizeName(formData.name || '');
+    const safeEmail = sanitizeEmail(formData.email || '');
+    const safePhone = sanitizePhone(formData.phone || '');
 
     let messageText = `Bonjour Casa Privilege,\n\n*Je souhaite régler ma commande*\n\n*Articles:*\n${itemsList}\n\n*Client:*\nNom: ${safeName}\nEmail: ${safeEmail}\nTéléphone: ${formData.phoneCode} ${safePhone}\nPays: ${formData.country}\n\n*Total: ${formatMoney(total, currency, exchangeRates)}*\n\n_Demande générée via Casa Privilege Store_`;
     
