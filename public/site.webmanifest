@@ -1,0 +1,16 @@
+{
+  "name": "Casa Privilege Luxury Concierge",
+  "short_name": "Casa Privilege",
+  "description": "Luxury concierge and lifestyle services for private travel, VIP events, and bespoke experiences across France and Europe.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F9F8F6",
+  "theme_color": "#E5A93A",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
